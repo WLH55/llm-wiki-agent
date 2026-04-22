@@ -110,9 +110,9 @@ python tools/lint.py
 
 ### 两种运行模式
 
-1. **代理驱动（推荐）** — Claude Code 读取 `CLAUDE.md` 和 `.claude/commands/`，使用内置能力执行导入/查询/检查/图谱操作，包括语义推断。无需配置 API 密钥。
+1. **代理驱动（推荐）** — Claude Code 读取 `CLAUDE.md` 和 `.claude/commands/`，使用内置能力执行导入/查询/检查/图谱操作，包括语义推断。
 
-2. **独立 Python 脚本** — `tools/*.py` 执行机械部分（wikilink 提取、关键词匹配、哈希对比、结构检查）。不需要 litellm 或 API 密钥。语义相关的操作（导入、综合回答、语义推断）由代理完成。
+2. **独立 Python 脚本** — `tools/*.py` 执行机械部分（wikilink 提取、关键词匹配、哈希对比、结构检查）。语义相关的操作（导入、综合回答、语义推断）由代理完成。
 
 ### 核心数据流
 
@@ -370,7 +370,7 @@ ingest raw/papers/my-paper.md
 - 使用 `tools/pdf2md.py` 在导入前将 PDF 和 arXiv 论文转换为 Markdown——参见 [PDF 转换](#pdf-和-arxiv-论文转换)
 - 查询答案会先展示——代理随后询问你是否要保存为综合页面。你的探索像导入的来源一样不断累积
 - 知识库是一个 Git 仓库——自带版本历史
-- `tools/` 中的独立 Python 脚本无需编码代理即可工作（不调用 LLM，不需要 API 密钥）
+- `tools/` 中的独立 Python 脚本无需编码代理即可工作
 
 ## 技术栈
 

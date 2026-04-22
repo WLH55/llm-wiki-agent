@@ -62,7 +62,7 @@ pip install marker-pdf          # 复杂学术 PDF（可选）
 pip install pymupdf4llm         # 轻量 PDF 提取（可选）
 ```
 
-要求 Python >=3.10, <3.14。工具脚本不依赖 litellm 或 API 密钥。
+要求 Python >=3.10, <3.14。
 
 ---
 
