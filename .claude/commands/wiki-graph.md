@@ -4,7 +4,13 @@
 
 首先尝试运行：python tools/build_graph.py --open
 
-如果失败（缺少依赖），手动构建图谱：
+如果失败且报错显示缺少依赖：
+
+1. 先安装项目依赖：`pip install -e .`
+2. 安装完成后重新运行：`python tools/build_graph.py --open`
+3. 只有在重新运行后仍失败时，才手动构建图谱
+
+手动构建图谱：
 
 1. 使用 Grep 查找 wiki/ 中所有文件的 [[wikilinks]]
 2. 构建节点列表：每个知识库页面一个节点，id=相对路径，label=标题，type 来自 frontmatter

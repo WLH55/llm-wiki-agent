@@ -39,29 +39,151 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
-def call_llm(prompt: str, model_env: str, default_model: str, max_tokens: int = 4096) -> str:
+def call_llm(
+    prompt: str, model_env: str, default_model: str, max_tokens: int = 4096
+) -> str:
     try:
         from litellm import completion
     except ImportError:
         print("错误: litellm 未安装。请运行: pip install litellm")
         sys.exit(1)
-        
+
     model = os.getenv(model_env, default_model)
     response = completion(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
     )
     return response.choices[0].message.content
 
 
+def run_semantic_check(pages: list[Path]) -> tuple[str, str | None]:
+    # 使用页面样本以保持在上下文限制内
+    sample = pages[:20]
+    pages_context = ""
+    for p in sample:
+        rel = p.relative_to(REPO_ROOT)
+        pages_context += f"\n\n### {rel}\n{read_file(p)[:1500]}"
+
+    print("  正在通过 API 运行语义检查...")
+    prompt = f"""你正在对一个 LLM Wiki 进行健康检查。请审阅以下页面并识别:
+1. 页面之间的矛盾（相互冲突的论断）
+2. 过时内容（已被更新来源取代的摘要）
+3. 数据缺口（wiki 无法回答的重要问题 — 建议具体的查找来源）
+4. 被提及但缺乏深度的概念
+
+Wiki 页面（共 {len(sample)} 个页面的样本）:
+{pages_context}
+
+请返回一份 markdown 格式的检查报告，包含以下章节:
+## 矛盾
+## 过时内容
+## 数据缺口与建议来源
+## 需要深化的概念
+
+请具体说明 — 列出涉及的确切页面和论断。
+"""
+    try:
+        return call_llm(
+            prompt, "LLM_MODEL", "claude-3-5-sonnet-latest", max_tokens=3000
+        ), None
+    except Exception as exc:
+        message = str(exc).replace("\n", " ").strip()
+        print(f"  [跳过] 语义检查不可用: {message[:160]}")
+        fallback = "\n".join(
+            [
+                "## 矛盾",
+                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
+                "",
+                "## 过时内容",
+                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
+                "",
+                "## 数据缺口与建议来源",
+                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
+                "",
+                "## 需要深化的概念",
+                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
+            ]
+        )
+        return fallback, message
+
+
 def all_wiki_pages() -> list[Path]:
-    return [p for p in WIKI_DIR.rglob("*.md")
-            if p.name not in ("index.md", "log.md", "lint-report.md")]
+    return [
+        p
+        for p in WIKI_DIR.rglob("*.md")
+        if p.name not in ("index.md", "log.md", "lint-report.md")
+    ]
+
+
+REQUIRED_FIELDS_BY_TYPE = {
+    "source": {"title", "type", "tags", "date", "source_file"},
+    "entity": {"title", "type", "tags", "sources", "last_updated"},
+    "concept": {"title", "type", "tags", "sources", "last_updated"},
+    "synthesis": {"title", "type", "tags", "sources", "last_updated"},
+}
+
+
+def parse_frontmatter_fields(content: str) -> tuple[bool, dict[str, str]]:
+    match = re.match(r"^---\n(.*?)\n---\n?", content, re.DOTALL)
+    if not match:
+        return False, {}
+
+    fields: dict[str, str] = {}
+    for line in match.group(1).splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        fields[key.strip()] = value.strip()
+    return True, fields
+
+
+def find_frontmatter_problems(pages: list[Path]) -> list[dict]:
+    problems = []
+    for p in pages:
+        content = read_file(p)
+        has_frontmatter, fields = parse_frontmatter_fields(content)
+
+        if not has_frontmatter:
+            problems.append(
+                {
+                    "path": str(p.relative_to(REPO_ROOT)),
+                    "kind": "missing_frontmatter",
+                }
+            )
+            continue
+
+        page_type = fields.get("type", "").strip("\"'")
+        if not page_type or page_type not in REQUIRED_FIELDS_BY_TYPE:
+            problems.append(
+                {
+                    "path": str(p.relative_to(REPO_ROOT)),
+                    "kind": "unknown_type",
+                    "type": page_type or "<missing>",
+                }
+            )
+            continue
+
+        missing_fields = sorted(
+            field
+            for field in REQUIRED_FIELDS_BY_TYPE[page_type]
+            if field not in fields or not fields[field]
+        )
+        if missing_fields:
+            problems.append(
+                {
+                    "path": str(p.relative_to(REPO_ROOT)),
+                    "kind": "missing_fields",
+                    "type": page_type,
+                    "fields": missing_fields,
+                }
+            )
+
+    return problems
 
 
 def extract_wikilinks(content: str) -> list[str]:
-    return re.findall(r'\[\[([^\]]+)\]\]', content)
+    return re.findall(r"\[\[([^\]]+)\]\]", content)
 
 
 def page_name_to_path(name: str) -> list[Path]:
@@ -109,6 +231,7 @@ def find_missing_entities(pages: list[Path]) -> list[str]:
 
 # ── 图感知检查 ──────────────────────────────────────────────
 
+
 def load_graph_data() -> dict | None:
     """加载 graph.json（如存在）。文件缺失时返回 None（优雅降级）。"""
     if not GRAPH_JSON.exists():
@@ -133,13 +256,12 @@ def _build_degree_map(graph_data: dict) -> dict[str, int]:
 
 def _build_community_map(graph_data: dict) -> dict[str, int]:
     """根据图的节点构建 node_id -> community_id 映射。"""
-    return {
-        node["id"]: node.get("group", -1)
-        for node in graph_data.get("nodes", [])
-    }
+    return {node["id"]: node.get("group", -1) for node in graph_data.get("nodes", [])}
 
 
-def check_hub_stubs(graph_data: dict, pages: list[Path], min_content_chars: int = 500) -> list[dict]:
+def check_hub_stubs(
+    graph_data: dict, pages: list[Path], min_content_chars: int = 500
+) -> list[dict]:
     """查找度数超过均值+2倍标准差且内容过短的核心节点。"""
     degrees = _build_degree_map(graph_data)
     deg_values = list(degrees.values())
@@ -165,12 +287,14 @@ def check_hub_stubs(graph_data: dict, pages: list[Path], min_content_chars: int 
             continue
         content_len = len(read_file(path))
         if content_len < min_content_chars:
-            results.append({
-                "node_id": node_id,
-                "degree": deg,
-                "content_len": content_len,
-                "path": str(path.relative_to(REPO_ROOT)),
-            })
+            results.append(
+                {
+                    "node_id": node_id,
+                    "degree": deg,
+                    "content_len": content_len,
+                    "path": str(path.relative_to(REPO_ROOT)),
+                }
+            )
     return sorted(results, key=lambda x: x["degree"], reverse=True)
 
 
@@ -224,11 +348,13 @@ def check_isolated_communities(graph_data: dict) -> list[dict]:
         if len(members) < 2:  # 跳过单节点"社区"
             continue
         if comm_id not in has_external:
-            results.append({
-                "community_id": comm_id,
-                "node_count": len(members),
-                "members": members[:10],  # 限制显示数量
-            })
+            results.append(
+                {
+                    "community_id": comm_id,
+                    "node_count": len(members),
+                    "members": members[:10],  # 限制显示数量
+                }
+            )
     return results
 
 
@@ -246,10 +372,12 @@ def run_lint():
     orphans = find_orphans(pages)
     broken = find_broken_links(pages)
     missing_entities = find_missing_entities(pages)
+    frontmatter_problems = find_frontmatter_problems(pages)
 
     print(f"  孤立页面: {len(orphans)}")
     print(f"  失效链接: {len(broken)}")
     print(f"  缺失实体页面: {len(missing_entities)}")
+    print(f"  Frontmatter 问题: {len(frontmatter_problems)}")
 
     # ── 图感知检查 ──
     graph_data = load_graph_data()
@@ -270,33 +398,7 @@ def run_lint():
     else:
         print("  [跳过] 没有 graph.json — 请先运行 build_graph.py 以启用图感知检查")
 
-    # 构建语义检查的上下文（矛盾、缺口）
-    # 使用页面样本以保持在上下文限制内
-    sample = pages[:20]
-    pages_context = ""
-    for p in sample:
-        rel = p.relative_to(REPO_ROOT)
-        pages_context += f"\n\n### {rel}\n{read_file(p)[:1500]}"  # 截断过长的页面
-
-    print("  正在通过 API 运行语义检查...")
-    prompt = f"""你正在对一个 LLM Wiki 进行健康检查。请审阅以下页面并识别:
-1. 页面之间的矛盾（相互冲突的论断）
-2. 过时内容（已被更新来源取代的摘要）
-3. 数据缺口（wiki 无法回答的重要问题 — 建议具体的查找来源）
-4. 被提及但缺乏深度的概念
-
-Wiki 页面（共 {len(sample)} 个页面的样本）:
-{pages_context}
-
-请返回一份 markdown 格式的检查报告，包含以下章节:
-## 矛盾
-## 过时内容
-## 数据缺口与建议来源
-## 需要深化的概念
-
-请具体说明 — 列出涉及的确切页面和论断。
-"""
-    semantic_report = call_llm(prompt, "LLM_MODEL", "claude-3-5-sonnet-latest", max_tokens=3000)
+    semantic_report, semantic_error = run_semantic_check(pages)
 
     # 组装完整报告
     report_lines = [
@@ -317,17 +419,40 @@ Wiki 页面（共 {len(sample)} 个页面的样本）:
     if broken:
         report_lines.append("### 失效的 Wikilink")
         for page, link in broken:
-            report_lines.append(f"- `{page.relative_to(REPO_ROOT)}` 链接到 `[[{link}]]` — 未找到目标页面")
+            report_lines.append(
+                f"- `{page.relative_to(REPO_ROOT)}` 链接到 `[[{link}]]` — 未找到目标页面"
+            )
         report_lines.append("")
 
     if missing_entities:
         report_lines.append("### 缺失的实体页面（被提及 3 次以上但没有独立页面）")
-        report_lines.append("> [!warning] 需要处理\n> 运行 `python3 generate_missing_entities.py` 可自动生成这些缺失的核心页面。")
+        report_lines.append(
+            "> [!warning] 需要处理\n> 运行 `python3 generate_missing_entities.py` 可自动生成这些缺失的核心页面。"
+        )
         for name in missing_entities:
             report_lines.append(f"- `[[{name}]]`")
         report_lines.append("")
 
-    if not orphans and not broken and not missing_entities:
+    report_lines.append("### Frontmatter 问题")
+    if frontmatter_problems:
+        for problem in frontmatter_problems:
+            if problem["kind"] == "missing_frontmatter":
+                report_lines.append(f"- `{problem['path']}` 缺少 YAML frontmatter")
+            elif problem["kind"] == "unknown_type":
+                report_lines.append(
+                    f"- `{problem['path']}` 的 `type` 缺失或未知：`{problem['type']}`"
+                )
+            else:
+                missing = ", ".join(problem["fields"])
+                report_lines.append(
+                    f"- `{problem['path']}` 缺少必需字段（{problem['type']}）：{missing}"
+                )
+        report_lines.append("")
+    else:
+        report_lines.append("未发现 frontmatter 问题。")
+        report_lines.append("")
+
+    if not orphans and not broken and not missing_entities and not frontmatter_problems:
         report_lines.append("未发现结构性问题。")
         report_lines.append("")
 
@@ -337,11 +462,15 @@ Wiki 页面（共 {len(sample)} 个页面的样本）:
 
     if not graph_data:
         report_lines.append("> [!tip]")
-        report_lines.append("> 图感知检查已跳过。请先运行 `python tools/build_graph.py`，然后重新执行检查。")
+        report_lines.append(
+            "> 图感知检查已跳过。请先运行 `python tools/build_graph.py`，然后重新执行检查。"
+        )
         report_lines.append("")
     elif not graph_data.get("nodes") or not graph_data.get("edges"):
         report_lines.append("> [!tip]")
-        report_lines.append("> 图数据为空。请导入来源并运行 `python tools/build_graph.py` 以填充数据。")
+        report_lines.append(
+            "> 图数据为空。请导入来源并运行 `python tools/build_graph.py` 以填充数据。"
+        )
         report_lines.append("")
     else:
         # 核心节点内容检查
@@ -353,9 +482,13 @@ Wiki 页面（共 {len(sample)} 个页面的样本）:
             report_lines.append("|---|---|---|---|")
             for hs in hub_stubs:
                 status = "🔴 存根" if hs["content_len"] < 250 else "🟡 单薄"
-                report_lines.append(f"| `{hs['path']}` | {hs['degree']} | {hs['content_len']} 字符 | {status} |")
+                report_lines.append(
+                    f"| `{hs['path']}` | {hs['degree']} | {hs['content_len']} 字符 | {status} |"
+                )
         else:
-            report_lines.append("未检测到内容不足的核心页面 — 所有高度数节点均有充足内容。")
+            report_lines.append(
+                "未检测到内容不足的核心页面 — 所有高度数节点均有充足内容。"
+            )
         report_lines.append("")
 
         # 脆弱桥接
@@ -363,7 +496,9 @@ Wiki 页面（共 {len(sample)} 个页面的样本）:
         if fragile_bridges:
             report_lines.append("这些社区连接仅依赖单条边 — 一旦断开即可导致社区隔离:")
             for fb in fragile_bridges:
-                report_lines.append(f"- 社区 {fb['comm_a']} ↔ 社区 {fb['comm_b']}，经由 `{fb['bridge_from']}` → `{fb['bridge_to']}`")
+                report_lines.append(
+                    f"- 社区 {fb['comm_a']} ↔ 社区 {fb['comm_b']}，经由 `{fb['bridge_from']}` → `{fb['bridge_to']}`"
+                )
         else:
             report_lines.append("无脆弱桥接 — 所有社区连接均有冗余链接。")
         report_lines.append("")
@@ -379,13 +514,18 @@ Wiki 页面（共 {len(sample)} 个页面的样本）:
                 members_str = ", ".join(ic["members"][:5])
                 if ic["node_count"] > 5:
                     members_str += ", …"
-                report_lines.append(f"| {ic['community_id']} | {ic['node_count']} | {members_str} |")
+                report_lines.append(
+                    f"| {ic['community_id']} | {ic['node_count']} | {members_str} |"
+                )
         else:
             report_lines.append("无孤立社区 — 所有集群均有外部连接。")
         report_lines.append("")
 
     report_lines.append("---")
     report_lines.append("")
+    if semantic_error:
+        report_lines.append(f"> [!tip]\n> 语义检查已跳过：{semantic_error[:200]}")
+        report_lines.append("")
     report_lines.append(semantic_report)
 
     report = "\n".join(report_lines)
@@ -400,7 +540,9 @@ def append_log(entry: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="对 LLM Wiki 进行健康检查")
-    parser.add_argument("--save", action="store_true", help="将检查报告保存到 wiki/lint-report.md")
+    parser.add_argument(
+        "--save", action="store_true", help="将检查报告保存到 wiki/lint-report.md"
+    )
     args = parser.parse_args()
 
     report = run_lint()
@@ -411,4 +553,6 @@ if __name__ == "__main__":
         print(f"\n已保存: {report_path.relative_to(REPO_ROOT)}")
 
     today = date.today().isoformat()
-    append_log(f"## [{today}] lint | Wiki 健康检查\n\n已执行健康检查。详见 lint-report.md。")
+    append_log(
+        f"## [{today}] lint | Wiki 健康检查\n\n已执行健康检查。详见 lint-report.md。"
+    )

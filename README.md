@@ -31,18 +31,90 @@ graph/
 
 **前置条件：** [Claude Code](https://claude.ai/code)、[Codex](https://openai.com/codex)、[Gemini CLI](https://github.com/google-gemini/gemini-cli)，或任何能读取配置文件的代理。
 
+**Python 环境：** Python `>=3.10, <3.14`
+
 ```bash
 git clone https://github.com/SamurAIGPT/llm-wiki-agent.git
 cd llm-wiki-agent
+python -m venv .venv
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+# macOS / Linux
+# source .venv/bin/activate
+pip install -e .
 ```
 
-在代理中打开——无需 API 密钥或 Python 环境：
+如果你需要 PDF / arXiv 转 Markdown，再按需安装可选依赖：
+
+```bash
+pip install arxiv2markdown      # arXiv 转换
+pip install marker-pdf          # 复杂 PDF
+pip install pymupdf4llm         # 轻量 PDF 提取
+```
+
+## 启动项目
+
+这个项目没有 Web 服务或单独的后台进程；“启动”方式取决于你使用哪种模式。
+
+### 方式 1：代理驱动模式（推荐）
+
+在仓库根目录启动你的代理，让它读取仓库里的规则文件：
 
 ```bash
 claude      # 读取 CLAUDE.md + .claude/commands/（可使用斜杠命令）
 codex       # 读取 AGENTS.md
 opencode    # 读取 AGENTS.md
 gemini      # 读取 GEMINI.md
+```
+
+启动后就可以直接用自然语言或命令：
+
+```bash
+/wiki-ingest raw/papers/my-paper.md
+/wiki-query 主要主题有哪些？
+/wiki-lint
+/wiki-graph
+```
+
+### 方式 2：独立 Python 脚本模式
+
+如果你不使用代理，也可以直接运行 `tools/*.py`。
+
+先配置 LLM 环境变量（例如 Anthropic）：
+
+```bash
+# Windows PowerShell
+$env:ANTHROPIC_API_KEY="your-key"
+
+# macOS / Linux
+# export ANTHROPIC_API_KEY="your-key"
+```
+
+然后直接运行脚本：
+
+```bash
+python tools/ingest.py raw/papers/my-paper.md
+python tools/query.py "主要主题有哪些？"
+python tools/lint.py
+python tools/build_graph.py --open
+```
+
+## 快速开始
+
+### 代理模式
+
+```bash
+claude
+# 然后在代理里输入：
+# /wiki-ingest raw/papers/my-paper.md
+```
+
+### Python 脚本模式
+
+```bash
+python tools/ingest.py raw/papers/my-paper.md
+python tools/build_graph.py --no-infer
+python tools/lint.py
 ```
 
 ## 架构

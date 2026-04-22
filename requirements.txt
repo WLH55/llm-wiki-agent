@@ -1,2 +1,0 @@
-litellm>=1.0.0
-networkx>=3.2

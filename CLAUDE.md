@@ -55,8 +55,7 @@ python tools/file_to_markdown.py <输入目录>
 ### 依赖安装
 
 ```bash
-pip install litellm networkx    # 独立 Python 脚本必需
-pip install markitdown[all]     # file_to_markdown.py 需要
+pip install -e .                # 核心依赖，单一真源为 pyproject.toml
 pip install arxiv2markdown      # arXiv PDF 转换
 pip install marker-pdf          # 复杂学术 PDF（可选）
 pip install pymupdf4llm         # 轻量 PDF 提取（可选）
@@ -89,6 +88,12 @@ Claude Code 自动读取本文件并遵循以下工作流。
 ## 导入工作流
 
 触发方式：*"ingest <文件>"* 或 `/wiki-ingest`
+
+### 页面元数据规则
+
+- `wiki/index.md` 和 `wiki/log.md` 是系统页面，不使用标准 frontmatter。
+- 其他所有 wiki 页面都必须以 YAML frontmatter 开头。
+- 每个普通 wiki 页面至少必须包含 `title`、`type` 和与页面类型对应的必需元数据字段。
 
 步骤（按顺序）：
 1. 使用 Read 工具完整读取源文档
@@ -129,6 +134,60 @@ source_file: raw/...
 
 ## 矛盾
 - 与 [[OtherPage]] 在以下方面矛盾：...
+```
+
+### 实体页面格式
+
+```markdown
+---
+title: "实体名称"
+type: entity
+tags: []
+sources: []
+last_updated: YYYY-MM-DD
+---
+
+# 实体名称
+
+一句话定义。
+
+## 关联
+- [[OtherPage]] — 关系说明
+```
+
+### 概念页面格式
+
+```markdown
+---
+title: "概念名称"
+type: concept
+tags: []
+sources: []
+last_updated: YYYY-MM-DD
+---
+
+# 概念名称
+
+一句话定义。
+
+## 关联
+- [[OtherPage]] — 关系说明
+```
+
+### 综合页面格式
+
+```markdown
+---
+title: "综合标题"
+type: synthesis
+tags: []
+sources: []
+last_updated: YYYY-MM-DD
+---
+
+# 综合标题
+
+对问题的综合回答。
 ```
 
 ### 领域专用模板
@@ -195,6 +254,7 @@ date: YYYY-MM-DD
 使用 Grep 和 Read 工具检查：
 - **孤立页面** — 没有来自其他页面入站 `[[links]]` 的知识库页面
 - **断裂链接** — 指向不存在页面的 `[[WikiLinks]]`
+- **缺失或不完整的 frontmatter** — 普通 wiki 页面缺少 YAML frontmatter，或缺少其 `type` 对应的必需字段
 - **矛盾** — 页面间冲突的论点
 - **过时摘要** — 在更新来源后未更新的页面
 - **缺失实体页面** — 在 3+ 页面中提到但没有专属页面的实体
