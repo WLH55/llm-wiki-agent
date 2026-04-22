@@ -8,30 +8,30 @@ LLM Wiki Agent 是一个知识管理工具。将源文档放入 `raw/` 目录，
 
 ## 常用命令
 
-### Python 工具脚本（独立运行，需要 ANTHROPIC_API_KEY）
+### Python 工具脚本（机械执行，不调用 LLM）
 
 ```bash
-# 导入源文档到知识库
-python tools/ingest.py raw/articles/my-article.md
+# 验证 wiki 完整性（断链、未索引页面）
+python tools/ingest.py --validate-only
 
-# 查询知识库
+# 查找与问题相关的 wiki 页面（关键词匹配）
 python tools/query.py "主要主题有哪些？"
 
-# 健康检查
+# 健康检查（结构 + 图感知，不含语义检查）
 python tools/lint.py
 python tools/lint.py --save              # 保存报告到 wiki/lint-report.md
 
-# 构建知识图谱
-python tools/build_graph.py               # 完整重建
-python tools/build_graph.py --no-infer    # 跳过语义推断（更快）
+# 构建知识图谱（提取 wikilink 边 + 保留已有推断边）
+python tools/build_graph.py               # 构建图谱
 python tools/build_graph.py --open        # 构建后在浏览器中打开
+python tools/build_graph.py --report      # 生成图谱健康报告
 
-# 修复缺失的实体页面
+# 检测缺失的实体页面
 python tools/heal.py
 
-# 刷新过期的源页面（重新导入已变更的文档）
-python tools/refresh.py                   # 仅刷新已变更的来源
-python tools/refresh.py --force           # 强制重新导入所有来源
+# 检测过期的源页面（哈希对比，不执行刷新）
+python tools/refresh.py                   # 列出过期来源
+python tools/refresh.py --force           # 强制标记所有来源为过期
 
 # 将 PDF/arXiv 转换为 Markdown
 python tools/pdf2md.py 2401.12345                           # arXiv ID
@@ -46,7 +46,7 @@ python tools/file_to_markdown.py <输入目录>
 
 | 命令 | 用途 |
 |---|---|
-| `/wiki-ingest <路径>` | 导入源文档（无需 API 密钥） |
+| `/wiki-ingest <路径>` | 导入源文档 |
 | `/wiki-query <问题>` | 查询知识库并综合回答 |
 | `/wiki-lint` | 健康检查：孤立页面、断开链接、矛盾 |
 | `/wiki-graph` | 从 wikilink 构建知识图谱 |
@@ -56,12 +56,13 @@ python tools/file_to_markdown.py <输入目录>
 
 ```bash
 pip install -e .                # 核心依赖，单一真源为 pyproject.toml
+pip install networkx            # 社区检测（可选，build_graph.py --report 需要）
 pip install arxiv2markdown      # arXiv PDF 转换
 pip install marker-pdf          # 复杂学术 PDF（可选）
 pip install pymupdf4llm         # 轻量 PDF 提取（可选）
 ```
 
-要求 Python >=3.10, <3.14。
+要求 Python >=3.10, <3.14。工具脚本不依赖 litellm 或 API 密钥。
 
 ---
 
@@ -268,11 +269,16 @@ date: YYYY-MM-DD
 
 触发方式：*"build the knowledge graph"* 或 `/wiki-graph`
 
-当用户要求构建图谱时，运行 `tools/build_graph.py`：
-- 第一遍：解析所有 `[[wikilinks]]` → 确定性的 `EXTRACTED` 边
-- 第二遍：推断隐式关系 → 带置信度分数的 `INFERRED` 边
-- 运行 Louvain 社区检测
-- 输出 `graph/graph.json` + `graph/graph.html`
+当用户要求构建图谱时：
+
+1. 运行 `python tools/build_graph.py` 完成机械部分：
+   - 从 wiki 页面构建节点
+   - 解析所有 `[[wikilinks]]` → 确定性的 `EXTRACTED` 边
+   - 保留 graph.json 中已有的 INFERRED/AMBIGUOUS 边
+   - 运行 Louvain 社区检测
+   - 输出 `graph/graph.json` + `graph/graph.html`
+2. 读取 graph.json，Claude 对节点进行语义推断
+3. 将推断边写入 graph.json，重新运行 `build_graph.py` 生成最终 HTML
 
 如果用户没有安装 Python/依赖，改为手动生成图谱数据：
 1. 使用 Grep 查找所有知识库页面中的 `[[wikilinks]]`

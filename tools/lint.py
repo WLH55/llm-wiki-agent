@@ -12,8 +12,9 @@ from __future__ import annotations
   - 孤立页面（没有来自其他页面的入站 wikilink）
   - 失效的 wikilink（指向不存在的页面）
   - 缺失的实体页面（在 3 个以上页面中被提及但没有独立页面）
-  - 页面之间的矛盾
-  - 数据缺口和建议的新来源
+  - 图感知检查（核心节点内容、脆弱桥接、孤立社区）
+
+语义检查（矛盾、过时内容、数据缺口）由 Claude Code (/wiki-lint) 完成。
 """
 
 import re
@@ -25,8 +26,6 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import date
 
-import os
-
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "wiki"
 GRAPH_DIR = REPO_ROOT / "graph"
@@ -37,75 +36,6 @@ SCHEMA_FILE = REPO_ROOT / "CLAUDE.md"
 
 def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
-
-
-def call_llm(
-    prompt: str, model_env: str, default_model: str, max_tokens: int = 4096
-) -> str:
-    try:
-        from litellm import completion
-    except ImportError:
-        print("错误: litellm 未安装。请运行: pip install litellm")
-        sys.exit(1)
-
-    model = os.getenv(model_env, default_model)
-    response = completion(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens,
-    )
-    return response.choices[0].message.content
-
-
-def run_semantic_check(pages: list[Path]) -> tuple[str, str | None]:
-    # 使用页面样本以保持在上下文限制内
-    sample = pages[:20]
-    pages_context = ""
-    for p in sample:
-        rel = p.relative_to(REPO_ROOT)
-        pages_context += f"\n\n### {rel}\n{read_file(p)[:1500]}"
-
-    print("  正在通过 API 运行语义检查...")
-    prompt = f"""你正在对一个 LLM Wiki 进行健康检查。请审阅以下页面并识别:
-1. 页面之间的矛盾（相互冲突的论断）
-2. 过时内容（已被更新来源取代的摘要）
-3. 数据缺口（wiki 无法回答的重要问题 — 建议具体的查找来源）
-4. 被提及但缺乏深度的概念
-
-Wiki 页面（共 {len(sample)} 个页面的样本）:
-{pages_context}
-
-请返回一份 markdown 格式的检查报告，包含以下章节:
-## 矛盾
-## 过时内容
-## 数据缺口与建议来源
-## 需要深化的概念
-
-请具体说明 — 列出涉及的确切页面和论断。
-"""
-    try:
-        return call_llm(
-            prompt, "LLM_MODEL", "claude-3-5-sonnet-latest", max_tokens=3000
-        ), None
-    except Exception as exc:
-        message = str(exc).replace("\n", " ").strip()
-        print(f"  [跳过] 语义检查不可用: {message[:160]}")
-        fallback = "\n".join(
-            [
-                "## 矛盾",
-                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
-                "",
-                "## 过时内容",
-                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
-                "",
-                "## 数据缺口与建议来源",
-                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
-                "",
-                "## 需要深化的概念",
-                "> 语义检查已跳过：LLM provider 未配置或当前环境不可用。",
-            ]
-        )
-        return fallback, message
 
 
 def all_wiki_pages() -> list[Path]:
@@ -398,8 +328,6 @@ def run_lint():
     else:
         print("  [跳过] 没有 graph.json — 请先运行 build_graph.py 以启用图感知检查")
 
-    semantic_report, semantic_error = run_semantic_check(pages)
-
     # 组装完整报告
     report_lines = [
         f"# Wiki 健康检查报告 — {today}",
@@ -523,10 +451,10 @@ def run_lint():
 
     report_lines.append("---")
     report_lines.append("")
-    if semantic_error:
-        report_lines.append(f"> [!tip]\n> 语义检查已跳过：{semantic_error[:200]}")
-        report_lines.append("")
-    report_lines.append(semantic_report)
+    report_lines.append("## 语义检查")
+    report_lines.append("")
+    report_lines.append("> [!tip]")
+    report_lines.append("> 语义检查（矛盾、过时内容、数据缺口）由 Claude Code (`/wiki-lint`) 完成。")
 
     report = "\n".join(report_lines)
     print("\n" + report)

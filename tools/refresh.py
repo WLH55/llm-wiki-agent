@@ -11,14 +11,12 @@
 重新导入有变更的文档，以更新 wiki/sources/ 页面中的准确信息。
 """
 
-import os
 import sys
 import json
 import hashlib
 import re
 from typing import Optional
 from pathlib import Path
-from datetime import date
 
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "wiki"
@@ -93,20 +91,9 @@ def find_stale_sources(force: bool = False) -> list[tuple[Path, Path]]:
 
 
 def refresh_page(wiki_page: Path, raw_path: Path) -> bool:
-    """重新导入单个来源文档。"""
-    # 导入 ingest 函数
-    sys.path.insert(0, str(Path(__file__).parent))
-    try:
-        from ingest import ingest
-        print(f"\n{'='*60}")
-        print(f"  正在刷新: {wiki_page.name}")
-        print(f"  来源:     {raw_path}")
-        print(f"{'='*60}")
-        ingest(str(raw_path))
-        return True
-    except Exception as e:
-        print(f"  [错误] 刷新 {wiki_page.name} 失败: {e}")
-        return False
+    """输出待刷新的来源页面信息。实际刷新由 Claude Code (/wiki-refresh) 完成。"""
+    print(f"  过期: {wiki_page.name} ← {raw_path.relative_to(REPO_ROOT)}")
+    return True
 
 
 def main():
@@ -144,32 +131,12 @@ def main():
         print("所有来源页面均为最新，无需刷新。")
         return
 
-    print(f"发现 {len(stale)} 个过期的来源页面:")
+    print(f"发现 {len(stale)} 个过期的来源页面:\n")
     for wiki_page, raw_path in stale:
-        print(f"  • {wiki_page.name} ← {raw_path.relative_to(REPO_ROOT)}")
+        refresh_page(wiki_page, raw_path)
 
-    if args.dry_run:
-        print("\n[试运行] 未执行任何变更。")
-        return
-
-    # 逐个刷新过期页面
-    cache = load_refresh_cache()
-    refreshed = 0
-    failed = 0
-
-    for wiki_page, raw_path in stale:
-        if refresh_page(wiki_page, raw_path):
-            raw_content = read_file(raw_path)
-            cache[str(raw_path)] = sha256(raw_content)
-            refreshed += 1
-        else:
-            failed += 1
-
-    save_refresh_cache(cache)
-
-    print(f"\n{'='*60}")
-    print(f"  刷新完成: {refreshed} 个已更新, {failed} 个失败")
-    print(f"{'='*60}")
+    print(f"\n请使用 Claude Code (/wiki-refresh) 执行刷新。")
+    print(f"刷新完成后运行: python tools/check_stale.py --update")
 
 
 if __name__ == "__main__":

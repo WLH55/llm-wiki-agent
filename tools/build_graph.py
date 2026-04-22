@@ -3,30 +3,29 @@
 从 wiki 构建知识图谱。
 
 用法:
-    python tools/build_graph.py               # 完整重建
-    python tools/build_graph.py --no-infer    # 跳过语义推断（更快）
+    python tools/build_graph.py               # 构建图谱
     python tools/build_graph.py --open        # 构建后在浏览器中打开 graph.html
+    python tools/build_graph.py --report      # 生成图谱健康报告
 
 输出:
-    graph/graph.json    — 节点/边数据（基于 SHA256 缓存）
+    graph/graph.json    — 节点/边数据
     graph/graph.html    — 交互式 vis.js 可视化
 
 边类型:
     EXTRACTED   — 页面中显式的 [[wikilink]]
-    INFERRED    — Claude 检测到的隐式关系
+    INFERRED    — Claude 通过 /wiki-graph 推断的隐式关系
     AMBIGUOUS   — 低置信度的推断关系
+
+语义推断由 Claude Code (/wiki-graph) 完成，脚本本身不做 LLM 调用。
 """
 
 import re
 import json
-import hashlib
 import argparse
 import statistics
 import webbrowser
 from pathlib import Path
 from datetime import date
-
-import os
 
 try:
     import networkx as nx
@@ -41,8 +40,6 @@ WIKI_DIR = REPO_ROOT / "wiki"
 GRAPH_DIR = REPO_ROOT / "graph"
 GRAPH_JSON = GRAPH_DIR / "graph.json"
 GRAPH_HTML = GRAPH_DIR / "graph.html"
-CACHE_FILE = GRAPH_DIR / ".cache.json"
-INFERRED_EDGES_FILE = GRAPH_DIR / ".inferred_edges.jsonl"
 LOG_FILE = WIKI_DIR / "log.md"
 SCHEMA_FILE = REPO_ROOT / "CLAUDE.md"
 
@@ -66,32 +63,6 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
-def call_llm(prompt: str, model_env: str, default_model: str, max_tokens: int = 4096) -> str:
-    try:
-        from litellm import completion
-    except ImportError:
-        print("错误: 未安装 litellm。请运行: pip install litellm")
-        import sys
-        sys.exit(1)
-
-    model = os.getenv(model_env, default_model)
-
-    kwargs = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}]
-    }
-
-    if max_tokens:
-        kwargs["max_tokens"] = max_tokens
-
-    response = completion(**kwargs)
-    return response.choices[0].message.content
-
-
-def sha256(text: str) -> str:
-    return hashlib.sha256(text.encode()).hexdigest()
-
-
 def all_wiki_pages() -> list[Path]:
     return [p for p in WIKI_DIR.rglob("*.md")
             if p.name not in ("index.md", "log.md", "lint-report.md")]
@@ -112,20 +83,6 @@ def page_id(path: Path) -> str:
 
 def edge_id(src: str, target: str, edge_type: str) -> str:
     return f"{src}->{target}:{edge_type}"
-
-
-def load_cache() -> dict:
-    if CACHE_FILE.exists():
-        try:
-            return json.loads(CACHE_FILE.read_text())
-        except (json.JSONDecodeError, IOError):
-            return {}
-    return {}
-
-
-def save_cache(cache: dict):
-    GRAPH_DIR.mkdir(parents=True, exist_ok=True)
-    CACHE_FILE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
 
 
 def build_nodes(pages: list[Path]) -> list[dict]:
@@ -176,190 +133,18 @@ def build_extracted_edges(pages: list[Path]) -> list[dict]:
     return edges
 
 
-def load_checkpoint() -> tuple[list[dict], set[str]]:
-    """从 JSONL 检查点文件加载之前推断的边。"""
-    edges = []
-    completed = set()
-    if INFERRED_EDGES_FILE.exists():
-        for line in INFERRED_EDGES_FILE.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            try:
-                record = json.loads(line)
-                completed.add(record["page_id"])
-                for edge in record.get("edges", []):
-                    if not isinstance(edge, dict) or "from" not in edge or "to" not in edge:
-                        continue
-                    rel_type = edge.get("type", "INFERRED")
-                    edges.append({
-                        "id": edge.get("id", edge_id(edge["from"], edge["to"], rel_type)),
-                        "from": edge["from"],
-                        "to": edge["to"],
-                        "type": rel_type,
-                        "title": edge.get("title", edge.get("relationship", "")),
-                        "label": edge.get("label", ""),
-                        "color": edge.get("color", EDGE_COLORS.get(rel_type, EDGE_COLORS["INFERRED"])),
-                        "confidence": float(edge.get("confidence", 0.7)),
-                    })
-            except (json.JSONDecodeError, KeyError):
-                continue
-    return edges, completed
-
-
-def append_checkpoint(page_id_str: str, edges: list[dict]):
-    """将一个页面的推断边追加到 JSONL 检查点。"""
-    GRAPH_DIR.mkdir(parents=True, exist_ok=True)
-    record = {"page_id": page_id_str, "edges": edges, "ts": date.today().isoformat()}
-    with open(INFERRED_EDGES_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-
-def build_inferred_edges(pages: list[Path], existing_edges: list[dict], cache: dict, resume: bool = True) -> list[dict]:
-    """第二遍: 通过 API 推断语义关系，支持检查点/断点续传。"""
-    checkpoint_edges, completed_ids = ([], set())
-    if resume:
-        checkpoint_edges, completed_ids = load_checkpoint()
-        if completed_ids:
-            print(f"  检查点: 已完成 {len(completed_ids)} 个页面，已加载 {len(checkpoint_edges)} 条边")
-
-    new_edges = list(checkpoint_edges)
-
-    changed_pages = []
-    for p in pages:
-        content = read_file(p)
-        h = sha256(content)
-        pid = page_id(p)
-        entry = cache.get(str(p))
-
-        if pid in completed_ids:
-            continue
-
-        if isinstance(entry, dict) and entry.get("hash") == h:
-            for rel in entry.get("edges", []):
-                rel_type = rel.get("type", "INFERRED")
-                confidence = float(rel.get("confidence", 0.7))
-                new_edges.append({
-                    "id": edge_id(pid, rel["to"], rel_type),
-                    "from": pid,
-                    "to": rel["to"],
-                    "type": rel_type,
-                    "title": rel.get("relationship", ""),
-                    "label": "",
-                    "color": EDGE_COLORS.get(rel_type, EDGE_COLORS["INFERRED"]),
-                    "confidence": confidence,
-                })
-        else:
-            changed_pages.append(p)
-
-    if not changed_pages:
-        print("  没有变更页面 — 跳过语义推断")
-        return new_edges
-
-    total_pages = len(changed_pages)
-    already_done = len(completed_ids)
-    grand_total = total_pages + already_done
-    print(f"  正在为 {total_pages} 个剩余页面推断关系（共 {grand_total} 个页面）...")
-
-    # 构建现有节点摘要作为上下文
-    node_list = "\n".join(f"- {page_id(p)} ({extract_frontmatter_type(read_file(p))})" for p in pages)
-    existing_edge_summary = "\n".join(
-        f"- {e['from']} → {e['to']} (EXTRACTED)" for e in existing_edges[:30]
-    )
-
-    for i, p in enumerate(changed_pages, 1):
-        full_content = read_file(p)
-        content = full_content[:2000]
-        src = page_id(p)
-        global_idx = already_done + i
-        print(f"    [{global_idx}/{grand_total}] 正在推断 '{src}'... ", end="", flush=True)
-
-        prompt = f"""分析此 wiki 页面并识别与其他页面之间的隐式语义关系。
-
-源页面: {src}
-内容:
-{content}
-
-所有可用页面:
-{node_list}
-
-已从该页面提取的边:
-{existing_edge_summary}
-
-仅返回一个 JSON 对象，包含 "edges" 数组，列出未被显式 wikilink 捕获的新关系。响应必须是严格合法的 JSON，格式如下:
-{{
-  "edges": [
-    {{"to": "page-id", "relationship": "一行描述", "confidence": 0.0-1.0, "type": "INFERRED 或 AMBIGUOUS"}}
-  ]
-}}
-
-关键指令:
-你必须仅返回以 {{ 开头、以 }} 结尾的原始 JSON 字符串。
-不要输出项目符号。不要输出 Markdown 列表。
-任何对话式前言都会导致系统崩溃。
-
-规则:
-- 仅包含上述可用页面列表中的页面
-- 置信度 >= 0.7 → INFERRED，< 0.7 → AMBIGUOUS
-- 不要重复已提取列表中的边
-- 如果未发现新关系，返回 {{"edges": []}}
-"""
-        page_edges = []
-        valid_rels = []
-        try:
-            raw = call_llm(prompt, "LLM_MODEL_FAST", "claude-3-5-haiku-latest", max_tokens=1024)
-            raw = raw.strip()
-
-            match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)
-            if match:
-                raw = match.group(0)
-            else:
-                raw = re.sub(r"^```(?:json)?\s*", "", raw)
-                raw = re.sub(r"\s*```$", "", raw)
-
-            inferred = json.loads(raw)
-            if isinstance(inferred, dict):
-                edges_list = inferred.get("edges", [])
-            elif isinstance(inferred, list):
-                edges_list = inferred
-            else:
-                edges_list = []
-
-            for rel in edges_list:
-                if isinstance(rel, dict) and "to" in rel:
-                    confidence = float(rel.get("confidence", 0.7))
-                    rel_type = rel.get("type") or ("INFERRED" if confidence >= 0.7 else "AMBIGUOUS")
-                    edge = {
-                        "id": edge_id(src, rel["to"], rel_type),
-                        "from": src,
-                        "to": rel["to"],
-                        "type": rel_type,
-                        "title": rel.get("relationship", ""),
-                        "label": "",
-                        "color": EDGE_COLORS.get(rel_type, EDGE_COLORS["INFERRED"]),
-                        "confidence": confidence,
-                    }
-                    page_edges.append(edge)
-                    new_edges.append(edge)
-                    valid_rels.append({
-                        "to": rel["to"],
-                        "relationship": rel.get("relationship", ""),
-                        "confidence": confidence,
-                        "type": rel_type,
-                    })
-
-            cache[str(p)] = {
-                "hash": sha256(full_content),
-                "edges": valid_rels,
-            }
-            append_checkpoint(src, page_edges)
-            print(f"-> 发现 {len(page_edges)} 条边。")
-        except (json.JSONDecodeError, TypeError, ValueError) as jde:
-            print(f"-> [警告] 无效 JSON: {str(jde)[:60]}")
-        except Exception as e:
-            err_msg = str(e).replace('\n', ' ')[:80]
-            print(f"-> [错误] {err_msg}")
-
-    return new_edges
+def _load_existing_inferred_edges() -> list[dict]:
+    """从已有的 graph.json 中保留 Claude 推断的边。"""
+    if not GRAPH_JSON.exists():
+        return []
+    try:
+        old_data = json.loads(GRAPH_JSON.read_text(encoding="utf-8"))
+        return [
+            e for e in old_data.get("edges", [])
+            if e.get("type") in ("INFERRED", "AMBIGUOUS")
+        ]
+    except (json.JSONDecodeError, IOError):
+        return []
 
 
 def deduplicate_edges(edges: list[dict]) -> list[dict]:
@@ -1142,8 +927,7 @@ def append_log(entry: str):
     log_path.write_text(existing + "\n\n" + entry_text + "\n", encoding="utf-8")
 
 
-def build_graph(infer: bool = True, open_browser: bool = False, clean: bool = False,
-                report: bool = False, save: bool = False):
+def build_graph(open_browser: bool = False, report: bool = False, save: bool = False):
     pages = all_wiki_pages()
     today = date.today().isoformat()
 
@@ -1154,26 +938,17 @@ def build_graph(infer: bool = True, open_browser: bool = False, clean: bool = Fa
     print(f"正在从 {len(pages)} 个 wiki 页面构建图谱...")
     GRAPH_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 如果请求则清除检查点
-    if clean and INFERRED_EDGES_FILE.exists():
-        INFERRED_EDGES_FILE.unlink()
-        print("  已清除: 删除了推断检查点")
-
-    cache = load_cache()
-
-    # 第一遍: 提取 wikilink 边
-    print("  第一遍: 提取 wikilinks...")
+    # 提取 wikilink 边
+    print("  正在提取 wikilinks...")
     nodes = build_nodes(pages)
     edges = build_extracted_edges(pages)
     print(f"  → {len(edges)} 条已提取边")
 
-    # 第二遍: 推断边
-    if infer:
-        print("  第二遍: 推断语义关系...")
-        inferred = build_inferred_edges(pages, edges, cache, resume=not clean)
-        edges.extend(inferred)
-        print(f"  → {len(inferred)} 条推断边")
-        save_cache(cache)
+    # 保留已有的推断边（来自 Claude 的 /wiki-graph 推断）
+    existing_inferred = _load_existing_inferred_edges()
+    if existing_inferred:
+        edges.extend(existing_inferred)
+        print(f"  → 保留了 {len(existing_inferred)} 条已有推断边")
 
     # 边去重
     before_dedup = len(edges)
@@ -1231,11 +1006,8 @@ def build_graph(infer: bool = True, open_browser: bool = False, clean: bool = Fa
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="构建 LLM Wiki 知识图谱")
-    parser.add_argument("--no-infer", action="store_true", help="跳过语义推断（更快）")
     parser.add_argument("--open", action="store_true", help="在浏览器中打开 graph.html")
-    parser.add_argument("--clean", action="store_true", help="删除检查点并强制完整重新推断")
     parser.add_argument("--report", action="store_true", help="生成图谱健康报告")
     parser.add_argument("--save", action="store_true", help="将报告保存到 graph/graph-report.md")
     args = parser.parse_args()
-    build_graph(infer=not args.no_infer, open_browser=args.open, clean=args.clean,
-                report=args.report, save=args.save)
+    build_graph(open_browser=args.open, report=args.report, save=args.save)

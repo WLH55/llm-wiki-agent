@@ -3,27 +3,17 @@
 将源文档导入 LLM Wiki。
 
 用法：
-    python tools/ingest.py <源文件路径>
-    python tools/ingest.py raw/articles/my-article.md
     python tools/ingest.py --validate-only   # 仅对现有 wiki 运行验证
 
-LLM 读取源文档，提取知识并更新 wiki：
-  - 创建 wiki/sources/<slug>.md
-  - 更新 wiki/index.md
-  - 更新 wiki/overview.md（如有必要）
-  - 创建/更新实体和概念页面
-  - 追加到 wiki/log.md
-  - 标记矛盾之处
-  - 运行导入后验证（断链检查、索引覆盖）
+导入功能由 Claude Code (/wiki-ingest) 完成。
+本脚本仅提供验证工具。
 """
 
-import os
 import sys
 import json
 import hashlib
 import re
 from pathlib import Path
-from collections import defaultdict
 from datetime import date
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -40,27 +30,6 @@ def sha256(text: str) -> str:
 
 def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
-
-
-def call_llm(prompt: str, max_tokens: int = 8192) -> str:
-    try:
-        from litellm import completion
-    except ImportError:
-        print("错误：未安装 litellm。请运行：pip install litellm")
-        sys.exit(1)
-        
-    model = os.getenv("LLM_MODEL", "claude-3-5-sonnet-latest")
-    
-    kwargs = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    
-    if max_tokens:
-        kwargs["max_tokens"] = max_tokens
-
-    response = completion(**kwargs)
-    return response.choices[0].message.content
 
 
 def write_file(path: Path, content: str):
@@ -169,135 +138,7 @@ def validate_ingest(changed_pages: list[str] | None = None) -> dict:
     return {"broken_links": broken_links, "unindexed": unindexed}
 
 
-def ingest(source_path: str):
-    source = Path(source_path)
-    if not source.exists():
-        print(f"错误：文件未找到: {source_path}")
-        sys.exit(1)
-
-    source_content = source.read_text(encoding="utf-8")
-    source_hash = sha256(source_content)
-    today = date.today().isoformat()
-
-    print(f"\n正在导入: {source.name}  (哈希: {source_hash})")
-
-    wiki_context = build_wiki_context()
-    schema = read_file(SCHEMA_FILE)
-
-    prompt = f"""你正在维护一个 LLM Wiki。请处理此源文档，并将其中的知识整合到 wiki 中。
-
-Schema 和约定：
-{schema}
-
-当前 wiki 状态（索引 + 近期页面）：
-{wiki_context if wiki_context else "（wiki 为空 — 这是第一个源文档）"}
-
-待导入的新源文档（文件：{source.relative_to(REPO_ROOT) if source.is_relative_to(REPO_ROOT) else source.name}）：
-=== 来源开始 ===
-{source_content}
-=== 来源结束 ===
-
-今天的日期：{today}
-
-仅返回一个合法的 JSON 对象，包含以下字段（不要使用 markdown 代码围栏，不要在 JSON 之外添加任何文字说明）：
-{{
-  "title": "此源文档的人类可读标题",
-  "slug": "用于文件名的 kebab-case-slug",
-  "source_page": "wiki/sources/<slug>.md 的完整 markdown 内容 — 使用 schema 中的源页面格式。关键要求：积极地将关键人物、产品、概念和项目在文本中转换为 [[Wikilinks]] 链接。遗漏已知术语的 [[ ]] 标记视为失败。",
-  "index_entry": "- [标题](sources/slug.md) — 一句话摘要",
-  "overview_update": "wiki/overview.md 的完整更新内容，如果不需要更新则为 null",
-  "entity_pages": [
-    {{"path": "entities/EntityName.md", "content": "完整 markdown 内容"}}
-  ],
-  "concept_pages": [
-    {{"path": "concepts/ConceptName.md", "content": "完整 markdown 内容"}}
-  ],
-  "contradictions": ["描述与现有 wiki 内容的任何矛盾之处，如无矛盾则为空列表"],
-  "log_entry": "## [{today}] ingest | <title>\\n\\n已添加来源。关键声明：..."
-}}
-"""
-
-    print(f"  正在调用 API（模型: ...）")
-    raw = call_llm(prompt, max_tokens=8192)
-    try:
-        data = parse_json_from_response(raw)
-    except (ValueError, json.JSONDecodeError) as e:
-        print(f"解析 API 响应时出错: {e}")
-        print("原始响应已保存至 /tmp/ingest_debug.txt")
-        Path("/tmp/ingest_debug.txt").write_text(raw)
-        sys.exit(1)
-
-    # 写入源页面
-    slug = data["slug"]
-    write_file(WIKI_DIR / "sources" / f"{slug}.md", data["source_page"])
-
-    # 写入实体页面
-    for page in data.get("entity_pages", []):
-        write_file(WIKI_DIR / page["path"], page["content"])
-
-    # 写入概念页面
-    for page in data.get("concept_pages", []):
-        write_file(WIKI_DIR / page["path"], page["content"])
-
-    # 更新概览
-    if data.get("overview_update"):
-        write_file(OVERVIEW_FILE, data["overview_update"])
-
-    # 更新索引
-    update_index(data["index_entry"], section="Sources")
-
-    # 追加日志
-    append_log(data["log_entry"])
-
-    # 报告矛盾
-    contradictions = data.get("contradictions", [])
-    if contradictions:
-        print("\n  ⚠️  检测到矛盾：")
-        for c in contradictions:
-            print(f"     - {c}")
-
-    # --- 导入后验证 ---
-    created_pages = [f"sources/{slug}.md"]
-    for page in data.get("entity_pages", []):
-        created_pages.append(page["path"])
-    for page in data.get("concept_pages", []):
-        created_pages.append(page["path"])
-    updated_pages = ["index.md", "log.md"]
-    if data.get("overview_update"):
-        updated_pages.append("overview.md")
-
-    validation = validate_ingest(created_pages)
-
-    print(f"\n{'='*50}")
-    print(f"  ✅ 已导入: {data['title']}")
-    print(f"{'='*50}")
-    print(f"  已创建 : {len(created_pages)} 个页面")
-    for p in created_pages:
-        print(f"           + wiki/{p}")
-    print(f"  已更新 : {len(updated_pages)} 个页面")
-    for p in updated_pages:
-        print(f"           ~ wiki/{p}")
-    if contradictions:
-        print(f"  警告: {len(contradictions)} 个矛盾")
-    if validation["broken_links"]:
-        print(f"  ⚠️  断裂链接: {len(validation['broken_links'])} 个")
-        for page, link in validation["broken_links"][:10]:
-            print(f"           wiki/{page} → [[{link}]]")
-        if len(validation["broken_links"]) > 10:
-            print(f"           ... 及其他 {len(validation['broken_links']) - 10} 个")
-    if validation["unindexed"]:
-        print(f"  ⚠️  未在 index.md 中: {len(validation['unindexed'])} 个")
-        for p in validation["unindexed"][:10]:
-            print(f"           wiki/{p}")
-        if len(validation["unindexed"]) > 10:
-            print(f"           ... 及其他 {len(validation['unindexed']) - 10} 个")
-    if not validation["broken_links"] and not validation["unindexed"]:
-        print("  ✓ 验证通过 — 无断裂链接，所有页面已索引")
-    print()
-
-
 if __name__ == "__main__":
-    # 处理 --validate-only 标志
     if len(sys.argv) == 2 and sys.argv[1] == "--validate-only":
         print("正在运行 wiki 验证（不执行导入）...\n")
         result = validate_ingest()
@@ -328,42 +169,5 @@ if __name__ == "__main__":
             print("所有页面均已索引。")
         sys.exit(0)
 
-    if len(sys.argv) < 2:
-        print("用法: python tools/ingest.py <源文件路径> [路径2 ...] [目录1 ...]")
-        print("      python tools/ingest.py --validate-only")
-        sys.exit(1)
-        
-    paths_to_process = []
-    for arg in sys.argv[1:]:
-        p = Path(arg)
-        if p.is_file() and p.suffix == ".md":
-            paths_to_process.append(p)
-        elif p.is_dir():
-            for f in p.rglob("*.md"):
-                if f.is_file():
-                    paths_to_process.append(f)
-        else:
-            import glob
-            for f in glob.glob(arg, recursive=True):
-                g_p = Path(f)
-                if g_p.is_file() and g_p.suffix == ".md":
-                    paths_to_process.append(g_p)
-                    
-    # 去重并保持顺序
-    unique_paths = []
-    seen = set()
-    for p in paths_to_process:
-        abs_p = p.resolve()
-        if abs_p not in seen:
-            seen.add(abs_p)
-            unique_paths.append(p)
-
-    if not unique_paths:
-        print("错误：未找到可导入的 markdown 文件。")
-        sys.exit(1)
-
-    if len(unique_paths) > 1:
-        print(f"批量模式：找到 {len(unique_paths)} 个文件待导入。")
-        
-    for p in unique_paths:
-        ingest(str(p))
+    print("导入功能已迁移至 Claude Code。请使用 /wiki-ingest <文件路径> 导入源文档。")
+    print("如需仅验证，请使用: python tools/ingest.py --validate-only")
