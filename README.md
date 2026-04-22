@@ -22,7 +22,7 @@ wiki/
 ├── concepts/         想法、框架、方法——自动创建
 └── syntheses/        查询答案保存为知识库页面
 graph/
-├── graph.json        持久化的节点/边数据（SHA256 缓存）
+├── graph.json        持久化的节点/边数据
 ├── graph.html        交互式 vis.js 可视化——在浏览器中打开
 └── .refresh_cache.json   SHA-256 哈希缓存（支持增量重建）
 ```
@@ -78,25 +78,13 @@ gemini      # 读取 GEMINI.md
 
 ### 方式 2：独立 Python 脚本模式
 
-如果你不使用代理，也可以直接运行 `tools/*.py`。
-
-先配置 LLM 环境变量（例如 Anthropic）：
+如果你不使用代理，也可以直接运行 `tools/*.py`。这些脚本只做机械部分（关键词匹配、哈希对比、wikilink 提取等），不调用 LLM。
 
 ```bash
-# Windows PowerShell
-$env:ANTHROPIC_API_KEY="your-key"
-
-# macOS / Linux
-# export ANTHROPIC_API_KEY="your-key"
-```
-
-然后直接运行脚本：
-
-```bash
-python tools/ingest.py raw/papers/my-paper.md
-python tools/query.py "主要主题有哪些？"
-python tools/lint.py
-python tools/build_graph.py --open
+python tools/ingest.py --validate-only   # 验证 wiki 完整性
+python tools/query.py "主要主题有哪些？"  # 查找相关页面
+python tools/lint.py                     # 结构健康检查
+python tools/build_graph.py --open       # 构建知识图谱
 ```
 
 ## 快速开始
@@ -112,8 +100,9 @@ claude
 ### Python 脚本模式
 
 ```bash
-python tools/ingest.py raw/papers/my-paper.md
-python tools/build_graph.py --no-infer
+python tools/ingest.py --validate-only
+python tools/query.py "主要主题有哪些？"
+python tools/build_graph.py
 python tools/lint.py
 ```
 
@@ -121,9 +110,9 @@ python tools/lint.py
 
 ### 两种运行模式
 
-1. **代理驱动（无需 API 密钥）** — Claude Code 读取 `CLAUDE.md` 和 `.claude/commands/`，使用内置的 Read/Write/Grep 工具执行导入/查询/检查/图谱操作。这是主要模式。
+1. **代理驱动（推荐）** — Claude Code 读取 `CLAUDE.md` 和 `.claude/commands/`，使用内置能力执行导入/查询/检查/图谱操作，包括语义推断。无需配置 API 密钥。
 
-2. **独立 Python 脚本** — `tools/*.py` 使用 `litellm` 直接调用 LLM。需要 `ANTHROPIC_API_KEY`（或等效）环境变量。不使用 Claude Code 时的可选替代方案。
+2. **独立 Python 脚本** — `tools/*.py` 执行机械部分（wikilink 提取、关键词匹配、哈希对比、结构检查）。不需要 litellm 或 API 密钥。语义相关的操作（导入、综合回答、语义推断）由代理完成。
 
 ### 核心数据流
 
@@ -142,23 +131,21 @@ raw/<文件>.md  →  [导入]  →  wiki/sources/<slug>.md
 
 ### 图谱层
 
-通过 `tools/build_graph.py` 进行两遍构建：
-- 第一遍：解析 `[[wikilinks]]` → `EXTRACTED` 边（确定性）
-- 第二遍：LLM 推断隐式关系 → `INFERRED` 边（带置信度分数）
-- Louvain 社区检测聚类节点
+通过 `/wiki-graph` 分两步构建：
+- 第一步（脚本）：解析 `[[wikilinks]]` → `EXTRACTED` 边（确定性），Louvain 社区检测聚类节点
+- 第二步（Claude）：推断隐式关系 → `INFERRED` 边（带置信度分数），写入 graph.json 后重新生成
 - 输出 `graph/graph.json` + `graph/graph.html`（自包含 vis.js）
-- SHA256 缓存支持增量重建
 
 ### 工具脚本架构
 
 | 脚本 | 需要 LLM | 用途 |
 |---|---|---|
-| `ingest.py` | 是（litellm） | 完整导入流水线 |
-| `query.py` | 是（litellm） | 查询和综合 |
-| `lint.py` | 部分 | 结构检查无需 LLM；语义检查需要 LLM |
-| `build_graph.py` | 是（推断阶段） | 使用 NetworkX 构建图谱 |
-| `heal.py` | 是（litellm） | 自动生成缺失的实体页面 |
-| `refresh.py` | 是（litellm） | 通过哈希比较重新导入已变更来源 |
+| `ingest.py` | 否 | 验证 wiki 完整性（导入由代理完成） |
+| `query.py` | 否 | 关键词匹配查找相关页面 |
+| `lint.py` | 否 | 结构检查 + 图感知检查 |
+| `build_graph.py` | 否 | 构建图谱（语义推断由代理完成） |
+| `heal.py` | 否 | 检测缺失的实体页面 |
+| `refresh.py` | 否 | 检测过期来源（刷新由代理完成） |
 | `check_stale.py` | 否 | 检测源文件变更（SHA-256 哈希对比） |
 | `pdf2md.py` | 否 | 将 PDF/arXiv 转换为 Markdown（使用 arxiv2md/marker/pymupdf4llm） |
 | `file_to_markdown.py` | 否 | 使用 markitdown 批量转换非 md 文件 |
@@ -303,10 +290,10 @@ build graph                                # 从所有 wikilink 构建图谱
 
 两遍构建：
 
-1. **确定性** — 解析所有知识库页面中的 `[[wikilinks]]` → 标记为 `EXTRACTED` 的边
+1. **确定性** — 脚本解析所有知识库页面中的 `[[wikilinks]]` → 标记为 `EXTRACTED` 的边
 2. **语义** — 代理推断 wikilink 未捕获的隐式关系 → 标记为 `INFERRED`（带置信度分数）或 `AMBIGUOUS`
 
-Louvain 社区检测按主题聚类节点。SHA256 缓存意味着只重新处理变更的页面。输出是自包含的 `graph.html`——无需服务器，在任何浏览器中打开。
+Louvain 社区检测按主题聚类节点。输出是自包含的 `graph.html`——无需服务器，在任何浏览器中打开。
 
 ## CLAUDE.md / AGENTS.md
 
@@ -383,7 +370,7 @@ ingest raw/papers/my-paper.md
 - 使用 `tools/pdf2md.py` 在导入前将 PDF 和 arXiv 论文转换为 Markdown——参见 [PDF 转换](#pdf-和-arxiv-论文转换)
 - 查询答案会先展示——代理随后询问你是否要保存为综合页面。你的探索像导入的来源一样不断累积
 - 知识库是一个 Git 仓库——自带版本历史
-- `tools/` 中的独立 Python 脚本无需编码代理即可工作（需要 `ANTHROPIC_API_KEY`）
+- `tools/` 中的独立 Python 脚本无需编码代理即可工作（不调用 LLM，不需要 API 密钥）
 
 ## 技术栈
 
