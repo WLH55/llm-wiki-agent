@@ -62,7 +62,7 @@ pip install marker-pdf          # 复杂学术 PDF（可选）
 pip install pymupdf4llm         # 轻量 PDF 提取（可选）
 ```
 
-要求 Python >=3.10, <3.14。
+要求 Python >=3.10, <3.14。工具脚本不依赖 litellm 或 API 密钥。
 
 ---
 
@@ -99,7 +99,9 @@ Claude Code 自动读取本文件并遵循以下工作流。
 步骤（按顺序）：
 1. 使用 Read 工具完整读取源文档
 2. 读取 `wiki/index.md` 和 `wiki/overview.md` 获取当前知识库上下文
-3. 写入 `wiki/sources/<slug>.md` — 使用下面的源页面格式
+3. **防重检查与写入**：在写入 `wiki/sources/` 之前，必须使用 `grep` 工具在 `wiki/sources/` 目录下搜索 `source_file: <当前原始文件路径>` 是否已存在于其他源页面中。
+   - 如果找到了现有的源页面（即使文件名不符合当前规范），必须**覆盖更新**该现有文件，或者将其删除并使用规范的 `<slug>.md` 重建。**绝对禁止为同一个原始文件创建两个源页面。**
+   - 如果未找到，则正常写入 `wiki/sources/<slug>.md` — 使用下面的源页面格式
 4. 更新 `wiki/index.md` — 在 Sources 部分添加条目
 5. 更新 `wiki/overview.md` — 如有必要则修订综合内容
 6. 更新/创建提到的关键人物、公司、项目的实体页面
@@ -305,7 +307,7 @@ date: YYYY-MM-DD
 
 ## 命名规范
 
-- 源文档 slug：`kebab-case`，与源文件名匹配
+- 源文档 slug：**必须**转换为小写英文 `kebab-case` 且**严格与源文件名的主名匹配**（例如 `raw/articles/My Article.md` 对应 `my-article.md`），**严禁根据文章标题或内容自行翻译或生造 slug。**
 - 实体页面：`TitleCase.md`（如 `OpenAI.md`、`SamAltman.md`）
 - 概念页面：`TitleCase.md`（如 `ReinforcementLearning.md`、`RAG.md`）
 - 源页面：`kebab-case.md`

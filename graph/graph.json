@@ -113,39 +113,9 @@
   ],
   "edges": [
     {
-      "id": "overview->concepts/系统提示词:EXTRACTED",
-      "from": "overview",
-      "to": "concepts/系统提示词",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
       "id": "overview->concepts/版权合规:EXTRACTED",
       "from": "overview",
       "to": "concepts/版权合规",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "overview->concepts/AI对齐工程:EXTRACTED",
-      "from": "overview",
-      "to": "concepts/AI对齐工程",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "overview->entities/Anthropic:EXTRACTED",
-      "from": "overview",
-      "to": "entities/Anthropic",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -163,9 +133,19 @@
       "label": ""
     },
     {
-      "id": "overview->concepts/提示词工程:EXTRACTED",
+      "id": "overview->concepts/Artifacts:EXTRACTED",
       "from": "overview",
-      "to": "concepts/提示词工程",
+      "to": "concepts/Artifacts",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->concepts/系统提示词:EXTRACTED",
+      "from": "overview",
+      "to": "concepts/系统提示词",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -183,9 +163,39 @@
       "label": ""
     },
     {
-      "id": "overview->concepts/Artifacts:EXTRACTED",
+      "id": "overview->concepts/AI对齐工程:EXTRACTED",
       "from": "overview",
-      "to": "concepts/Artifacts",
+      "to": "concepts/AI对齐工程",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->concepts/提示词工程:EXTRACTED",
+      "from": "overview",
+      "to": "concepts/提示词工程",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->entities/Anthropic:EXTRACTED",
+      "from": "overview",
+      "to": "entities/Anthropic",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/AI对齐工程->entities/Claude:EXTRACTED",
+      "from": "concepts/AI对齐工程",
+      "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -213,8 +223,8 @@
       "label": ""
     },
     {
-      "id": "concepts/AI对齐工程->entities/Claude:EXTRACTED",
-      "from": "concepts/AI对齐工程",
+      "id": "concepts/Artifacts->entities/Claude:EXTRACTED",
+      "from": "concepts/Artifacts",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -233,8 +243,8 @@
       "label": ""
     },
     {
-      "id": "concepts/Artifacts->entities/Claude:EXTRACTED",
-      "from": "concepts/Artifacts",
+      "id": "concepts/提示词工程->entities/Claude:EXTRACTED",
+      "from": "concepts/提示词工程",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -253,8 +263,8 @@
       "label": ""
     },
     {
-      "id": "concepts/提示词工程->entities/Claude:EXTRACTED",
-      "from": "concepts/提示词工程",
+      "id": "concepts/版权合规->entities/Claude:EXTRACTED",
+      "from": "concepts/版权合规",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -273,8 +283,8 @@
       "label": ""
     },
     {
-      "id": "concepts/版权合规->entities/Claude:EXTRACTED",
-      "from": "concepts/版权合规",
+      "id": "concepts/系统提示词->entities/Claude:EXTRACTED",
+      "from": "concepts/系统提示词",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -286,16 +296,6 @@
       "id": "concepts/系统提示词->entities/Anthropic:EXTRACTED",
       "from": "concepts/系统提示词",
       "to": "entities/Anthropic",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "concepts/系统提示词->entities/Claude:EXTRACTED",
-      "from": "concepts/系统提示词",
-      "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -323,16 +323,6 @@
       "label": ""
     },
     {
-      "id": "entities/ClaudeCode->entities/Anthropic:EXTRACTED",
-      "from": "entities/ClaudeCode",
-      "to": "entities/Anthropic",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
       "id": "entities/ClaudeCode->concepts/提示词工程:EXTRACTED",
       "from": "entities/ClaudeCode",
       "to": "concepts/提示词工程",
@@ -343,9 +333,9 @@
       "label": ""
     },
     {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/系统提示词:EXTRACTED",
-      "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "concepts/系统提示词",
+      "id": "entities/ClaudeCode->entities/Anthropic:EXTRACTED",
+      "from": "entities/ClaudeCode",
+      "to": "entities/Anthropic",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -363,26 +353,6 @@
       "label": ""
     },
     {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->entities/Anthropic:EXTRACTED",
-      "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "entities/Anthropic",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/AI对齐工程:EXTRACTED",
-      "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "concepts/AI对齐工程",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
       "id": "sources/claude-opus-4-7-system-prompt-notes->entities/Claude:EXTRACTED",
       "from": "sources/claude-opus-4-7-system-prompt-notes",
       "to": "entities/Claude",
@@ -393,9 +363,19 @@
       "label": ""
     },
     {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/提示词工程:EXTRACTED",
+      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/系统提示词:EXTRACTED",
       "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "concepts/提示词工程",
+      "to": "concepts/系统提示词",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/Artifacts:EXTRACTED",
+      "from": "sources/claude-opus-4-7-system-prompt-notes",
+      "to": "concepts/Artifacts",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -413,9 +393,29 @@
       "label": ""
     },
     {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/Artifacts:EXTRACTED",
+      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/AI对齐工程:EXTRACTED",
       "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "concepts/Artifacts",
+      "to": "concepts/AI对齐工程",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/提示词工程:EXTRACTED",
+      "from": "sources/claude-opus-4-7-system-prompt-notes",
+      "to": "concepts/提示词工程",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/claude-opus-4-7-system-prompt-notes->entities/Anthropic:EXTRACTED",
+      "from": "sources/claude-opus-4-7-system-prompt-notes",
+      "to": "entities/Anthropic",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -423,5 +423,5 @@
       "label": ""
     }
   ],
-  "built": "2026-04-19"
+  "built": "2026-04-22"
 }
