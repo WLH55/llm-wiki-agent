@@ -1,0 +1,538 @@
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识图谱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+  body {
+    margin: 0; background: #F5F2EB;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #2C3E3A; overflow: hidden;
+  }
+  #graph { width: 100vw; height: 100vh; }
+  #controls {
+    position: fixed; top: 24px; left: 24px;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    padding: 24px; border-radius: 20px; z-index: 10; max-width: 260px;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 24px rgba(44,62,58,0.06), 0 1px 2px rgba(44,62,58,0.04);
+    transition: box-shadow 0.3s ease;
+  }
+  #controls:hover {
+    box-shadow: 0 8px 40px rgba(44,62,58,0.08), 0 2px 4px rgba(44,62,58,0.04);
+  }
+  #controls h3 {
+    font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px;
+    color: #2C3E3A; margin: 0 0 16px; letter-spacing: -0.02em;
+  }
+  #search {
+    width: 100%; padding: 10px 14px; margin-bottom: 16px;
+    background: rgba(245,242,235,0.6); color: #2C3E3A;
+    border: 1px solid rgba(0,0,0,0.06); border-radius: 12px;
+    font-family: 'Nunito Sans', sans-serif; font-size: 13px; outline: none;
+    transition: all 0.2s ease;
+  }
+  #search:focus {
+    border-color: rgba(91,138,114,0.3); background: rgba(255,255,255,0.9);
+    box-shadow: 0 0 0 3px rgba(91,138,114,0.08);
+  }
+  #search::placeholder { color: #A3B1AD; }
+  .legend-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; margin: 2px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; color: #5A6B67;
+    background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);
+  }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; flex-shrink: 0;
+  }
+  .filter-group {
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  .filter-group > label {
+    display: block; font-size: 10px; font-weight: 700;
+    color: #7A8B87; margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .cb-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: #5A6B67; margin: 5px 0; cursor: pointer;
+  }
+  .cb-row input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 16px; height: 16px; border: 1.5px solid #C8C3BB;
+    border-radius: 5px; cursor: pointer; position: relative;
+    transition: all 0.15s ease; flex-shrink: 0;
+  }
+  .cb-row input[type="checkbox"]:checked {
+    background: #5B8A72; border-color: #5B8A72;
+  }
+  .cb-row input[type="checkbox"]:checked::after {
+    content: '\2713'; position: absolute; top: -1px; left: 2px;
+    color: white; font-size: 11px; font-weight: 700;
+  }
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .slider-row input[type="range"] {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 4px; background: #E5E0D8; border-radius: 4px; outline: none;
+  }
+  .slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #5B8A72; cursor: pointer;
+    border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .slider-val { font-size: 12px; color: #5B8A72; min-width: 32px; text-align: right; font-weight: 700; }
+  #controls > p { margin: 14px 0 0; font-size: 11px; color: #A3B1AD; line-height: 1.6; }
+  #stats {
+    position: fixed; top: 24px; right: 24px;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    padding: 10px 18px; border-radius: 40px;
+    font-size: 12px; font-weight: 600; color: #5A6B67;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 24px rgba(44,62,58,0.06); z-index: 10;
+  }
+  #drawer {
+    position: fixed; top: 0; right: 0;
+    width: clamp(440px, 32vw, 640px); max-width: 100vw; height: 100vh;
+    background: rgba(253,252,250,0.97);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(0,0,0,0.04);
+    box-shadow: -12px 0 40px rgba(44,62,58,0.06);
+    z-index: 20; display: flex; flex-direction: column;
+    transform: translateX(100%); opacity: 0; pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
+  }
+  #drawer.open {
+    transform: translateX(0); opacity: 1; pointer-events: auto;
+  }
+  #drawer-header { padding: 28px 28px 20px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+  #drawer-topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  #drawer-title {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 22px; line-height: 1.3; color: #2C3E3A; margin: 0;
+  }
+  #drawer-close {
+    background: none; border: none; color: #A3B1AD; font-size: 22px;
+    cursor: pointer; padding: 4px; line-height: 1; border-radius: 8px;
+    transition: all 0.15s ease;
+  }
+  #drawer-close:hover { background: rgba(0,0,0,0.04); color: #5A6B67; }
+  #drawer-meta {
+    margin-top: 10px; font-size: 11px; font-weight: 700;
+    color: #7A8B87; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  #drawer-path {
+    margin-top: 6px; font-size: 11px; color: #B8C4C0; word-break: break-all;
+    font-family: 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  #drawer-preview { margin-top: 14px; font-size: 13px; color: #7A8B87; line-height: 1.7; }
+  #drawer-related {
+    padding: 16px 28px 0; font-size: 11px; font-weight: 700;
+    color: #7A8B87; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  #drawer-related-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .related-chip {
+    background: rgba(91,138,114,0.08); color: #5B8A72;
+    border: 1px solid rgba(91,138,114,0.15); border-radius: 20px;
+    font-size: 11px; font-weight: 600; padding: 5px 12px; cursor: pointer;
+    transition: all 0.15s ease; font-family: 'Nunito Sans', sans-serif;
+  }
+  .related-chip:hover {
+    background: rgba(91,138,114,0.15); border-color: rgba(91,138,114,0.25);
+  }
+  #drawer-content { flex: 1; min-height: 0; padding: 20px 28px 28px; overflow: auto; }
+  #drawer-markdown { font-size: 13.5px; line-height: 1.8; color: #3D4F4A; }
+  #drawer-markdown h1, #drawer-markdown h2, #drawer-markdown h3, #drawer-markdown h4 {
+    font-family: 'Fraunces', serif; font-weight: 500; color: #2C3E3A;
+    margin: 1.5em 0 0.5em; line-height: 1.3;
+  }
+  #drawer-markdown h1 { font-size: 22px; }
+  #drawer-markdown h2 { font-size: 18px; }
+  #drawer-markdown h3 { font-size: 15px; }
+  #drawer-markdown p { margin: 0 0 1em; }
+  #drawer-markdown ul, #drawer-markdown ol { margin: 0 0 1em 1.4em; padding: 0; }
+  #drawer-markdown li { margin: 0.3em 0; }
+  #drawer-markdown hr { border: 0; border-top: 1px solid rgba(0,0,0,0.06); margin: 1.5em 0; }
+  #drawer-markdown blockquote {
+    margin: 0 0 1em; padding: 0.8em 1.2em;
+    border-left: 3px solid rgba(91,138,114,0.4);
+    background: rgba(91,138,114,0.04); border-radius: 0 12px 12px 0; color: #5A6B67;
+  }
+  #drawer-markdown pre {
+    margin: 0 0 1em; white-space: pre-wrap; word-break: break-word;
+    line-height: 1.6; font-size: 12px; background: rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  #drawer-markdown code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em; background: rgba(91,138,114,0.08);
+    padding: 0.15em 0.4em; border-radius: 6px; color: #5B8A72;
+  }
+  #drawer-markdown pre code { background: transparent; padding: 0; color: inherit; border-radius: 0; }
+  #drawer-markdown .wikilink { color: #5B8A72; font-weight: 600; }
+  @media (max-width: 960px) { #drawer { width: 100vw; } }
+</style>
+</head>
+<body>
+<div id="controls">
+  <h3>知识图谱</h3>
+  <input id="search" type="text" placeholder="搜索节点..." oninput="searchNodes(this.value)">
+  <div>{legend_items}</div>
+  <div class="filter-group">
+    <label>关系类型</label>
+    <div class="cb-row"><input type="checkbox" id="cb-extracted" checked onchange="applyFilters()"><span style="color:#B8C4C0">—</span> 已提取 ({n_extracted})</div>
+    <div class="cb-row"><input type="checkbox" id="cb-inferred" checked onchange="applyFilters()"><span style="color:#C4956A">—</span> 推断 ({n_inferred})</div>
+    <div class="cb-row"><input type="checkbox" id="cb-ambiguous" onchange="applyFilters()"><span style="color:#D4CDC5">—</span> 模糊 ({n_ambiguous})</div>
+  </div>
+  <div class="filter-group">
+    <label>最低置信度</label>
+    <div class="slider-row">
+      <input type="range" id="conf-slider" min="0" max="100" value="50" oninput="applyFilters()">
+      <span class="slider-val" id="conf-val">0.50</span>
+    </div>
+  </div>
+  <p>点击节点查看详情</p>
+</div>
+<div id="graph"></div>
+<aside id="drawer">
+  <div id="drawer-header">
+    <div id="drawer-topline">
+      <h2 id="drawer-title"></h2>
+      <button id="drawer-close" onclick="clearSelection()" aria-label="关闭">x</button>
+    </div>
+    <div id="drawer-meta"></div>
+    <div id="drawer-path"></div>
+    <div id="drawer-preview"></div>
+  </div>
+  <div id="drawer-related">相关节点<div id="drawer-related-list"></div></div>
+  <div id="drawer-content"><div id="drawer-markdown"></div></div>
+</aside>
+<div id="stats"></div>
+<script>
+const originalNodes = {nodes_json};
+const originalEdges = {edges_json}.map(edge => ({
+  ...edge,
+  id: edge.id || `${edge.from}->${edge.to}:${edge.type || "INFERRED"}`,
+}));
+const nodes = new vis.DataSet(originalNodes);
+const edges = new vis.DataSet(originalEdges);
+const adjacency = new Map();
+const searchInput = document.getElementById("search");
+const stats = document.getElementById("stats");
+const controls = {
+  extracted: document.getElementById("cb-extracted"),
+  inferred: document.getElementById("cb-inferred"),
+  ambiguous: document.getElementById("cb-ambiguous"),
+  confSlider: document.getElementById("conf-slider"),
+  confValue: document.getElementById("conf-val"),
+};
+const nodeMap = new Map(originalNodes.map(node => [node.id, node]));
+let activeNodeId = null;
+
+function hexToRgba(color, alpha) {
+  if (!color) return `rgba(255, 255, 255, ${alpha})`;
+  const normalized = color.replace("#", "");
+  const value = normalized.length === 3
+    ? normalized.split("").map(ch => ch + ch).join("")
+    : normalized;
+  const intValue = Number.parseInt(value, 16);
+  const r = (intValue >> 16) & 255;
+  const g = (intValue >> 8) & 255;
+  const b = intValue & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function escapeHtml(text) {
+  return (text || "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function stripFrontmatter(markdown) {
+  return (markdown || "").replace(/^---\\n[\\s\\S]*?\\n---\\n?/, "");
+}
+
+function renderInlineMarkdown(text) {
+  let html = escapeHtml(text);
+  html = html.replace(/\[\[([^\]]+)\]\]/g, '<span class="wikilink">[[$1]]</span>');
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  return html;
+}
+
+function renderMarkdown(markdown) {
+  const lines = stripFrontmatter(markdown).split(/\\r?\\n/);
+  const html = [];
+  let paragraph = [];
+  let listType = null;
+  let listItems = [];
+  let quoteLines = [];
+  let inCodeBlock = false;
+  let codeLines = [];
+
+  function flushParagraph() {
+    if (!paragraph.length) return;
+    html.push(`<p>${renderInlineMarkdown(paragraph.join(" "))}</p>`);
+    paragraph = [];
+  }
+  function flushList() {
+    if (!listType || !listItems.length) return;
+    const items = listItems.map(item => `<li>${renderInlineMarkdown(item)}</li>`).join("");
+    html.push(`<${listType}>${items}</${listType}>`);
+    listType = null; listItems = [];
+  }
+  function flushQuote() {
+    if (!quoteLines.length) return;
+    html.push(`<blockquote>${quoteLines.map(line => renderInlineMarkdown(line)).join("<br>")}</blockquote>`);
+    quoteLines = [];
+  }
+  function flushCode() {
+    if (!codeLines.length) { html.push("<pre><code></code></pre>"); return; }
+    html.push(`<pre><code>${escapeHtml(codeLines.join("\\n"))}</code></pre>`);
+    codeLines = [];
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\\t/g, "    ");
+    const trimmed = line.trim();
+    if (trimmed.startsWith("```")) {
+      flushParagraph(); flushList(); flushQuote();
+      if (inCodeBlock) { flushCode(); inCodeBlock = false; } else { inCodeBlock = true; }
+      continue;
+    }
+    if (inCodeBlock) { codeLines.push(rawLine); continue; }
+    if (!trimmed) { flushParagraph(); flushList(); flushQuote(); continue; }
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+    if (headingMatch) {
+      flushParagraph(); flushList(); flushQuote();
+      const level = headingMatch[1].length;
+      html.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`);
+      continue;
+    }
+    if (/^(-{3,}|\*{3,})$/.test(trimmed)) {
+      flushParagraph(); flushList(); flushQuote();
+      html.push("<hr>"); continue;
+    }
+    const quoteMatch = trimmed.match(/^>\s?(.*)$/);
+    if (quoteMatch) { flushParagraph(); flushList(); quoteLines.push(quoteMatch[1]); continue; }
+    flushQuote();
+    const unorderedMatch = trimmed.match(/^[-*]\s+(.+)$/);
+    if (unorderedMatch) {
+      flushParagraph();
+      if (listType && listType !== "ul") flushList();
+      listType = "ul"; listItems.push(unorderedMatch[1]); continue;
+    }
+    const orderedMatch = trimmed.match(/^\d+\.\s+(.+)$/);
+    if (orderedMatch) {
+      flushParagraph();
+      if (listType && listType !== "ol") flushList();
+      listType = "ol"; listItems.push(orderedMatch[1]); continue;
+    }
+    flushList();
+    paragraph.push(trimmed);
+  }
+  if (inCodeBlock) flushCode();
+  flushParagraph(); flushList(); flushQuote();
+  return html.join("");
+}
+
+function rebuildAdjacency(filteredEdges) {
+  adjacency.clear();
+  for (const node of originalNodes) { adjacency.set(node.id, new Set()); }
+  for (const edge of filteredEdges) {
+    if (!adjacency.has(edge.from)) adjacency.set(edge.from, new Set());
+    if (!adjacency.has(edge.to)) adjacency.set(edge.to, new Set());
+    adjacency.get(edge.from).add(edge.to);
+    adjacency.get(edge.to).add(edge.from);
+  }
+}
+
+function currentEdgeState() {
+  const minConf = parseInt(controls.confSlider.value, 10) / 100;
+  controls.confValue.textContent = minConf.toFixed(2);
+  return {
+    showExtracted: controls.extracted.checked,
+    showInferred: controls.inferred.checked,
+    showAmbiguous: controls.ambiguous.checked,
+    minConf,
+  };
+}
+
+function passesEdgeFilters(edge, edgeState) {
+  const typeOk = (edge.type === "EXTRACTED" && edgeState.showExtracted)
+    || (edge.type === "INFERRED" && edgeState.showInferred)
+    || (edge.type === "AMBIGUOUS" && edgeState.showAmbiguous);
+  const confOk = (edge.confidence ?? 1.0) >= edgeState.minConf;
+  return typeOk && confOk;
+}
+
+function searchNodes(q) { applyFilters(q, activeNodeId); }
+
+function clearSelection() {
+  activeNodeId = null;
+  document.getElementById("drawer").classList.remove("open");
+  applyFilters(searchInput.value, null);
+}
+
+function openDrawer(node, relatedIds) {
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("drawer-title").textContent = node.label;
+  const communityText = Number.isInteger(node.group) && node.group >= 0 ? ` · 社区 ${node.group}` : "";
+  document.getElementById("drawer-meta").textContent = `${node.type}${communityText}`;
+  document.getElementById("drawer-path").textContent = node.path;
+  document.getElementById("drawer-preview").textContent = "";
+  document.getElementById("drawer-markdown").innerHTML = renderMarkdown(node.markdown || "");
+  const relatedList = document.getElementById("drawer-related-list");
+  relatedList.innerHTML = "";
+  const relatedNodes = originalNodes
+    .filter(item => relatedIds.has(item.id) && item.id !== node.id)
+    .sort((a, b) => a.label.localeCompare(b.label));
+  if (relatedNodes.length === 0) {
+    const empty = document.createElement("span");
+    empty.textContent = "没有直接相连的节点";
+    relatedList.appendChild(empty);
+    return;
+  }
+  for (const related of relatedNodes) {
+    const chip = document.createElement("button");
+    chip.className = "related-chip";
+    chip.textContent = related.label;
+    chip.onclick = () => focusNode(related.id);
+    relatedList.appendChild(chip);
+  }
+}
+
+function applyFilters(query = searchInput.value, selectedNodeId = activeNodeId) {
+  const lower = (query || "").trim().toLowerCase();
+  const edgeState = currentEdgeState();
+  const filteredEdges = originalEdges.filter(edge => passesEdgeFilters(edge, edgeState));
+  rebuildAdjacency(filteredEdges);
+  const relatedIds = selectedNodeId
+    ? new Set([selectedNodeId, ...(adjacency.get(selectedNodeId) || [])])
+    : null;
+  const filteredNodeIds = new Set();
+  for (const edge of filteredEdges) {
+    filteredNodeIds.add(edge.from);
+    filteredNodeIds.add(edge.to);
+  }
+
+  let visibleNodeCount = 0;
+  const nodeUpdates = originalNodes.map(node => {
+    const matchesSearch = !lower || node.label.toLowerCase().includes(lower);
+    const isActive = selectedNodeId === node.id;
+    const isConnected = filteredNodeIds.has(node.id);
+    const isRelated = !relatedIds || relatedIds.has(node.id);
+    const hidden = !selectedNodeId && !lower && !isConnected;
+    const emphasized = matchesSearch && isRelated && (isConnected || !!lower || isActive);
+    if (!hidden) visibleNodeCount += 1;
+    return {
+      id: node.id,
+      hidden,
+      color: {
+        background: emphasized ? node.color : hexToRgba(node.color, hidden ? 0.08 : 0.35),
+        border: emphasized ? hexToRgba(node.color, 0.8) : hexToRgba(node.color, hidden ? 0.06 : 0.3),
+        highlight: { background: node.color, border: hexToRgba(node.color, 0.9) },
+        hover: { background: node.color, border: hexToRgba(node.color, 0.9) },
+      },
+      font: {
+        color: emphasized ? "#2C3E3A" : hidden ? "rgba(44,62,58,0.06)" : "rgba(44,62,58,0.25)",
+      },
+      borderWidth: isActive ? 3 : 1.5,
+      size: isActive ? 18 : 12,
+    };
+  });
+
+  const edgeUpdates = originalEdges.map(edge => {
+    const enabled = passesEdgeFilters(edge, edgeState);
+    if (!enabled) return { id: edge.id, hidden: true };
+    const matchesSearch = !lower
+      || nodeMap.get(edge.from)?.label.toLowerCase().includes(lower)
+      || nodeMap.get(edge.to)?.label.toLowerCase().includes(lower);
+    const isRelated = !relatedIds || relatedIds.has(edge.from) || relatedIds.has(edge.to);
+    const touchesActive = !!selectedNodeId && (edge.from === selectedNodeId || edge.to === selectedNodeId);
+    const emphasized = matchesSearch && isRelated;
+    return {
+      id: edge.id, hidden: false,
+      width: 1.0,
+      color: touchesActive ? "#9B59B6" : emphasized ? hexToRgba(edge.color, 0.5) : hexToRgba(edge.color, 0.04),
+    };
+  });
+
+  nodes.update(nodeUpdates);
+  edges.update(edgeUpdates);
+
+  if (selectedNodeId) {
+    const activeNode = nodeMap.get(selectedNodeId);
+    if (activeNode) openDrawer(activeNode, relatedIds || new Set([selectedNodeId]));
+  }
+
+  const focusSuffix = selectedNodeId && nodeMap.get(selectedNodeId)
+    ? ` · ${nodeMap.get(selectedNodeId).label}` : "";
+  stats.textContent = `${visibleNodeCount} 个节点 · ${filteredEdges.length} 条边${focusSuffix}`;
+}
+
+const container = document.getElementById("graph");
+const nodeCount = originalNodes.length;
+const gravConst = nodeCount > 80 ? -8000 : nodeCount > 30 ? -5000 : -2000;
+const springLen = nodeCount > 80 ? 250 : nodeCount > 30 ? 200 : 150;
+
+const network = new vis.Network(container, { nodes, edges }, {
+  nodes: {
+    shape: "dot",
+    font: { color: "#3D4F4A", size: 11, strokeWidth: 0 },
+    borderWidth: 1,
+    scaling: {
+      min: 8, max: 36,
+      label: { enabled: true, min: 10, max: 18, drawThreshold: 6, maxVisible: 24 },
+    },
+  },
+  edges: {
+    width: 1.0,
+    smooth: { type: "continuous" },
+    arrows: { to: { enabled: true, scaleFactor: 0.6, type: "arrow" } },
+    color: { inherit: false },
+    hoverWidth: 1.5,
+  },
+  physics: {
+    stabilization: { iterations: 200, updateInterval: 30, fit: true },
+    barnesHut: { gravitationalConstant: gravConst, springLength: springLen, springConstant: 0.015, damping: 0.12 },
+    minVelocity: 0.5,
+  },
+  interaction: { hover: true, tooltipDelay: 200, hideEdgesOnDrag: false, hideEdgesOnZoom: false },
+});
+
+network.once("stabilizationIterationsDone", function () {
+  network.fit({ animation: { duration: 400, easingFunction: "easeInOutQuad" } });
+});
+
+function focusNode(nodeId) {
+  activeNodeId = nodeId;
+  applyFilters(searchInput.value, nodeId);
+  const node = nodeMap.get(nodeId) || nodes.get(nodeId);
+  const relatedIds = new Set([nodeId, ...(adjacency.get(nodeId) || [])]);
+  openDrawer(node, relatedIds);
+  network.focus(nodeId, {
+    scale: 1.1,
+    animation: { duration: 300, easingFunction: "easeInOutQuad" },
+  });
+}
+
+network.on("click", params => {
+  if (params.nodes.length > 0) focusNode(params.nodes[0]);
+  else clearSelection();
+});
+
+applyFilters();
+</script>
+</body>

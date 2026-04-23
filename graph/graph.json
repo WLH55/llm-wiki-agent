@@ -4,12 +4,12 @@
       "id": "overview",
       "label": "概览",
       "type": "synthesis",
-      "color": "#7BA07A",
+      "color": "#6A9BC3",
       "path": "wiki\\overview.md",
       "markdown": "---\ntitle: \"概览\"\ntype: synthesis\ntags: []\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# 概览\n\n*本页面由 LLM 维护。每次导入时更新，反映所有来源的当前综合内容。*\n\n## 当前知识库内容\n\n本知识库目前包含一份来源文档：[[Claude]] Opus 4.7 系统提示词的详细学习笔记。该笔记深度分析了 Claude 系统提示词的十八个模块，涵盖模型基本信息、核心行为原则、安全限制、格式规范、用户心理安全、政治立场、版权合规、搜索行为规范、[[Artifacts]] 系统、持久化存储 API、Anthropic API 使用、对话检索工具等内容。\n\n## 核心主题\n\n### AI 安全与对齐\n[[AI对齐工程]]是贯穿整份系统提示词的核心主题。[[Anthropic]] 在设计中体现了梯度安全策略：儿童安全 > 武器/有害物质 > 恶意代码 > 其他。同时，\"帮助是默认值\"的原则意味着过度谨慎被视为与帮助有害请求同等的错误。\n\n### 版权与合规\n[[版权合规]]部分措辞最为强硬，包含多个硬性限制：引用长度限制、每来源仅一次引用、歌词/诗歌完全不可复现。去掉引号不等于释义。\n\n### 搜索优先与工具发现\nClaude 4.7 最显著的行为变化是搜索优先原则——对任何涉及当今世界的事实性问题，必须先搜索再回答。工具发现机制要求在声称\"没有能力\"之前先调用 tool_search。\n\n## 关键实体\n\n- [[Claude]] — Anthropic 的 AI 助手，当前最新版本 Opus 4.7\n- [[Anthropic]] — Claude 的开发公司\n- [[ClaudeCode]] — Claude 的命令行工具\n\n## 关键概念\n\n- [[系统提示词]] — 大模型行为规范的底层指令集\n- [[AI对齐工程]] — 确保 AI 行为符合人类期望的技术\n- [[提示词工程]] — 优化与 LLM 交互的技术\n- [[Artifacts]] — Claude 的文件输出系统\n",
       "preview": "# 概览 *本页面由 LLM 维护。每次导入时更新，反映所有来源的当前综合内容。* ## 当前知识库内容",
-      "group": 0,
-      "value": 9
+      "group": 1,
+      "value": 10
     },
     {
       "id": "concepts/AI对齐工程",
@@ -20,18 +20,18 @@
       "markdown": "---\ntitle: \"AI 对齐工程\"\ntype: concept\ntags: [AI, 安全, 对齐]\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# AI 对齐工程\n\nAI 对齐工程（Alignment Engineering）是确保 AI 系统行为符合人类价值观和期望的技术领域。[[Claude]] 的[[系统提示词]]是对齐工程的一个具体实践。\n\n## 在 Claude 系统提示词中的体现\n\n- **安全分级**：儿童安全 > 武器/有害物质 > 恶意代码 > 其他，形成梯度保护\n- **默认帮助立场**：在安全限制内最大化有用性，拒绝需要具体理由\n- **验证机制**：搜索优先原则确保信息准确性\n- **降档机制**：风险感知下通过减少信息量控制风险\n- **对话级持续谨慎**：一旦触发安全限制，整个对话后续都保持高审查级别\n\n## 关联\n\n- [[Claude]] — 对齐工程的具体实践载体\n- [[系统提示词]] — 对齐规则的载体\n- [[Anthropic]] — 对齐理念的设计者\n",
       "preview": "# AI 对齐工程 AI 对齐工程（Alignment Engineering）是确保 AI 系统行为符合人类价值观和期望的技术领域。[[Claude]] 的[[系统提示词]]是对齐工程的一个具体实践。 ## 在 Claude 系统提示词中的体现",
       "group": 0,
-      "value": 6
+      "value": 8
     },
     {
       "id": "concepts/Artifacts",
       "label": "Artifacts",
       "type": "concept",
-      "color": "#7BA07A",
+      "color": "#6A9BC3",
       "path": "wiki\\concepts\\Artifacts.md",
       "markdown": "---\ntitle: \"Artifacts\"\ntype: concept\ntags: [AI, Claude, 可视化]\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# Artifacts\n\nArtifacts 是 [[Claude]] 的文件/可视化输出系统，允许 Claude 创建独立的可渲染内容。\n\n## 何时创建\n\n- 博客文章、文章、故事、社交媒体帖子\n- 报告、报表、参考材料、学习指南\n- 超过一定行数的代码片段或文本文档\n\n## 支持的类型\n\nMarkdown、HTML、React（.jsx）、Mermaid 图、SVG、PDF\n\n## React 可用库\n\nlucide-react、recharts、mathjs、lodash、d3、plotly、three.js、papaparse、sheetjs、shadcn/ui、chart.js、tone、mammoth、tensorflow。样式仅限 Tailwind 核心工具类。\n\n## 重要禁止项\n\n- 禁止使用 localStorage、sessionStorage\n- 禁止使用 HTML `<form>` 标签\n- 必须遵循单文件原则\n\n## 持久化存储\n\n通过 `window.storage` API 实现跨会话数据持久化，支持个人数据和共享数据。\n\n## 关联\n\n- [[Claude]] — Artifacts 的提供者\n- [[Anthropic]] — Artifacts API 的提供者\n",
       "preview": "# Artifacts Artifacts 是 [[Claude]] 的文件/可视化输出系统，允许 Claude 创建独立的可渲染内容。 ## 何时创建",
-      "group": 0,
-      "value": 5
+      "group": 1,
+      "value": 8
     },
     {
       "id": "concepts/提示词工程",
@@ -42,7 +42,7 @@
       "markdown": "---\ntitle: \"提示词工程\"\ntype: concept\ntags: [AI, LLM, 提示词]\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# 提示词工程\n\n提示词工程（Prompt Engineering）是设计和优化与大语言模型交互的提示词的技术。[[Claude]] 的[[系统提示词]]中包含了主动向用户分享的提示词技巧。\n\n## Claude 推荐的提示词技巧\n\n- **清晰具体**：明确说明你想要什么\n- **正面 + 负面示例**：同时给出\"好的例子\"和\"不好的例子\"\n- **鼓励逐步推理**：要求 Claude 展示思考过程\n- **使用 XML 标签**：在提示词中用标签标注结构（如 `<context>`、`<question>`）\n- **指定长度和格式**：明确要求篇幅和输出格式\n\n## 参考文档\n\nhttps://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview\n\n## 关联\n\n- [[Claude]] — 提示词工程的应用主体\n- [[系统提示词]] — 提示词工程在系统层面的实践\n",
       "preview": "# 提示词工程 提示词工程（Prompt Engineering）是设计和优化与大语言模型交互的提示词的技术。[[Claude]] 的[[系统提示词]]中包含了主动向用户分享的提示词技巧。 ## Claude 推荐的提示词技巧",
       "group": 1,
-      "value": 6
+      "value": 8
     },
     {
       "id": "concepts/版权合规",
@@ -53,28 +53,28 @@
       "markdown": "---\ntitle: \"版权合规\"\ntype: concept\ntags: [法律, 版权, AI]\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# 版权合规\n\n版权合规是 [[Claude]] 的[[系统提示词]]中规则最明确、措辞最强硬的部分之一。\n\n## 核心原则\n\n默认释义（paraphrase），而非直接引用。释义是用自己的语言表达他人的内容，而不是复制。\n\n## 硬性限制\n\n1. **引用长度限制**：每次引用不超过规定词数\n2. **引用次数限制**：每个来源最多只能引用一次\n3. **歌词/诗歌**：一行都不能复现，哪怕作品很短\n\n## 什么不算释义\n\n去掉引号 ≠ 释义。如果措辞、句式与原文高度相近，即使没有引号，仍属于复制。\n\n## 其他规定\n\n- 不重建文章结构或组织方式\n- 不逐点跟随原文行文\n- 对一篇文章，给出高层次摘要后回答具体问题\n\n## 关联\n\n- [[Claude]] — 版权合规规则的执行者\n- [[系统提示词]] — 版权规则的来源\n",
       "preview": "# 版权合规 版权合规是 [[Claude]] 的[[系统提示词]]中规则最明确、措辞最强硬的部分之一。 ## 核心原则",
       "group": 0,
-      "value": 5
+      "value": 6
     },
     {
       "id": "concepts/系统提示词",
       "label": "系统提示词",
       "type": "concept",
-      "color": "#7BA07A",
+      "color": "#6A9BC3",
       "path": "wiki\\concepts\\系统提示词.md",
       "markdown": "---\ntitle: \"系统提示词\"\ntype: concept\ntags: [AI, LLM, 对齐]\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# 系统提示词\n\n系统提示词（System Prompt）是定义大语言模型行为规范的底层指令集。[[Claude]] Opus 4.7 的系统提示词覆盖了十八个模块，是理解现代大模型[[AI对齐工程]]的一手资料。\n\n## 核心设计原则\n\n1. **帮助是默认值**：限制需要理由，过度谨慎是失败\n2. **真实世界知识必须验证**：训练数据不代表当前现实\n3. **工具优先于假设**：先搜索工具，再声称\"没有能力\"\n4. **格式服务于理解**：最小化格式，让内容本身说话\n5. **安全限制有梯度**：但儿童安全无例外\n6. **版权保护是认真的**：去掉引号不等于释义\n7. **对话历史是连续体**：努力查找，而非直接说\"不知道\"\n\n## 关联\n\n- [[Claude]] — 系统提示词的执行主体\n- [[Anthropic]] — 系统提示词的设计者\n- [[AI对齐工程]] — 系统提示词背后的设计哲学\n- [[提示词工程]] — 系统提示词的延伸实践\n",
       "preview": "# 系统提示词 系统提示词（System Prompt）是定义大语言模型行为规范的底层指令集。[[Claude]] Opus 4.7 的系统提示词覆盖了十八个模块，是理解现代大模型[[AI对齐工程]]的一手资料。 ## 核心设计原则",
-      "group": 0,
-      "value": 8
+      "group": 1,
+      "value": 10
     },
     {
       "id": "entities/Anthropic",
       "label": "Anthropic",
       "type": "entity",
-      "color": "#7BA07A",
+      "color": "#6A9BC3",
       "path": "wiki\\entities\\Anthropic.md",
       "markdown": "---\ntitle: \"Anthropic\"\ntype: entity\ntags: [AI, 公司]\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# Anthropic\n\nAnthropic 是 [[Claude]] AI 助手的开发公司。该公司在系统提示词设计中体现了对安全和负责任 AI 的深度重视。\n\n## 安全理念\n\nAnthropic 的安全设计体现在多个层面：\n- 儿童安全是最高优先级，规则最严格且无例外\n- 版权合规措辞强硬，硬性限制明确\n- 对政治话题保持平衡，遵循公正性原则\n- 对用户健康和心理安全有详细的危机处理流程\n\n## 系统提醒机制\n\nAnthropic 可能通过特殊标签向 Claude 发送提醒，类型包括：image_reminder、cyber_warning、system_warning、ethics_reminder、ip_reminder、long_conversation_reminder。\n\n## 关联\n\n- [[Claude]] — Anthropic 开发的 AI 助手\n- [[AI对齐工程]] — Anthropic 的核心技术方向\n",
       "preview": "# Anthropic Anthropic 是 [[Claude]] AI 助手的开发公司。该公司在系统提示词设计中体现了对安全和负责任 AI 的深度重视。 ## 安全理念",
-      "group": 0,
+      "group": 1,
       "value": 8
     },
     {
@@ -97,7 +97,7 @@
       "markdown": "---\ntitle: \"Claude Code\"\ntype: entity\ntags: [工具, 开发, CLI]\nsources: [claude-opus-4-7-system-prompt-notes.md]\nlast_updated: 2026-04-18\n---\n\n# Claude Code\n\nClaude Code 是 [[Claude]] 的命令行工具，面向开发者的 Agentic 编程场景。它是 Claude 的访问渠道之一。\n\n## 关联\n\n- [[Claude]] — 所属产品系列\n- [[Anthropic]] — 开发公司\n- [[提示词工程]] — 使用 Claude Code 的核心技术\n",
       "preview": "# Claude Code Claude Code 是 [[Claude]] 的命令行工具，面向开发者的 Agentic 编程场景。它是 Claude 的访问渠道之一。 ## 关联",
       "group": 1,
-      "value": 6
+      "value": 8
     },
     {
       "id": "sources/claude-opus-4-7-system-prompt-notes",
@@ -108,24 +108,14 @@
       "markdown": "---\ntitle: \"Claude Opus 4.7 系统提示词详细学习笔记\"\ntype: source\ntags: [AI, LLM, Claude, 系统提示词, 对齐工程]\ndate: 2026-04-18\nsource_file: raw/claude-opus-4-7-system-prompt-notes.md\n---\n\n## 摘要\n\n本文是对 Claude Opus 4.7 完整系统提示词的深度学习笔记，覆盖模型基本信息、核心行为原则、安全与内容限制、格式与语气规范、用户健康与心理安全、政治与价值观立场、法律与金融建议、版权合规、网络搜索行为规范、图片搜索规范、Artifacts 规范、持久化存储 API、Anthropic API 使用、过去对话检索工具、系统提醒机制、错误处理与自我修正、提示词工程建议，以及关键设计哲学总结共十八个模块。\n\n## 核心论点\n\n- Claude 的默认立场是\"尽量帮助\"，过度谨慎本身也是一种失败\n- 对于涉及当今世界的事实性问题，必须先搜索再回答，不能依赖训练数据\n- 儿童安全是最高优先级，规则最严格、无例外\n- 版权合规有硬性限制：每次引用不超过一定词数，每个来源最多引用一次，歌词/诗歌一行都不能复现\n- 格式应服务于理解，而非展示能力，避免过度格式化\n\n## 重要引述\n\n> \"过度谨慎本身也是一种失败，拒绝无害请求与帮助有害请求同样是错误。\" — 关于默认帮助立场\n\n> \"在说'我没有这个能力'之前，必须先调用 tool_search。\" — 关于工具发现机制\n\n> \"当对话感觉有风险或走偏时，说得少、回答短，是更安全的策略。\" — 关于风险感知下的保守策略\n\n## 关联\n\n- [[Claude]] — 本笔记分析的主体模型\n- [[Anthropic]] — Claude 的开发公司\n- [[系统提示词]] — 本笔记的核心主题\n- [[AI对齐工程]] — 系统提示词背后的设计哲学\n- [[提示词工程]] — 系统提示词的延伸实践\n- [[ClaudeCode]] — Claude 的命令行工具\n- [[Artifacts]] — Claude 的文件/可视化输出系统\n- [[版权合规]] — 系统提示词中的严格版权规定\n\n## 矛盾\n\n暂无（知识库为空，这是第一个来源）\n",
       "preview": "## 摘要 本文是对 Claude Opus 4.7 完整系统提示词的深度学习笔记，覆盖模型基本信息、核心行为原则、安全与内容限制、格式与语气规范、用户健康与心理安全、政治与价值观立场、法律与金融建议、版权合规、网络搜索行为规范、图片搜索规范、Artifacts 规范、持久化存储 API、Anthropic API 使用、过去对话检索工具、系统提醒机制、错误处理与自我修正、提示词工程建议，以及关键设计哲学总结共十八个模块。 ## 核心论",
       "group": 1,
-      "value": 9
+      "value": 10
     }
   ],
   "edges": [
     {
-      "id": "overview->concepts/版权合规:EXTRACTED",
+      "id": "overview->concepts/系统提示词:EXTRACTED",
       "from": "overview",
-      "to": "concepts/版权合规",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "overview->entities/Claude:EXTRACTED",
-      "from": "overview",
-      "to": "entities/Claude",
+      "to": "concepts/系统提示词",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -143,29 +133,9 @@
       "label": ""
     },
     {
-      "id": "overview->concepts/系统提示词:EXTRACTED",
+      "id": "overview->concepts/版权合规:EXTRACTED",
       "from": "overview",
-      "to": "concepts/系统提示词",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "overview->entities/ClaudeCode:EXTRACTED",
-      "from": "overview",
-      "to": "entities/ClaudeCode",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "overview->concepts/AI对齐工程:EXTRACTED",
-      "from": "overview",
-      "to": "concepts/AI对齐工程",
+      "to": "concepts/版权合规",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -193,9 +163,29 @@
       "label": ""
     },
     {
-      "id": "concepts/AI对齐工程->entities/Claude:EXTRACTED",
-      "from": "concepts/AI对齐工程",
+      "id": "overview->entities/Claude:EXTRACTED",
+      "from": "overview",
       "to": "entities/Claude",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->entities/ClaudeCode:EXTRACTED",
+      "from": "overview",
+      "to": "entities/ClaudeCode",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "overview->concepts/AI对齐工程:EXTRACTED",
+      "from": "overview",
+      "to": "concepts/AI对齐工程",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -223,8 +213,8 @@
       "label": ""
     },
     {
-      "id": "concepts/Artifacts->entities/Claude:EXTRACTED",
-      "from": "concepts/Artifacts",
+      "id": "concepts/AI对齐工程->entities/Claude:EXTRACTED",
+      "from": "concepts/AI对齐工程",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -243,8 +233,8 @@
       "label": ""
     },
     {
-      "id": "concepts/提示词工程->entities/Claude:EXTRACTED",
-      "from": "concepts/提示词工程",
+      "id": "concepts/Artifacts->entities/Claude:EXTRACTED",
+      "from": "concepts/Artifacts",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -263,8 +253,8 @@
       "label": ""
     },
     {
-      "id": "concepts/版权合规->entities/Claude:EXTRACTED",
-      "from": "concepts/版权合规",
+      "id": "concepts/提示词工程->entities/Claude:EXTRACTED",
+      "from": "concepts/提示词工程",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -283,8 +273,8 @@
       "label": ""
     },
     {
-      "id": "concepts/系统提示词->entities/Claude:EXTRACTED",
-      "from": "concepts/系统提示词",
+      "id": "concepts/版权合规->entities/Claude:EXTRACTED",
+      "from": "concepts/版权合规",
       "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
@@ -296,6 +286,16 @@
       "id": "concepts/系统提示词->entities/Anthropic:EXTRACTED",
       "from": "concepts/系统提示词",
       "to": "entities/Anthropic",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "concepts/系统提示词->entities/Claude:EXTRACTED",
+      "from": "concepts/系统提示词",
+      "to": "entities/Claude",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -323,16 +323,6 @@
       "label": ""
     },
     {
-      "id": "entities/ClaudeCode->concepts/提示词工程:EXTRACTED",
-      "from": "entities/ClaudeCode",
-      "to": "concepts/提示词工程",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
       "id": "entities/ClaudeCode->entities/Anthropic:EXTRACTED",
       "from": "entities/ClaudeCode",
       "to": "entities/Anthropic",
@@ -343,19 +333,9 @@
       "label": ""
     },
     {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/版权合规:EXTRACTED",
-      "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "concepts/版权合规",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
-    },
-    {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->entities/Claude:EXTRACTED",
-      "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "entities/Claude",
+      "id": "entities/ClaudeCode->concepts/提示词工程:EXTRACTED",
+      "from": "entities/ClaudeCode",
+      "to": "concepts/提示词工程",
       "type": "EXTRACTED",
       "color": "#B8C4C0",
       "confidence": 1.0,
@@ -383,6 +363,46 @@
       "label": ""
     },
     {
+      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/提示词工程:EXTRACTED",
+      "from": "sources/claude-opus-4-7-system-prompt-notes",
+      "to": "concepts/提示词工程",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/版权合规:EXTRACTED",
+      "from": "sources/claude-opus-4-7-system-prompt-notes",
+      "to": "concepts/版权合规",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/claude-opus-4-7-system-prompt-notes->entities/Anthropic:EXTRACTED",
+      "from": "sources/claude-opus-4-7-system-prompt-notes",
+      "to": "entities/Anthropic",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
+      "id": "sources/claude-opus-4-7-system-prompt-notes->entities/Claude:EXTRACTED",
+      "from": "sources/claude-opus-4-7-system-prompt-notes",
+      "to": "entities/Claude",
+      "type": "EXTRACTED",
+      "color": "#B8C4C0",
+      "confidence": 1.0,
+      "title": "",
+      "label": ""
+    },
+    {
       "id": "sources/claude-opus-4-7-system-prompt-notes->entities/ClaudeCode:EXTRACTED",
       "from": "sources/claude-opus-4-7-system-prompt-notes",
       "to": "entities/ClaudeCode",
@@ -403,25 +423,75 @@
       "label": ""
     },
     {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->concepts/提示词工程:EXTRACTED",
-      "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "concepts/提示词工程",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
+      "id": "overview->sources/claude-opus-4-7-system-prompt-notes:INFERRED",
+      "from": "overview",
+      "to": "sources/claude-opus-4-7-system-prompt-notes",
+      "type": "INFERRED",
+      "title": "overview 综合了该来源的全部内容",
+      "label": "",
+      "color": "#C4956A",
+      "confidence": 0.9
     },
     {
-      "id": "sources/claude-opus-4-7-system-prompt-notes->entities/Anthropic:EXTRACTED",
-      "from": "sources/claude-opus-4-7-system-prompt-notes",
-      "to": "entities/Anthropic",
-      "type": "EXTRACTED",
-      "color": "#B8C4C0",
-      "confidence": 1.0,
-      "title": "",
-      "label": ""
+      "id": "concepts/Artifacts->concepts/系统提示词:INFERRED",
+      "from": "concepts/Artifacts",
+      "to": "concepts/系统提示词",
+      "type": "INFERRED",
+      "title": "Artifacts 的行为规则定义在系统提示词中",
+      "label": "",
+      "color": "#C4956A",
+      "confidence": 0.8
+    },
+    {
+      "id": "entities/ClaudeCode->concepts/系统提示词:INFERRED",
+      "from": "entities/ClaudeCode",
+      "to": "concepts/系统提示词",
+      "type": "INFERRED",
+      "title": "Claude Code 的行为受系统提示词规范约束",
+      "label": "",
+      "color": "#C4956A",
+      "confidence": 0.7
+    },
+    {
+      "id": "entities/ClaudeCode->concepts/Artifacts:INFERRED",
+      "from": "entities/ClaudeCode",
+      "to": "concepts/Artifacts",
+      "type": "INFERRED",
+      "title": "Claude Code 可以生成 Artifacts 作为输出",
+      "label": "",
+      "color": "#C4956A",
+      "confidence": 0.7
+    },
+    {
+      "id": "concepts/版权合规->concepts/AI对齐工程:INFERRED",
+      "from": "concepts/版权合规",
+      "to": "concepts/AI对齐工程",
+      "type": "INFERRED",
+      "title": "版权合规是对齐工程在法律层面的具体实现",
+      "label": "",
+      "color": "#C4956A",
+      "confidence": 0.7
+    },
+    {
+      "id": "concepts/提示词工程->concepts/AI对齐工程:AMBIGUOUS",
+      "from": "concepts/提示词工程",
+      "to": "concepts/AI对齐工程",
+      "type": "AMBIGUOUS",
+      "title": "提示词工程是实现 AI 对齐的工具之一",
+      "label": "",
+      "color": "#C4956A",
+      "confidence": 0.65
+    },
+    {
+      "id": "concepts/提示词工程->concepts/Artifacts:AMBIGUOUS",
+      "from": "concepts/提示词工程",
+      "to": "concepts/Artifacts",
+      "type": "AMBIGUOUS",
+      "title": "有效使用 Artifacts 需要提示词工程技巧",
+      "label": "",
+      "color": "#C4956A",
+      "confidence": 0.6
     }
   ],
-  "built": "2026-04-22"
+  "built": "2026-04-24"
 }
