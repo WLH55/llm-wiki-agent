@@ -259,7 +259,7 @@ function escapeHtml(text) {
 }
 
 function stripFrontmatter(markdown) {
-  return (markdown || "").replace(/^---\\n[\\s\\S]*?\\n---\\n?/, "");
+  return (markdown || "").replace(/^---\n[\s\S]*?\n---\n?/, "");
 }
 
 function renderInlineMarkdown(text) {
@@ -272,7 +272,7 @@ function renderInlineMarkdown(text) {
 }
 
 function renderMarkdown(markdown) {
-  const lines = stripFrontmatter(markdown).split(/\\r?\\n/);
+  const lines = stripFrontmatter(markdown).split(/\r?\n/);
   const html = [];
   let paragraph = [];
   let listType = null;
@@ -299,12 +299,12 @@ function renderMarkdown(markdown) {
   }
   function flushCode() {
     if (!codeLines.length) { html.push("<pre><code></code></pre>"); return; }
-    html.push(`<pre><code>${escapeHtml(codeLines.join("\\n"))}</code></pre>`);
+    html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
     codeLines = [];
   }
 
   for (const rawLine of lines) {
-    const line = rawLine.replace(/\\t/g, "    ");
+    const line = rawLine.replace(/\t/g, "    ");
     const trimmed = line.trim();
     if (trimmed.startsWith("```")) {
       flushParagraph(); flushList(); flushQuote();
