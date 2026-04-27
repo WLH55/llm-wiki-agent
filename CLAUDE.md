@@ -108,7 +108,8 @@ Claude Code 自动读取本文件并遵循以下工作流。
 7. 更新/创建讨论的关键想法和框架的概念页面
 8. 标记与现有知识库内容的任何矛盾
 9. 追加到 `wiki/log.md`：`## [YYYY-MM-DD] ingest | <标题>`
-10. **导入后验证** — 检查断裂的 `[[wikilinks]]`，验证所有新页面都在 `index.md` 中，打印变更摘要
+10. **更新哈希缓存** — 运行 `python tools/check_stale.py --update-file raw/...` 写入原始文件的哈希，防止后续 `check_stale.py` 误判为过期
+11. **导入后验证** — 检查断裂的 `[[wikilinks]]`，验证所有新页面都在 `index.md` 中，打印变更摘要
 
 ### 源页面格式
 

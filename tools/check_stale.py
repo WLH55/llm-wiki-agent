@@ -102,7 +102,20 @@ def main():
     parser.add_argument("--json", action="store_true", help="以 JSON 格式输出")
     parser.add_argument("--update", action="store_true", help="列出过期来源并更新缓存")
     parser.add_argument("--force", action="store_true", help="将所有来源标记为过期")
+    parser.add_argument("--update-file", type=str, help="更新指定原始文件的哈希缓存（用于 ingest 后写入）")
     args = parser.parse_args()
+
+    if args.update_file:
+        raw_path = REPO_ROOT / args.update_file
+        if not raw_path.exists():
+            print(f"文件未找到: {raw_path}")
+            sys.exit(1)
+        cache = load_cache()
+        raw_content = read_file(raw_path)
+        cache[str(raw_path)] = sha256(raw_content)
+        save_cache(cache)
+        print(f"已更新哈希缓存: {raw_path.relative_to(REPO_ROOT)}")
+        return
 
     stale = find_stale_sources(force=args.force)
 
