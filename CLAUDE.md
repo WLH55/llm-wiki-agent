@@ -30,8 +30,9 @@ python tools/build_graph.py --report      # 生成图谱健康报告
 python tools/heal.py
 
 # 检测过期的源页面（哈希对比，不执行刷新）
-python tools/refresh.py                   # 列出过期来源
-python tools/refresh.py --force           # 强制标记所有来源为过期
+python tools/check_stale.py                   # 列出过期来源
+python tools/check_stale.py --force           # 强制标记所有来源为过期
+python tools/check_stale.py --scan            # 扫描 raw/ 目录：新增/更新/删除文件
 
 # 将 PDF/arXiv 转换为 Markdown
 python tools/pdf2md.py 2401.12345                           # arXiv ID
@@ -46,7 +47,7 @@ python tools/file_to_markdown.py <输入目录>
 
 | 命令 | 用途 |
 |---|---|
-| `/wiki-ingest <路径>` | 导入源文档 |
+| `/wiki-ingest [路径]` | 导入源文档。指定文件则导入单个；无参数则扫描 raw/ 批量处理所有变更（含前置检测，未变更跳过） |
 | `/wiki-query <问题>` | 查询知识库并综合回答 |
 | `/wiki-lint` | 健康检查：孤立页面、断开链接、矛盾 |
 | `/wiki-graph` | 从 wikilink 构建知识图谱 |
@@ -70,7 +71,7 @@ pip install pymupdf4llm         # 轻量 PDF 提取（可选）
 
 | 命令 | 用法 |
 |---|---|
-| `/wiki-ingest` | `ingest raw/my-article.md` |
+| `/wiki-ingest` | `ingest raw/my-article.md`（单文件）或 `ingest`（无参数，批量扫描） |
 | `/wiki-query` | `query: 主要主题有哪些？` |
 | `/wiki-lint` | `lint the wiki` |
 | `/wiki-graph` | `build the knowledge graph` |
@@ -97,6 +98,11 @@ Claude Code 自动读取本文件并遵循以下工作流。
 - 每个普通 wiki 页面至少必须包含 `title`、`type` 和与页面类型对应的必需元数据字段。
 
 步骤（按顺序）：
+0. **前置变更检测** — 运行 `python tools/check_stale.py --scan --json`，在输出中查找当前文件：
+   - 在 `new` 中 → 新文件，首次导入，继续步骤 1
+   - 在 `updated` 中 → 文件已更新，重新导入，继续步骤 1
+   - 不在 `new` 也不在 `updated` 中 → 文件未变更，跳过导入并结束
+   - 在 `deleted` 中 → 原始文件已丢失，无法导入，结束
 1. 使用 Read 工具完整读取源文档
 2. 读取 `wiki/index.md` 和 `wiki/overview.md` 获取当前知识库上下文
 3. **防重检查与写入**：在写入 `wiki/sources/` 之前，必须使用 `grep` 工具在 `wiki/sources/` 目录下搜索 `source_file: <当前原始文件路径>` 是否已存在于其他源页面中。

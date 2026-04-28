@@ -66,7 +66,8 @@ gemini      # 读取 GEMINI.md
 启动后就可以直接用自然语言或斜杠命令操作：
 
 ```bash
-/wiki-ingest raw/papers/my-paper.md     # 导入源文档
+/wiki-ingest raw/papers/my-paper.md     # 导入指定文件（未变更则自动跳过）
+/wiki-ingest                            # 无参数：扫描 raw/ 批量导入所有变更文件
 /wiki-query 主要主题有哪些？              # 查询知识库
 /wiki-lint                               # 健康检查
 /wiki-graph                              # 构建知识图谱
@@ -111,7 +112,7 @@ raw/<文件>.md  →  [代理读取+理解]  →  wiki/sources/<slug>.md
 | `build_graph.py` | 构建 vis.js 图谱（解析 wikilink + 社区检测） | `/wiki-graph` 时调用 |
 | `heal.py` | 检测缺失的实体页面 | 代理维护知识库时 |
 | `refresh.py` | 检测过期来源（SHA-256 哈希对比） | `/wiki-refresh` 时调用 |
-| `check_stale.py` | 检测源文件变更 | 刷新前检测 |
+| `check_stale.py` | 检测源文件变更（新增/更新/删除） | `--scan` 扫描、`--update-file` 写缓存 |
 | `pdf2md.py` | PDF/arXiv 转 Markdown | 导入非 Markdown 文件前 |
 | `file_to_markdown.py` | 批量转换非 md 文件 | 导入非 Markdown 文件前 |
 

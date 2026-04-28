@@ -57,6 +57,69 @@ def extract_source_file(content: str) -> str | None:
     return None
 
 
+def find_new_raw_files() -> list[dict]:
+    """扫描 raw/ 目录，返回尚未导入 wiki 的文件列表。"""
+    if not RAW_DIR.exists():
+        return []
+
+    # 收集已导入的 raw 文件路径（相对于 REPO_ROOT）
+    ingested: set[str] = set()
+    if SOURCES_DIR.exists():
+        for wiki_page in SOURCES_DIR.glob("*.md"):
+            content = read_file(wiki_page)
+            source_file = extract_source_file(content)
+            if source_file:
+                ingested.add(source_file)
+
+    new_files = []
+    for raw_path in sorted(RAW_DIR.rglob("*")):
+        if not raw_path.is_file():
+            continue
+        if raw_path.name == ".gitkeep":
+            continue
+        rel = str(raw_path.relative_to(REPO_ROOT)).replace("\\", "/")
+        if rel not in ingested:
+            new_files.append({
+                "raw_path": rel,
+                "slug": raw_path.stem.lower().replace(" ", "-"),
+            })
+
+    return new_files
+
+
+def find_deleted_raw_files() -> list[dict]:
+    """返回 raw 文件已丢失的 wiki 源页面列表。"""
+    if not SOURCES_DIR.exists():
+        return []
+
+    deleted = []
+    for wiki_page in sorted(SOURCES_DIR.glob("*.md")):
+        content = read_file(wiki_page)
+        source_file = extract_source_file(content)
+        if not source_file:
+            continue
+        raw_path = REPO_ROOT / source_file
+        if not raw_path.exists():
+            raw_path = RAW_DIR / source_file
+            if not raw_path.exists():
+                deleted.append({
+                    "wiki_page": str(wiki_page.relative_to(REPO_ROOT)),
+                    "missing_raw": source_file,
+                    "slug": wiki_page.stem,
+                })
+
+    return deleted
+
+
+def scan_all_changes(force: bool = False) -> dict:
+    """综合扫描：返回 new / updated / deleted 三类变更。"""
+    return {
+        "new": find_new_raw_files(),
+        "updated": find_stale_sources(force=force),
+        "deleted": find_deleted_raw_files(),
+    }
+
+
 def find_stale_sources(force: bool = False) -> list[dict]:
     """返回有变更的来源列表。
 
@@ -103,6 +166,7 @@ def main():
     parser.add_argument("--update", action="store_true", help="列出过期来源并更新缓存")
     parser.add_argument("--force", action="store_true", help="将所有来源标记为过期")
     parser.add_argument("--update-file", type=str, help="更新指定原始文件的哈希缓存（用于 ingest 后写入）")
+    parser.add_argument("--scan", action="store_true", help="扫描 raw/ 目录，检测新增/更新/删除文件")
     args = parser.parse_args()
 
     if args.update_file:
@@ -115,6 +179,14 @@ def main():
         cache[str(raw_path)] = sha256(raw_content)
         save_cache(cache)
         print(f"已更新哈希缓存: {raw_path.relative_to(REPO_ROOT)}")
+        return
+
+    if args.scan:
+        result = scan_all_changes(force=args.force)
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            _print_scan_result(result)
         return
 
     stale = find_stale_sources(force=args.force)
@@ -139,6 +211,38 @@ def main():
             cache[str(raw_path)] = sha256(raw_content)
         save_cache(cache)
         print(f"\n已更新 {len(stale)} 个文件的哈希缓存。")
+
+
+def _print_scan_result(result: dict):
+    """格式化输出扫描结果。"""
+    new = result["new"]
+    updated = result["updated"]
+    deleted = result["deleted"]
+
+    print(f"扫描结果：{len(new)} 个新文件，{len(updated)} 个已更新，{len(deleted)} 个已删除\n")
+
+    if new:
+        print("【新增文件】（raw/ 中存在但未导入 wiki）")
+        for item in new:
+            print(f"  {item['raw_path']}")
+        print()
+
+    if updated:
+        print("【已更新文件】（raw 文件哈希已变化）")
+        for item in updated:
+            arrow = f"{item['old_hash']} -> {item['new_hash']}"
+            print(f"  {item['slug']}: {arrow}")
+            print(f"    原始文档: {item['raw_path']}")
+        print()
+
+    if deleted:
+        print("【已删除文件】（raw 文件丢失，wiki 页面孤立）")
+        for item in deleted:
+            print(f"  {item['slug']}: 缺失 {item['missing_raw']}")
+        print()
+
+    if not new and not updated and not deleted:
+        print("无变更，所有文件均为最新。")
 
 
 if __name__ == "__main__":
