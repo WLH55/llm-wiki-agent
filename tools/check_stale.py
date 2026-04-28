@@ -34,13 +34,19 @@ def read_file(path: Path) -> str:
 
 
 def load_cache() -> dict:
-    """加载哈希缓存。"""
-    if REFRESH_CACHE.exists():
-        try:
-            return json.loads(REFRESH_CACHE.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, IOError):
-            return {}
-    return {}
+    """加载哈希缓存，并自动清理指向已不存在文件的条目。"""
+    if not REFRESH_CACHE.exists():
+        return {}
+    try:
+        cache = json.loads(REFRESH_CACHE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, IOError):
+        return {}
+    stale_keys = [k for k in cache if not Path(k).exists()]
+    if stale_keys:
+        for k in stale_keys:
+            del cache[k]
+        save_cache(cache)
+    return cache
 
 
 def save_cache(cache: dict):
