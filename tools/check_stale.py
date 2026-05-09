@@ -33,6 +33,25 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
+def cache_key(path: Path) -> str:
+    """返回稳定的仓库相对缓存 key，避免项目迁移后绝对路径失效。"""
+    try:
+        return str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+    except ValueError:
+        return str(path).replace("\\", "/")
+
+
+def migrate_cache_key(key: str) -> str | None:
+    """将旧版绝对路径缓存 key 迁移为 raw/... 相对路径。"""
+    normalized = key.replace("\\", "/")
+    raw_marker = "/raw/"
+    if normalized.startswith("raw/"):
+        return normalized
+    if raw_marker in normalized:
+        return "raw/" + normalized.split(raw_marker, 1)[1]
+    return None
+
+
 def load_cache() -> dict:
     """加载哈希缓存，并自动清理指向已不存在文件的条目。"""
     if not REFRESH_CACHE.exists():
@@ -41,10 +60,23 @@ def load_cache() -> dict:
         cache = json.loads(REFRESH_CACHE.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, IOError):
         return {}
-    stale_keys = [k for k in cache if not Path(k).exists()]
-    if stale_keys:
-        for k in stale_keys:
-            del cache[k]
+
+    migrated = {}
+    changed = False
+    for key, value in cache.items():
+        new_key = migrate_cache_key(key)
+        if new_key:
+            migrated[new_key] = value
+            changed = changed or new_key != key
+            continue
+
+        if Path(key).exists():
+            migrated[key] = value
+        else:
+            changed = True
+
+    if changed:
+        cache = migrated
         save_cache(cache)
     return cache
 
@@ -151,7 +183,7 @@ def find_stale_sources(force: bool = False) -> list[dict]:
 
         raw_content = read_file(raw_path)
         current_hash = sha256(raw_content)
-        cached_hash = cache.get(str(raw_path))
+        cached_hash = cache.get(cache_key(raw_path))
 
         if force or cached_hash != current_hash:
             stale.append({
@@ -182,7 +214,7 @@ def main():
             sys.exit(1)
         cache = load_cache()
         raw_content = read_file(raw_path)
-        cache[str(raw_path)] = sha256(raw_content)
+        cache[cache_key(raw_path)] = sha256(raw_content)
         save_cache(cache)
         print(f"已更新哈希缓存: {raw_path.relative_to(REPO_ROOT)}")
         return
@@ -214,7 +246,7 @@ def main():
         for item in stale:
             raw_path = REPO_ROOT / item["raw_path"]
             raw_content = read_file(raw_path)
-            cache[str(raw_path)] = sha256(raw_content)
+            cache[cache_key(raw_path)] = sha256(raw_content)
         save_cache(cache)
         print(f"\n已更新 {len(stale)} 个文件的哈希缓存。")
 
