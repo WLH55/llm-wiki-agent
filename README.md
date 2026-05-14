@@ -163,28 +163,6 @@ raw/<文件>.md  →  [导入]  →  wiki/sources/<slug>.md
 | `pdf2md.py` | 否 | 将 PDF/arXiv 转换为 Markdown（使用 arxiv2md/marker/pymupdf4llm） |
 | `file_to_markdown.py` | 否 | 使用 markitdown 批量转换非 md 文件 |
 
-## 使用方法
-
-所有代理都能理解自然语言和简写触发词：
-
-```
-ingest raw/papers/my-paper.md              # 将源文档导入知识库
-query: 主要主题是什么？                    # 从知识库页面综合回答
-lint                                       # 检查孤立页面、矛盾、缺口
-build graph                                # 从所有 wikilink 构建图谱
-```
-
-自然语言也完全可用：
-```
-"导入这篇论文：raw/papers/llama2.md"
-"知识库中关于注意力机制的内容是什么？"
-"检查各来源之间的矛盾"
-"构建知识图谱并告诉我连接最多的节点"
-```
-
-**Claude Code** 还提供 `/wiki-ingest`、`/wiki-query`、`/wiki-lint`、`/wiki-graph`、`/wiki-refresh` 作为斜杠命令（通过 `.claude/commands/`）。这些是 Claude Code 专用的——其他代理使用上面的自然语言触发词，效果相同。
-
-适用于任何 Markdown 源文档——文章、论文、书籍章节、会议记录、日志条目、研究摘要。
 
 ## 你将获得什么
 
@@ -299,15 +277,6 @@ build graph                                # 从所有 wikilink 构建图谱
 # → 代理展示答案，然后询问你是否要保存为综合页面
 ```
 
-## 知识图谱
-
-两遍构建：
-
-1. **确定性** — 脚本解析所有知识库页面中的 `[[wikilinks]]` → 标记为 `EXTRACTED` 的边
-2. **语义** — 代理推断 wikilink 未捕获的隐式关系 → 标记为 `INFERRED`（带置信度分数）或 `AMBIGUOUS`
-
-Louvain 社区检测按主题聚类节点。输出是自包含的 `graph.html`——无需服务器，在任何浏览器中打开。
-
 ## CLAUDE.md / AGENTS.md
 
 模式文件告诉代理如何维护知识库——页面格式、导入/查询/检查/图谱工作流、命名规范。这是关键配置文件。编辑它以自定义你的领域行为。
@@ -328,62 +297,6 @@ Louvain 社区检测按主题聚类节点。输出是自包含的 `graph.html`�
 | 矛盾在查询时（也许）才会暴露 | 在导入时标记 |
 | 没有累积性 | 每个来源都让知识库更丰富 |
 
-## Obsidian 集成
-
-知识库设计为可在 [Obsidian](https://obsidian.md) 中无缝浏览。由于代理维护一致的 `[[wikilinks]]`，你可以在库中获得自然增长的知识图谱。
-
-### 库符号链接模式
-如果你想将 LLM Wiki Agent 仓库与主个人库分开，可以使用符号链接：
-1. 将工作代理仓库保留在例如 `~/llm-wiki-agent`
-2. 从主 Obsidian 库创建符号链接：
-   ```bash
-   ln -sfn ~/llm-wiki-agent/wiki ~/your-obsidian-vault/wiki
-   ```
-3. 使用 [Obsidian Web Clipper](https://obsidian.md/clipper) 或直接写入代理仓库的 `raw/` 目录来排队待导入的内容。
-
-> **注意：** 如果你移动了本地仓库目录，记得更新符号链接，否则 `wiki/` 目录将在 Obsidian 中显示为缺失。
-
-### 推荐的 .obsidian 配置
-- **图谱视图：** 过滤掉 `index.md` 和 `log.md`（例如 `-file:index.md -file:log.md`）以避免它们在 Obsidian 图谱中成为引力中心。
-- **Dataview：** 使用社区插件 [Dataview](https://blacksmithgu.github.io/obsidian-dataview/) 查询代理自动注入的 YAML frontmatter（例如 `type: source`、`tags: [diary]`）。
-
-## PDF 和 arXiv 论文转换
-
-知识库导入 Markdown 文件。使用 `tools/pdf2md.py` 在导入前转换 PDF 和 arXiv 论文：
-
-```bash
-# arXiv 论文——通过 ID 或 URL（使用 arxiv2md，无需解析 PDF）
-python tools/pdf2md.py 2401.12345
-python tools/pdf2md.py https://arxiv.org/abs/2401.12345
-
-# 本地 PDF——自动选择最佳可用后端
-python tools/pdf2md.py paper.pdf
-python tools/pdf2md.py paper.pdf --backend marker     # 复杂的多栏布局
-python tools/pdf2md.py paper.pdf --backend pymupdf4llm # 快速、轻量
-
-# 自定义输出路径
-python tools/pdf2md.py paper.pdf -o raw/papers/my-paper.md
-```
-
-然后照常导入：
-```
-ingest raw/papers/my-paper.md
-```
-
-至少安装一个转换后端：
-
-| 后端 | 安装命令 | 适用场景 |
-|---|---|---|
-| [arxiv2md](https://github.com/ryansingman/arxiv2md) | `pip install arxiv2markdown` | arXiv 论文（使用结构化源，避免 PDF 解析） |
-| [Marker](https://github.com/VikParuchuri/marker) | `pip install marker-pdf` | 带有多栏布局、表格、公式的复杂学术 PDF |
-| [PyMuPDF4LLM](https://github.com/pymupdf/RAG) | `pip install pymupdf4llm` | 从原生文本 PDF 快速提取（无需 GPU） |
-
-## 提示
-
-- 使用 `tools/pdf2md.py` 在导入前将 PDF 和 arXiv 论文转换为 Markdown——参见 [PDF 转换](#pdf-和-arxiv-论文转换)
-- 查询答案会先展示——代理随后询问你是否要保存为综合页面。你的探索像导入的来源一样不断累积
-- 知识库是一个 Git 仓库——自带版本历史
-- `tools/` 中的独立 Python 脚本无需编码代理即可工作
 
 ## 技术栈
 
