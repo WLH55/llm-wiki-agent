@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-本文件为 Claude Code (claude.ai/code) 在此仓库中工作时提供指导。
+本文件为 Codex / OpenCode 等代理在此仓库中工作时提供指导。
 
 ## 项目概述
 
@@ -39,15 +39,17 @@ python tools/pdf2md.py paper.pdf -o raw/papers/output.md     # 自定义输出
 python tools/file_to_markdown.py <输入目录>
 ```
 
-### Claude Code 斜杠命令
+### 触发工作流
 
-| 命令 | 用途 |
+使用自然语言触发各工作流：
+
+| 工作流 | 触发方式 |
 |---|---|
-| `/wiki-ingest <路径>` | 导入源文档 |
-| `/wiki-query <问题>` | 查询知识库并综合回答 |
-| `/wiki-lint` | 健康检查：孤立页面、断开链接、矛盾 |
-| `/wiki-graph` | 从 wikilink 构建知识图谱 |
-| `/wiki-refresh` | 刷新过期来源页面（基于 SHA-256 哈希对比） |
+| 导入源文档 | `ingest raw/my-article.md` 或 "导入这个文件" |
+| 查询知识库 | `query: 主要主题有哪些？` 或 "知识库中关于xxx的内容" |
+| 健康检查 | `lint the wiki` 或 "检查知识库中的孤立页面" |
+| 构建图谱 | `build the knowledge graph` 或 "构建图谱" |
+| 刷新过期来源 | `refresh` 或 "刷新过期来源" |
 
 ### 依赖安装
 
@@ -63,29 +65,9 @@ pip install pymupdf4llm         # 轻量 PDF 提取（可选）
 
 ---
 
-## 斜杠命令（Claude Code）
-
-| 命令 | 用法 |
-|---|---|
-| `/wiki-ingest` | `ingest raw/my-article.md` |
-| `/wiki-query` | `query: 主要主题有哪些？` |
-| `/wiki-lint` | `lint the wiki` |
-| `/wiki-graph` | `build the knowledge graph` |
-| `/wiki-refresh` | `refresh` 或 `refresh --force` |
-
-或者直接用自然语言描述：
-- *"导入这个文件：raw/papers/attention-is-all-you-need.md"*
-- *"知识库中关于 transformer 模型的内容是什么？"*
-- *"检查知识库中的孤立页面和矛盾"*
-- *"构建图谱并告诉我与 RAG 相关的内容"*
-
-Claude Code 自动读取本文件并遵循以下工作流。
-
----
-
 ## 导入工作流
 
-触发方式：*"ingest <文件>"* 或 `/wiki-ingest`
+触发方式：*"ingest <文件>"* 或 "导入这个文件"
 
 ### 页面元数据规则
 
@@ -94,9 +76,9 @@ Claude Code 自动读取本文件并遵循以下工作流。
 - 每个普通 wiki 页面至少必须包含 `title`、`type` 和与页面类型对应的必需元数据字段。
 
 步骤（按顺序）：
-1. 使用 Read 工具完整读取源文档
+1. 完整读取源文档
 2. 读取 `wiki/index.md` 和 `wiki/overview.md` 获取当前知识库上下文
-3. **防重检查与写入**：在写入 `wiki/sources/` 之前，必须使用 `grep` 工具在 `wiki/sources/` 目录下搜索 `source_file: <当前原始文件路径>` 是否已存在于其他源页面中。
+3. **防重检查与写入**：在写入 `wiki/sources/` 之前，搜索 `wiki/sources/` 目录下 `source_file: <当前原始文件路径>` 是否已存在于其他源页面中。
    - 如果找到了现有的源页面（即使文件名不符合当前规范），必须**覆盖更新**该现有文件，或者将其删除并使用规范的 `<slug>.md` 重建。**绝对禁止为同一个原始文件创建两个源页面。**
    - 如果未找到，则正常写入 `wiki/sources/<slug>.md` — 使用下面的源页面格式
 4. 更新 `wiki/index.md` — 在 Sources 部分添加条目
@@ -236,7 +218,7 @@ date: YYYY-MM-DD
 
 ## 查询工作流
 
-触发方式：*"query: <问题>"* 或 `/wiki-query`
+触发方式：*"query: <问题>"* 或 "知识库中关于xxx的内容是什么？"
 
 步骤：
 1. 读取 wiki/index.md 识别最相关的页面
@@ -266,41 +248,24 @@ date: YYYY-MM-DD
 
 ## 健康检查工作流
 
-触发方式：*"lint the wiki"* 或 `/wiki-lint`
+触发方式：*"lint the wiki"* 或 "检查知识库中的孤立页面和矛盾"
 
-### 第一阶段：检测
+检查：
+- **孤立页面** — 没有来自其他页面入站 `[[links]]` 的知识库页面
+- **断裂链接** — 指向不存在页面的 `[[WikiLinks]]`
+- **缺失或不完整的 frontmatter** — 普通 wiki 页面缺少 YAML frontmatter，或缺少其 `type` 对应的必需字段
+- **矛盾** — 页面间冲突的论点
+- **过时摘要** — 在更新来源后未更新的页面
+- **缺失实体页面** — 在 3+ 页面中提到但没有专属页面的实体
+- **数据缺口** — 知识库无法回答的问题；建议新来源
 
-1. 运行 `python tools/lint.py` 获取结构性问题
-2. Claude 语义检查：矛盾、过时内容、数据缺口
-
-### 第二阶段：自动修复
-
-对以下问题**直接修复，无需确认**：
-
-- **断裂链接** — 创建缺失的目标页面（实体/概念页），或在来源页面中修正链接
-- **缺失实体页面** — 在 3+ 页面中被 `[[link]]` 引用但没有对应文件的，自动创建
-- **缺失或不完整的 frontmatter** — 补全 `title`、`type`、`sources`、`last_updated` 等必需字段
-- **孤立页面** — 在相关页面的 `## 关联` 中添加指向孤立页面的 wikilink
-
-### 第三阶段：输出待办
-
-仅对**无法自动修复**的问题输出报告，需要人工判断：
-
-- **矛盾** — 页面间冲突的论点，列出冲突位置供用户裁决
-- **过时摘要** — 源文档已更新但 synthesis 未同步，提示需要重新查询
-- **数据缺口** — 知识库无法回答的重要问题，建议具体的新来源
-
-### 收尾
-
-1. 追加到 `wiki/log.md`：`## [YYYY-MM-DD] lint | 自动修复 N 个问题，N 个待人工处理`
-2. 运行 `python tools/ingest.py --validate-only` 确认修复后无残留问题
-3. 输出摘要：修复了什么、还有哪些待办
+输出健康检查报告，询问用户是否保存到 `wiki/lint-report.md`。
 
 ---
 
 ## 图谱工作流
 
-触发方式：*"build the knowledge graph"* 或 `/wiki-graph`
+触发方式：*"build the knowledge graph"* 或 "构建图谱"
 
 当用户要求构建图谱时：
 
@@ -310,11 +275,11 @@ date: YYYY-MM-DD
    - 保留 graph.json 中已有的 INFERRED/AMBIGUOUS 边
    - 运行 Louvain 社区检测
    - 输出 `graph/graph.json` + `graph/graph.html`
-2. 读取 graph.json，Claude 对节点进行语义推断
+2. 读取 graph.json，对节点进行语义推断
 3. 将推断边写入 graph.json，重新运行 `build_graph.py` 生成最终 HTML
 
 如果用户没有安装 Python/依赖，改为手动生成图谱数据：
-1. 使用 Grep 查找所有知识库页面中的 `[[wikilinks]]`
+1. 查找所有知识库页面中的 `[[wikilinks]]`
 2. 构建节点/边列表
 3. 直接写入 `graph/graph.json`
 4. 使用 vis.js 模板写入 `graph/graph.html`
@@ -323,12 +288,12 @@ date: YYYY-MM-DD
 
 ## 刷新工作流
 
-触发方式：*"refresh"* 或 `/wiki-refresh`
+触发方式：*"refresh"* 或 "刷新过期来源"
 
 当用户要求刷新过期来源时：
 1. 运行 `python tools/check_stale.py` 检测变更（基于 SHA-256 哈希对比 `graph/.refresh_cache.json`）
 2. 如果无过期来源，告知用户并结束
-3. 对每个过期来源，重新执行导入工作流（同 /wiki-ingest 的步骤 3-9）
+3. 对每个过期来源，重新执行导入工作流（同导入工作流的步骤 3-9）
 4. 刷新完成后运行 `python tools/check_stale.py --update` 更新哈希缓存
 5. 输出摘要：刷新了几个、跳过了几个
 

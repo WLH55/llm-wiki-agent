@@ -10,7 +10,10 @@ requires-python = ">=3.10,<3.14"
 dependencies = [
     "networkx (>=3.2)",
     "markitdown[all] (>=0.1.5,<0.2.0)",
-    "tqdm (>=4.67.3,<5.0.0)"
+    "tqdm (>=4.67.3,<5.0.0)",
+    "arxiv2markdown",
+    "marker-pdf",
+    "pymupdf4llm",
 ]
 
 [tool.setuptools]

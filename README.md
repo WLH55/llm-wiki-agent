@@ -2,14 +2,14 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**一个由编码代理驱动的知识管理工具。** 将源文档放入 `raw/` 目录，告诉代理进行导入——它会读取文档、提取知识，并构建一个持久互联的知识库。每个新来源都会让知识库更加丰富。你无需手动编写。
+**一个编码代理技能。** 将源文档放入 `raw/` 目录，告诉代理进行导入——它会读取文档、提取知识，并构建一个持久互联的知识库。每个新来源都会让知识库更加丰富。你无需手动编写。
 
 > 大多数知识工具让你搜索自己的笔记。而这个工具读取你收集的所有内容，写出一个结构化的知识库，随着时间不断累积——交叉引用已经建好，矛盾已经标记，综合分析已经完成。
 
 ![知识图谱预览](docs/images/graph-preview.png)
 
 ```
-/wiki-ingest raw/papers/attention-is-all-you-need.md
+ingest raw/papers/attention-is-all-you-need.md
 ```
 
 ```
@@ -29,32 +29,28 @@ graph/
 
 ## 安装
 
-**前置条件：** [Claude Code](https://claude.ai/code)、[Codex](https://openai.com/codex)、[Gemini CLI](https://github.com/google-gemini/gemini-cli)，或其他能读取配置文件的编码代理。
+**前置条件：** [Claude Code](https://claude.ai/code)、[Codex](https://openai.com/codex)、[Gemini CLI](https://github.com/google-gemini/gemini-cli)，或任何能读取配置文件的代理。
 
 **Python 环境：** Python `>=3.10, <3.14`
 
 ```bash
-git clone https://github.com/SamurAIGPT/llm-wiki-agent.git
+git clone https://github.com/WLH55/llm-wiki-agent.git
 cd llm-wiki-agent
 python -m venv .venv
 # Windows PowerShell
-.venv\Scripts\Activate.ps1
+.venv\Scripts\Activate
 # macOS / Linux
 # source .venv/bin/activate
 pip install -e .
 ```
 
-如果你需要 PDF / arXiv 转 Markdown，再按需安装可选依赖：
+## 启动项目
 
-```bash
-pip install arxiv2markdown      # arXiv 转换
-pip install marker-pdf          # 复杂 PDF
-pip install pymupdf4llm         # 轻量 PDF 提取
-```
+这个项目没有 Web 服务或单独的后台进程；“启动”方式取决于你使用哪种模式。
 
-## 快速开始
+### 代理驱动
 
-在仓库根目录启动你的代理，让它读取规则文件：
+在仓库根目录启动你的代理，让它读取仓库里的规则文件：
 
 ```bash
 claude      # 读取 CLAUDE.md + .claude/commands/（可使用斜杠命令）
@@ -63,58 +59,91 @@ opencode    # 读取 AGENTS.md
 gemini      # 读取 GEMINI.md
 ```
 
-启动后就可以直接用自然语言或斜杠命令操作：
+启动后就可以直接用自然语言或命令：
 
 ```bash
-/wiki-ingest raw/papers/my-paper.md     # 导入指定文件（未变更则自动跳过）
-/wiki-ingest                            # 无参数：扫描 raw/ 批量导入所有变更文件
-/wiki-query 主要主题有哪些？              # 查询知识库
-/wiki-lint                               # 健康检查
-/wiki-graph                              # 构建知识图谱
-/wiki-refresh                            # 刷新过期来源
+/wiki-ingest raw/papers/my-paper.md
+/wiki-query 主要主题有哪些？
+/wiki-lint
+/wiki-graph
+```
+## 快速开始
+
+### 1. 准备源文档
+
+将你要导入的文档放入 `raw/` 目录。支持 Markdown 文件、PDF、arXiv 论文等——代理会自动调用 `tools/pdf2md.py` 处理非 Markdown 文件，无需手动转换。
+
+```bash
+cp my-notes.md raw/          # Markdown 直接放入
+cp paper.pdf raw/            # PDF 也可以直接放入
 ```
 
-或者用自然语言：
+### 2. 启动代理并导入
 
-```
-"导入这篇论文：raw/papers/llama2.md"
-"知识库中关于注意力机制的内容是什么？"
-"检查各来源之间的矛盾"
-"构建知识图谱并告诉我连接最多的节点"
+```bash
+claude
 ```
 
+在代理中导入文档：
+
+```
+/wiki-ingest raw/my-notes.md         # 导入单个文件
+/wiki-ingest                          # 无参数：扫描 raw/ 批量导入所有变更文件
+```
+
+代理会自动创建源页面、实体页面、概念页面，更新索引和概览。
+
+### 3. 查询知识库
+
+```
+/wiki-query 主要主题有哪些？
+/wiki-query D0广告收入占比是怎么算的
+/wiki-query 这个媒体CPI是怎么算的
+```
+
+代理会从所有 wiki 页面中综合回答，附带 `[[WikiLinks]]` 引用和来源列表。你可以选择将答案保存为综合页面。
+
+### 4. 健康检查
+
+```
+/wiki-lint
+```
+
+检查孤立页面、断裂链接、缺失实体、矛盾内容等，输出报告。
+
+### 5. 构建知识图谱
+
+```
+/wiki-graph
+```
+
+两步构建：脚本提取 `[[wikilinks]]` 边 → 代理推断语义关系。生成 `graph/graph.html`，浏览器打开即可交互浏览。
+
+### 6. 刷新过期来源
+
+当你修改了 `raw/` 中的源文档后：
+
+```
+/wiki-refresh
+```
+
+代理检测哈希变更，重新导入过期来源并更新知识库。
 ## 架构
 
-### 运行方式：代理驱动 （claude code codex gemini 等主流AI agent工具打开）
-**编码代理读取规则文件，使用自身能力执行所有操作。**
+### 运行模式
 
-- **代理负责语义工作**：读取文档、提取知识、创建实体/概念页面、综合回答、推断隐式关系、标记矛盾等。
-- **Python 脚本负责机械工作**：wikilink 提取、关键词匹配、哈希对比、结构检查、图谱构建等确定性任务。
+**代理驱动** — 例如Claude Code 读取 `CLAUDE.md` 和 `.claude/commands/`，使用内置能力执行导入/查询/检查/图谱操作，包括语义推断。
+
+### 核心数据流
 
 ```
-raw/<文件>.md  →  [代理读取+理解]  →  wiki/sources/<slug>.md
-                                         ├── 更新 wiki/index.md
-                                         ├── 更新 wiki/overview.md
-                                         ├── 创建 wiki/entities/*.md
-                                         ├── 创建 wiki/concepts/*.md
-                                         └── 追加到 wiki/log.md
+raw/<文件>.md  →  [导入]  →  wiki/sources/<slug>.md
+                                  ├── 更新 wiki/index.md
+                                  ├── 更新 wiki/overview.md
+                                  ├── 创建 wiki/entities/*.md
+                                  ├── 创建 wiki/concepts/*.md
+                                  └── 追加到 wiki/log.md
 ```
-
-### 辅助工具脚本
-
-`tools/` 目录下的 Python 脚本是代理的辅助工具，处理确定性任务：
-
-| 脚本 | 用途 | 何时使用 |
-|---|---|---|
-| `ingest.py` | 验证 wiki 完整性（断链、未索引页面） | `--validate-only` |
-| `query.py` | 关键词匹配查找相关页面 | 代理查询时辅助定位 |
-| `lint.py` | 结构检查 + 图感知检查 | 代理执行健康检查时 |
-| `build_graph.py` | 构建 vis.js 图谱（解析 wikilink + 社区检测） | `/wiki-graph` 时调用 |
-| `heal.py` | 检测缺失的实体页面 | 代理维护知识库时 |
-| `refresh.py` | 检测过期来源（SHA-256 哈希对比） | `/wiki-refresh` 时调用 |
-| `check_stale.py` | 检测源文件变更（新增/更新/删除） | `--scan` 扫描、`--update-file` 写缓存 |
-| `pdf2md.py` | PDF/arXiv 转 Markdown | 导入非 Markdown 文件前 |
-| `file_to_markdown.py` | 批量转换非 md 文件 | 导入非 Markdown 文件前 |
 
 ### 页面格式
 
@@ -124,18 +153,60 @@ raw/<文件>.md  →  [代理读取+理解]  →  wiki/sources/<slug>.md
 
 通过 `/wiki-graph` 分两步构建：
 - 第一步（脚本）：解析 `[[wikilinks]]` → `EXTRACTED` 边（确定性），Louvain 社区检测聚类节点
-- 第二步（代理）：推断隐式关系 → `INFERRED` 边（带置信度分数），写入 graph.json 后重新生成
+- 第二步（Claude）：推断隐式关系 → `INFERRED` 边（带置信度分数），写入 graph.json 后重新生成
 - 输出 `graph/graph.json` + `graph/graph.html`（自包含 vis.js）
 
-### 规则文件
+### 工具脚本架构
 
-规则文件告诉代理如何维护知识库——页面格式、导入/查询/检查/图谱工作流、命名规范。
+| 脚本 | 需要 LLM | 用途 |
+|---|---|---|
+| `ingest.py` | 否 | 验证 wiki 完整性（导入由代理完成） |
+| `query.py` | 否 | 关键词匹配查找相关页面 |
+| `lint.py` | 否 | 结构检查 + 图感知检查 |
+| `build_graph.py` | 否 | 构建图谱（语义推断由代理完成） |
+| `refresh.py` | 否 | 检测过期来源（刷新由代理完成） |
+| `check_stale.py` | 否 | 检测源文件变更（SHA-256 哈希对比） |
+| `pdf2md.py` | 否 | 将 PDF/arXiv 转换为 Markdown（使用 arxiv2md/marker/pymupdf4llm） |
+| `file_to_markdown.py` | 否 | 使用 markitdown 批量转换非 md 文件 |
 
-| 代理 | 规则文件 |
-|---|---|
-| Claude Code | `CLAUDE.md` |
-| Codex / OpenCode | `AGENTS.md` |
-| Gemini CLI | `GEMINI.md` |
+## 使用方法
+
+所有代理都能理解自然语言和简写触发词：
+
+```
+ingest raw/papers/my-paper.md              # 将源文档导入知识库
+query: 主要主题是什么？                    # 从知识库页面综合回答
+lint                                       # 检查孤立页面、矛盾、缺口
+build graph                                # 从所有 wikilink 构建图谱
+```
+
+自然语言也完全可用：
+```
+"导入这篇论文：raw/papers/llama2.md"
+"知识库中关于注意力机制的内容是什么？"
+"检查各来源之间的矛盾"
+"构建知识图谱并告诉我连接最多的节点"
+```
+
+**Claude Code** 还提供 `/wiki-ingest`、`/wiki-query`、`/wiki-lint`、`/wiki-graph`、`/wiki-refresh` 作为斜杠命令（通过 `.claude/commands/`）。这些是 Claude Code 专用的——其他代理使用上面的自然语言触发词，效果相同。
+
+适用于任何 Markdown 源文档——文章、论文、书籍章节、会议记录、日志条目、研究摘要。
+
+## 你将获得什么
+
+**持久化知识库** — 结构化的 Markdown 页面，跨会话累积。与聊天不同，不会丢失任何内容。
+
+**实体页面** — 每个来源中提到的每个人物、公司或项目自动创建。每当新来源引用它们时更新。
+
+**概念页面** — 每个关键想法或框架自动创建。与讨论它们的每个来源交叉引用。
+
+**动态概览** — `wiki/overview.md` 在每次导入时修订，反映所有已读内容的当前综合。
+
+**矛盾标记** — 当新来源与现有论点矛盾时，在导入时标记，而不是等到查询时才发现。
+
+**知识图谱** — `graph.html` 将每个知识库页面显示为节点，每个 `[[wikilink]]` 显示为边，Claude 推断的隐式关系显示为虚线边。社区检测将相关主题聚类。点击节点可高亮连接关系，右侧面板展示完整内容。
+
+**健康检查报告** — 孤立页面、断开的链接、缺失的实体页面、数据缺口及建议来源。
 
 ## 使用场景
 
@@ -234,22 +305,6 @@ raw/<文件>.md  →  [代理读取+理解]  →  wiki/sources/<slug>.md
 # → 代理展示答案，然后询问你是否要保存为综合页面
 ```
 
-## 你将获得什么
-
-**持久化知识库** — 结构化的 Markdown 页面，跨会话累积。与聊天不同，不会丢失任何内容。
-
-**实体页面** — 每个来源中提到的每个人物、公司或项目自动创建。每当新来源引用它们时更新。
-
-**概念页面** — 每个关键想法或框架自动创建。与讨论它们的每个来源交叉引用。
-
-**动态概览** — `wiki/overview.md` 在每次导入时修订，反映所有已读内容的当前综合。
-
-**矛盾标记** — 当新来源与现有论点矛盾时，在导入时标记，而不是等到查询时才发现。
-
-**知识图谱** — `graph.html` 将每个知识库页面显示为节点，每个 `[[wikilink]]` 显示为边，代理推断的隐式关系显示为虚线边。社区检测将相关主题聚类。点击节点可高亮连接关系，右侧面板展示完整内容。
-
-**健康检查报告** — 孤立页面、断开的链接、缺失的实体页面、数据缺口及建议来源。
-
 ## 知识图谱
 
 两遍构建：
@@ -258,6 +313,16 @@ raw/<文件>.md  →  [代理读取+理解]  →  wiki/sources/<slug>.md
 2. **语义** — 代理推断 wikilink 未捕获的隐式关系 → 标记为 `INFERRED`（带置信度分数）或 `AMBIGUOUS`
 
 Louvain 社区检测按主题聚类节点。输出是自包含的 `graph.html`——无需服务器，在任何浏览器中打开。
+
+## CLAUDE.md / AGENTS.md
+
+模式文件告诉代理如何维护知识库——页面格式、导入/查询/检查/图谱工作流、命名规范。这是关键配置文件。编辑它以自定义你的领域行为。
+
+| 代理 | 模式文件 |
+|---|---|
+| Claude Code | `CLAUDE.md` |
+| Codex / OpenCode | `AGENTS.md` |
+| Gemini CLI | `GEMINI.md` |
 
 ## 与 RAG 的区别
 
@@ -308,7 +373,7 @@ python tools/pdf2md.py paper.pdf -o raw/papers/my-paper.md
 
 然后照常导入：
 ```
-/wiki-ingest raw/papers/my-paper.md
+ingest raw/papers/my-paper.md
 ```
 
 至少安装一个转换后端：
@@ -324,15 +389,16 @@ python tools/pdf2md.py paper.pdf -o raw/papers/my-paper.md
 - 使用 `tools/pdf2md.py` 在导入前将 PDF 和 arXiv 论文转换为 Markdown——参见 [PDF 转换](#pdf-和-arxiv-论文转换)
 - 查询答案会先展示——代理随后询问你是否要保存为综合页面。你的探索像导入的来源一样不断累积
 - 知识库是一个 Git 仓库——自带版本历史
-- `tools/` 中的 Python 脚本是辅助工具，由代理在需要时调用
+- `tools/` 中的独立 Python 脚本无需编码代理即可工作
 
 ## 技术栈
 
-NetworkX + Louvain + vis.js。无服务器、无数据库，完全在本地运行。所有内容都是纯 Markdown 文件。
+NetworkX + Louvain + Claude + vis.js。无服务器、无数据库，完全在本地运行。所有内容都是纯 Markdown 文件。
 
 ## 相关项目
-本项目是从 https://github.com/SamurAIGPT/llm-wiki-agent 该项目改造而来。吸取 karpathy 的llm wiki 搭建思路。目的是搭建一个轻量级，可持续自动维护的结构化知识库。摆脱
-维护知识库的时繁琐。从而让人类将精力专注于思考，分析信息之间的关系。
+
+- [graphify](https://github.com/safishamsi/graphify) — 基于图谱的知识提取技能（图谱层的灵感来源）
+- [Vannevar Bush 的 Memex (1945)](https://en.wikipedia.org/wiki/Memex) — 这所类似的原始构想
 
 ## 许可证
 

@@ -10,7 +10,7 @@
 
 1. 运行 `python tools/check_stale.py` 检测哪些原始文档有变更（基于 SHA-256 哈希对比）
 2. 如果输出"所有来源页面均为最新"，告知用户并结束
-3. 对每个过期来源，重新执行 CLAUDE.md 中定义的导入工作流：
+3. 对每个过期来源，重新执行 AGENTS.md 中定义的导入工作流：
    - 读取 raw/ 原始文档
    - 读取 wiki/index.md 和 wiki/overview.md 获取当前上下文
    - 重写 wiki/sources/<slug>.md

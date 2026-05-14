@@ -18,11 +18,11 @@ $ARGUMENTS 为空时走批量模式，否则走单文件模式。
 
 1. 读取给定路径的源文件
 2. 读取 wiki/index.md 和 wiki/overview.md 获取当前上下文
-3. 写入 wiki/sources/<slug>.md（按照 CLAUDE.md 中的源页面格式）
+3. 写入 wiki/sources/<slug>.md（按照 AGENTS.md 中的源页面格式）
 4. 更新 wiki/index.md — 在 Sources 部分添加新条目
 5. 更新 wiki/overview.md — 如有必要则修订综合内容
-6. 创建/更新关键人物、公司、项目的实体页面（wiki/entities/，必须包含 CLAUDE.md 规定的 frontmatter）
-7. 创建/更新关键想法和框架的概念页面（wiki/concepts/，必须包含 CLAUDE.md 规定的 frontmatter）
+6. 创建/更新关键人物、公司、项目的实体页面（wiki/entities/，必须包含 AGENTS.md 规定的 frontmatter）
+7. 创建/更新关键想法和框架的概念页面（wiki/concepts/，必须包含 AGENTS.md 规定的 frontmatter）
 8. 标记与现有知识库内容的任何矛盾
 9. 追加到 wiki/log.md：## [今天的日期] ingest | <标题>
 10. 运行 `python tools/check_stale.py --update-file <source_file>` 写入哈希缓存

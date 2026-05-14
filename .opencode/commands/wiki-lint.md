@@ -2,7 +2,7 @@
 
 用法：/wiki-lint
 
-遵循 CLAUDE.md 中定义的健康检查工作流：
+遵循 AGENTS.md 中定义的健康检查工作流：
 
 结构检查（先运行机械工具）：
 1. 运行 `python tools/lint.py` 获取结构性检查报告
