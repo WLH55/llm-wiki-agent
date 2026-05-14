@@ -78,14 +78,8 @@ cp my-notes.md raw/          # Markdown 直接放入
 cp paper.pdf raw/            # PDF 也可以直接放入
 ```
 
-### 2. 启动代理并导入
-
-```bash
-claude
-```
-
-在代理中导入文档：
-
+### 2. 编译文档
+使用 /wiki-ingest命令 编译原始文档
 ```
 /wiki-ingest raw/my-notes.md         # 导入单个文件
 /wiki-ingest                          # 无参数：扫描 raw/ 批量导入所有变更文件
