@@ -30,9 +30,8 @@ python tools/build_graph.py --report      # 生成图谱健康报告
 python tools/heal.py
 
 # 检测过期的源页面（哈希对比，不执行刷新）
-python tools/check_stale.py                   # 列出过期来源
-python tools/check_stale.py --force           # 强制标记所有来源为过期
-python tools/check_stale.py --scan            # 扫描 raw/ 目录：新增/更新/删除文件
+python tools/refresh.py                   # 列出过期来源
+python tools/refresh.py --force           # 强制标记所有来源为过期
 
 # 将 PDF/arXiv 转换为 Markdown
 python tools/pdf2md.py 2401.12345                           # arXiv ID
@@ -47,7 +46,7 @@ python tools/file_to_markdown.py <输入目录>
 
 | 命令 | 用途 |
 |---|---|
-| `/wiki-ingest [路径]` | 导入源文档。指定文件则导入单个；无参数则扫描 raw/ 批量处理所有变更（含前置检测，未变更跳过） |
+| `/wiki-ingest <路径>` | 导入源文档 |
 | `/wiki-query <问题>` | 查询知识库并综合回答 |
 | `/wiki-lint` | 健康检查：孤立页面、断开链接、矛盾 |
 | `/wiki-graph` | 从 wikilink 构建知识图谱 |
@@ -71,7 +70,7 @@ pip install pymupdf4llm         # 轻量 PDF 提取（可选）
 
 | 命令 | 用法 |
 |---|---|
-| `/wiki-ingest` | `ingest raw/my-article.md`（单文件）或 `ingest`（无参数，批量扫描） |
+| `/wiki-ingest` | `ingest raw/my-article.md` |
 | `/wiki-query` | `query: 主要主题有哪些？` |
 | `/wiki-lint` | `lint the wiki` |
 | `/wiki-graph` | `build the knowledge graph` |
@@ -98,11 +97,6 @@ Claude Code 自动读取本文件并遵循以下工作流。
 - 每个普通 wiki 页面至少必须包含 `title`、`type` 和与页面类型对应的必需元数据字段。
 
 步骤（按顺序）：
-0. **前置变更检测** — 运行 `python tools/check_stale.py --scan --json`，在输出中查找当前文件：
-   - 在 `new` 中 → 新文件，首次导入，继续步骤 1
-   - 在 `updated` 中 → 文件已更新，重新导入，继续步骤 1
-   - 不在 `new` 也不在 `updated` 中 → 文件未变更，跳过导入并结束
-   - 在 `deleted` 中 → 原始文件已丢失，无法导入，结束
 1. 使用 Read 工具完整读取源文档
 2. 读取 `wiki/index.md` 和 `wiki/overview.md` 获取当前知识库上下文
 3. **防重检查与写入**：在写入 `wiki/sources/` 之前，必须使用 `grep` 工具在 `wiki/sources/` 目录下搜索 `source_file: <当前原始文件路径>` 是否已存在于其他源页面中。
@@ -114,8 +108,7 @@ Claude Code 自动读取本文件并遵循以下工作流。
 7. 更新/创建讨论的关键想法和框架的概念页面
 8. 标记与现有知识库内容的任何矛盾
 9. 追加到 `wiki/log.md`：`## [YYYY-MM-DD] ingest | <标题>`
-10. **更新哈希缓存** — 运行 `python tools/check_stale.py --update-file raw/...` 写入原始文件的哈希，防止后续 `check_stale.py` 误判为过期
-11. **导入后验证** — 检查断裂的 `[[wikilinks]]`，验证所有新页面都在 `index.md` 中，打印变更摘要
+10. **导入后验证** — 检查断裂的 `[[wikilinks]]`，验证所有新页面都在 `index.md` 中，打印变更摘要
 
 ### 源页面格式
 
@@ -249,11 +242,28 @@ date: YYYY-MM-DD
 触发方式：*"query: <问题>"* 或 `/wiki-query`
 
 步骤：
-1. 读取 `wiki/index.md` 识别相关页面
-2. 使用 Read 工具读取这些页面
-3. 对于命中的源页面（`wiki/sources/`），从其 frontmatter 的 `source_file` 字段找到 `raw/` 中的原始文档，将原始内容也加入上下文
-4. 综合 answered，内联引用使用 `[[PageName]]` wikilink 格式
-5. 询问用户是否要将答案保存为 `wiki/syntheses/<slug>.md`
+1. 读取 wiki/index.md 识别最相关的页面
+2. 读取这些页面（最多约 10 个最相关的）
+3. 综合生成一份详尽的 Markdown 答案，使用 [[页面名称]] 形式的 Wiki 链接进行引用；
+4. 在答案末尾添加 ## 来源 部分，列出你所引用的所有页面；
+5. 询问用户是否需要将此答案保存为 wiki/syntheses/<slug>.md 文件。
+6. 如果用户同意，执行**合成页面保存子流程**（见下）
+
+### 合成页面保存子流程
+
+当用户确认保存 synthesis 页面时，按以下步骤执行：
+
+1. **写入文件** — 将综合答案保存为 `wiki/syntheses/<slug>.md`，slug 规则同源页面（kebab-case）
+2. **更新 index.md** — 在 `## 综合` 部分添加条目
+3. **补充缺失的实体/概念页面** — 扫描答案中的 `[[wikilinks]]`，对于指向不存在页面的链接：
+   - 在 `wiki/entities/` 或 `wiki/concepts/` 创建对应页面（一句话定义 + 关联回 synthesis）
+   - 更新 `index.md` 的对应部分
+4. **更新已有实体/概念页面** — 对于答案中引用的已存在页面，在 `## 关联` 中补充指向本 synthesis 的链接（如果尚无）
+5. **更新 overview.md** — 如果 synthesis 内容改变了项目的整体理解，修订 overview
+6. **追加日志** — 在 `wiki/log.md` 添加 `## [YYYY-MM-DD] query | <综合标题>`
+7. **运行 `python tools/build_graph.py`** — 重建知识图谱，使新页面和边生效
+8. **验证** — 运行 `python tools/ingest.py --validate-only` 检查断链和未索引页面
+9. **输出摘要** — 告知用户新建/更新了哪些页面、图谱已重建
 
 ---
 
