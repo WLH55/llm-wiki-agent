@@ -73,6 +73,25 @@ pip install pymupdf4llm         # 轻量 PDF 提取（可选）
 | `/wiki-graph` | `build the knowledge graph` |
 | `/wiki-refresh` | `refresh` 或 `refresh --force` |
 
+### 全局 Skill（跨项目使用）
+
+以下 Skill 安装为全局 Skill（`~/.claude/skills/`），在**任意项目**中均可使用，无需切换到本目录：
+
+| Skill | 用途 | 触发方式 |
+|---|---|---|
+| `wiki-query` | 从任意项目查询知识库 | "查询知识库"、"wiki-query X" |
+| `wiki-update` | 从任意项目同步知识到知识库 | "更新 wiki"、"同步到知识库" |
+| `wiki-switch` | 在多个知识库配置间切换 | "/wiki-switch list" |
+| `wiki-setup` | 初始化：安装 skill、注册知识库、创建新知识库 | "wiki-setup" |
+
+**配置系统：** 全局 Skill 通过 `~/.llm-wiki/` 目录解析知识库位置：
+- `~/.llm-wiki/active` — 当前活跃的知识库名称
+- `~/.llm-wiki/config.<名称>` — 知识库路径配置
+
+也支持项目级 `.env` 文件覆盖（`LLM_WIKI_PATH=<路径>`）。
+
+首次使用前运行 `wiki-setup` 进行初始化。安装/切换等操作详见各 Skill 文件。
+
 或者直接用自然语言描述：
 - *"导入这个文件：raw/papers/attention-is-all-you-need.md"*
 - *"知识库中关于 transformer 模型的内容是什么？"*

@@ -122,6 +122,36 @@ cp paper.pdf raw/            # PDF 也可以直接放入
 ```
 
 代理检测哈希变更，重新导入过期来源并更新知识库。
+
+### 7. 跨项目使用（全局 Skill）
+
+知识库的核心价值在于**在任何项目中都能查询和更新**。通过全局 Skill 机制，无需切换到 llm-wiki-agent 目录：
+
+**首次安装：**
+```bash
+cd llm-wiki-agent
+/wiki-setup install      # 将 Skill 安装到全局目录
+/wiki-setup init .       # 注册当前知识库
+```
+
+**之后在任意项目中：**
+```
+/wiki-query "知识库中有哪些关于 xxx 的内容？"
+/wiki-update              # 将当前项目的知识提炼到知识库
+/wiki-switch list         # 查看所有知识库
+/wiki-switch work         # 切换到工作知识库
+```
+
+**配置系统：** 知识库路径通过 `~/.llm-wiki/` 管理，支持多个知识库配置和切换。也支持在项目中创建 `.env` 文件指定专属知识库：
+```bash
+# 在任意项目根目录创建 .env
+echo 'LLM_WIKI_PATH=D:/AI/my-special-wiki' > .env
+```
+
+全局 Skill 目录：
+- Claude Code：`~/.claude/skills/`
+- OpenCode：`~/.config/opencode/skills/`（也兼容 `~/.claude/skills/`）
+
 ## 架构
 
 ### 运行模式
