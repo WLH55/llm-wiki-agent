@@ -146,7 +146,7 @@ OpenCode 兼容读取 `~/.claude/skills/`，也支持原生路径 `~/.config/ope
 
    ```
    从当前项目复制到 <目标>：
-   
+
    目录结构：
      wiki/               ← wiki 根目录
      wiki/sources/       ← 来源页目录
@@ -156,7 +156,10 @@ OpenCode 兼容读取 `~/.claude/skills/`，也支持原生路径 `~/.config/ope
      tools/              ← 所有 Python 工具脚本
      raw/                ← 原始文档目录
      graph/              ← 图谱输出目录
-   
+     skills/             ← 本地技能定义（llm-wiki、wiki-query 等）
+     .claude/commands/   ← Claude Code 斜杠命令
+     .opencode/          ← OpenCode 配置和命令
+
    文件：
      .gitignore
      pyproject.toml
@@ -165,13 +168,20 @@ OpenCode 兼容读取 `~/.claude/skills/`，也支持原生路径 `~/.config/ope
      GEMINI.md
      README.md
      LICENSE
-   
+     .claude/commands/*.md
+     .opencode/commands/*.md
+     .opencode/.gitignore
+     .opencode/package.json
+     .opencode/package-lock.json
+     skills/*/SKILL.md
+
    不复制：
      .git/
      .venv/
      .idea/
      __pycache__/
      hs_err_pid*.log
+     node_modules/
      wiki/*/中的实际内容页面（只复制空目录结构，不复制实际 wiki 页面）
    ```
 
