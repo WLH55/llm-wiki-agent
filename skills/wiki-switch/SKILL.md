@@ -9,7 +9,7 @@ description: >
 # Wiki Switch — 管理多个知识库配置
 
 每个知识库对应 `~/.llm-wiki/config.<名称>` 一个配置文件。活跃的知识库由 `~/.llm-wiki/active`
-文件中写入的名称决定。切换知识库就是改写这个文件的内容。
+文件中写入的名称决定。切换时先更新全局 `active`，再同步更新当前项目命中的 `.env` 中的 `LLM_WIKI_PATH`。
 
 ## 调度表
 
@@ -59,7 +59,8 @@ description: >
    （如果 `~/.llm-wiki/` 目录尚不存在，先创建。）
 
 3. 从新激活的配置中读取 `LLM_WIKI_PATH`。
-4. 确认：
+4. 按 `llm-wiki/SKILL.md` 的同一路径向上查找规则定位当前项目命中的 `.env`；如果找到，则同步更新其中的 `LLM_WIKI_PATH`。
+5. 确认：
 
    ```
    已切换到知识库：<名称>
@@ -110,7 +111,6 @@ description: >
 
    ```
    LLM_WIKI_PATH=<路径>
-   LLM_WIKI_LINK_FORMAT=wikilink
    ```
 
 5. 确认：

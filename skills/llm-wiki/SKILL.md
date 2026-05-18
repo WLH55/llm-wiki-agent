@@ -38,7 +38,6 @@ primary
 
 # ~/.llm-wiki/config.primary
 LLM_WIKI_PATH=D:/AI/llm-wiki-agent
-LLM_WIKI_LINK_FORMAT=wikilink
 ```
 
 ### 第三步：未配置
@@ -55,7 +54,6 @@ LLM_WIKI_LINK_FORMAT=wikilink
 | 变量 | 来源 | 默认值 | 说明 |
 |---|---|---|---|
 | `LLM_WIKI_PATH` | .env 或 config | *(必填)* | wiki 项目根目录的绝对路径 |
-| `LLM_WIKI_LINK_FORMAT` | config | `wikilink` | 链接格式：`wikilink` 或 `markdown` |
 
 ---
 

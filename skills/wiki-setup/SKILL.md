@@ -103,7 +103,6 @@ OpenCode 兼容读取 `~/.claude/skills/`，也支持原生路径 `~/.config/ope
 
    ```bash
    echo 'LLM_WIKI_PATH=<路径>' > ~/.llm-wiki/config.<名称>
-   echo 'LLM_WIKI_LINK_FORMAT=wikilink' >> ~/.llm-wiki/config.<名称>
    ```
 
 5. 设为活跃：
