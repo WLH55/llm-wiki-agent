@@ -18,12 +18,13 @@ LLM Wiki Agent 是一个知识管理工作流。将源文档放入 `raw/` 目录
 所有需要 `LLM_WIKI_PATH` 的流程都按同一优先级解析：
 
 1. 从当前工作目录向上查找 `.env` 中的 `LLM_WIKI_PATH`
-2. 如果未找到，读取 `~/.llm-wiki/active`，再读取 `~/.llm-wiki/config.<名称>`
+2. 如果未找到，引导用户从已注册知识库中选择，自动写入当前项目的 `.env`（不回退全局 active）
 
 补充规则：
 
 - `wiki-switch` 切换时先更新全局 `active`，再同步更新当前项目命中的 `.env`
-- 未解析到 `LLM_WIKI_PATH` 时，停止并提示运行 `wiki-setup` 或创建 `.env`
+- 全局 `~/.llm-wiki/active` 仅用于 wiki-switch 和 wiki-setup，wiki-query/wiki-update 必须走项目级 `.env`
+- 未解析到 `LLM_WIKI_PATH` 时，列出已注册知识库让用户选择并写入 `.env`
 
 ## 常用工具脚本
 

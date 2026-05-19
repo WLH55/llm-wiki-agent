@@ -12,7 +12,7 @@ description: >
 
 ## 开始之前
 
-1. **解析配置** — 按 `llm-wiki/SKILL.md`：当前项目 `.env` 优先，否则使用 `~/.llm-wiki/active` 对应配置。
+1. **解析配置** — 按 `llm-wiki/SKILL.md`：从当前项目 `.env` 解析 `LLM_WIKI_PATH`。未找到时引导用户选择知识库并写入 `.env`，不回退全局配置。
 2. 读取 `$LLM_WIKI_PATH/wiki/index.md` 了解知识库的范围和结构。
 3. 如果 `$LLM_WIKI_PATH/wiki/overview.md` 非空，读取它以获取当前综合上下文。
 

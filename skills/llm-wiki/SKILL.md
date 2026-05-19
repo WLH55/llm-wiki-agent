@@ -13,9 +13,10 @@ description: >
 
 ## 配置解析协议
 
-按以下优先级解析 `LLM_WIKI_PATH`：
+每个项目通过 `.env` 中的 `LLM_WIKI_PATH` 指向自己的知识库。不同项目可以指向不同知识库。
+全局 `~/.llm-wiki/active` 仅用于 wiki-switch 切换和 wiki-setup 注册，不作为查询/更新时的回退。
 
-### 第一步：项目级 .env（最高优先级）
+### 第一步：项目级 .env（唯一来源）
 
 从当前工作目录向上遍历，逐级检查每个父目录中是否存在 `.env` 文件。
 如果找到且包含 `LLM_WIKI_PATH=<值>`，则使用该值。
@@ -27,24 +28,50 @@ LLM_WIKI_PATH=D:/AI/my-special-wiki
 
 此值存储为本次会话的 `$LLM_WIKI_PATH`。
 
-### 第二步：全局配置（回退）
+### 第二步：未找到 .env — 引导配置
 
-读取 `~/.llm-wiki/active` 获取当前活跃的配置名（如 `primary`）。
-然后读取 `~/.llm-wiki/config.<名称>` 获取 `LLM_WIKI_PATH`。
+如果 `.env` 中未找到 `LLM_WIKI_PATH`，**不回退到全局 active**，而是引导用户为当前项目配置：
+
+#### 2a. 有已注册的知识库
+
+如果 `~/.llm-wiki/` 目录存在且含有 `config.*` 文件，列出所有已注册的知识库：
 
 ```bash
-# ~/.llm-wiki/active（包含一个单词）
-primary
-
-# ~/.llm-wiki/config.primary
-LLM_WIKI_PATH=D:/AI/llm-wiki-agent
+ls ~/.llm-wiki/config.*
 ```
 
-### 第三步：未配置
+对每个配置文件，提取 `LLM_WIKI_PATH` 值。读取 `~/.llm-wiki/active` 标记当前全局活跃的。
 
-如果 `.env` 和 `~/.llm-wiki/` 都不存在，告知用户：
+向用户展示：
 
-> 尚未配置知识库。请运行 `wiki-setup` 初始化，或在此项目中创建 `.env` 文件，
+```
+当前项目未配置 .env 中的 LLM_WIKI_PATH。
+每个项目应指向自己的知识库，不同项目可以使用不同的知识库。
+
+已有的知识库：
+  1. work      → D:/AI/work-wiki          ← 全局活跃
+  2. primary   → D:/AI/llm-wiki-agent
+  3. personal  → D:/AI/personal-wiki
+
+选择要为当前项目配置的知识库（输入编号或名称），或输入 "skip" 跳过：
+```
+
+#### 2b. 自动写入项目 .env
+
+用户选择后：
+1. 在当前项目中查找或创建 `.env` 文件，写入 `LLM_WIKI_PATH=<选中路径>`
+2. **不修改全局 `~/.llm-wiki/active`** — 项目级配置不应改变全局状态
+3. 确认：
+   ```
+   已为当前项目配置：.env 中 LLM_WIKI_PATH=D:/AI/work-wiki
+   ```
+4. 继续执行后续操作
+
+#### 2c. 完全未注册
+
+如果 `~/.llm-wiki/` 目录不存在（没有任何知识库），告知用户：
+
+> 尚未注册任何知识库。请运行 `/wiki-setup` 初始化，或在此项目中手动创建 `.env` 文件，
 > 内容为 `LLM_WIKI_PATH=<知识库路径>`。
 
 然后停止。未解析到 `LLM_WIKI_PATH` 之前，不要继续执行。

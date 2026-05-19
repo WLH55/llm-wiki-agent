@@ -1,6 +1,6 @@
-# GEMINI.md
+# CLAUDE.md
 
-本文件为 Gemini CLI 在此仓库中工作时提供指导。
+本文件为 Claude Code (claude.ai/code) 在此仓库中工作时提供指导。
 
 ## 项目概述
 
@@ -8,22 +8,23 @@ LLM Wiki Agent 是一个知识管理工作流。将源文档放入 `raw/` 目录
 
 ## 当前入口
 
+- 本地斜杠命令定义在 `.claude/commands/`：`/wiki-ingest`、`/wiki-lint`、`/wiki-graph`、`/wiki-refresh`、`/wiki-setup`
 - 全局 skill 定义在 `skills/`：`llm-wiki`、`wiki-query`、`wiki-update`、`wiki-switch`、`wiki-setup`
-- Gemini 没有仓库内专用命令文件；直接按本文件和 `skills/` 中的规则执行
-- `wiki-query`、`wiki-update`、`wiki-switch`、`wiki-setup` 优先按全局 skill 执行
-- 详细执行细节以 `skills/` 为准；本文件负责统一规则和页面格式
+- `wiki-query`、`wiki-update`、`wiki-switch` 依赖全局 skill，不是仓库内本地斜杠命令
+- 详细执行细节以 `skills/` 和 `.claude/commands/` 为准；本文件负责统一规则和页面格式
 
 ## 配置解析
 
 所有需要 `LLM_WIKI_PATH` 的流程都按同一优先级解析：
 
 1. 从当前工作目录向上查找 `.env` 中的 `LLM_WIKI_PATH`
-2. 如果未找到，读取 `~/.llm-wiki/active`，再读取 `~/.llm-wiki/config.<名称>`
+2. 如果未找到，引导用户从已注册知识库中选择，自动写入当前项目的 `.env`（不回退全局 active）
 
 补充规则：
 
 - `wiki-switch` 切换时先更新全局 `active`，再同步更新当前项目命中的 `.env`
-- 未解析到 `LLM_WIKI_PATH` 时，停止并提示运行 `wiki-setup` 或创建 `.env`
+- 全局 `~/.llm-wiki/active` 仅用于 wiki-switch 和 wiki-setup，wiki-query/wiki-update 必须走项目级 `.env`
+- 未解析到 `LLM_WIKI_PATH` 时，列出已注册知识库让用户选择并写入 `.env`
 
 ## 常用工具脚本
 
@@ -125,7 +126,7 @@ last_updated: YYYY-MM-DD
 
 ## 导入工作流
 
-- `wiki-ingest <路径>` 走单文件模式；无参数时走批量模式
+- `/wiki-ingest <路径>` 走单文件模式；`/wiki-ingest` 无参数时走批量模式
 - 单文件导入前先运行 `python tools/check_stale.py --scan --json` 做变更检测；未变更则跳过
 - 写入 `wiki/sources/` 之前，必须按 `source_file` 去重；同一个 raw 文件禁止生成两个来源页
 - 导入时更新 `wiki/index.md`、`wiki/overview.md`、相关实体页、相关概念页、`wiki/log.md`
@@ -152,7 +153,7 @@ last_updated: YYYY-MM-DD
 
 ## 健康检查工作流
 
-- `wiki-lint`
+- `/wiki-lint`
 - 先运行 `python tools/lint.py`
 - 结构性问题直接修复：断裂链接、缺失页面、frontmatter 不完整、孤立页面
 - 语义问题只报告：矛盾、过时摘要、数据缺口
@@ -161,14 +162,14 @@ last_updated: YYYY-MM-DD
 
 ## 图谱工作流
 
-- `wiki-graph`
+- `/wiki-graph`
 - 先运行 `python tools/build_graph.py`
 - 如需补充语义推断边，写回 `graph/graph.json` 后再次运行 `python tools/build_graph.py`
 - 输出 `graph/graph.json` 和 `graph/graph.html`
 
 ## 刷新工作流
 
-- `wiki-refresh [--force]`
+- `/wiki-refresh [--force]`
 - 过期检测以 `python tools/check_stale.py` 为准；`python tools/refresh.py` 仅用于列出候选
 - 对 `updated` / `new` 重新走导入工作流
 - 对 `deleted` 询问是否删除对应来源页和索引条目
@@ -177,7 +178,7 @@ last_updated: YYYY-MM-DD
 
 ## 设置与切换
 
-- `wiki-setup` 负责安装全局 skills、注册知识库、创建新知识库
+- `/wiki-setup` 负责安装全局 skills、注册知识库、创建新知识库
 - `wiki-switch` 负责 `current`、`list`、`show`、`new`、`switch`
 - `wiki-query`、`wiki-update`、`wiki-switch` 默认都按 `.env` 优先后的配置路径工作
 

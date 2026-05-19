@@ -9,7 +9,7 @@
 
 输出:
     graph/graph.json    — 节点/边数据
-    graph/graph.html    — 交互式 vis.js 可视化
+    graph/graph.html    — 交互式 force-graph 可视化
 
 边类型:
     EXTRACTED   — 页面中显式的 [[wikilink]]
@@ -148,11 +148,12 @@ def _load_existing_inferred_edges() -> list[dict]:
 
 
 def deduplicate_edges(edges: list[dict]) -> list[dict]:
-    """合并重复和双向边，保留最高置信度。"""
-    best = {}  # (min(a,b), max(a,b)) -> 边
+    """合并完全重复边，保留最高置信度。不同 type 的边视为不同边，不互相覆盖。"""
+    best = {}  # (from, to, type) -> 边
     for e in edges:
         a, b = e["from"], e["to"]
-        key = (min(a, b), max(a, b))
+        t = e.get("type", "EXTRACTED")
+        key = (a, b, t)
         existing = best.get(key)
         if not existing or e.get("confidence", 0) > existing.get("confidence", 0):
             best[key] = e
