@@ -2,36 +2,43 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**一个编码代理技能。** 将源文档放入 `raw/` 目录，告诉代理进行导入——它会读取文档、提取知识，并构建一个持久互联的知识库。每个新来源都会让知识库更加丰富。你无需手动编写。
+一个面向代理的 Markdown 知识库工作流。
 
-> 大多数知识工具让你搜索自己的笔记。而这个工具读取你收集的所有内容，写出一个结构化的知识库，随着时间不断累积——交叉引用已经建好，矛盾已经标记，综合分析已经完成。
+你把源文档放进 `raw/`，代理负责导入、提炼、交叉引用、构建图谱，并持续维护 `wiki/`。无数据库，无服务端，全部内容都是本地文件。
 
 ![知识图谱预览](docs/images/graph-preview.png)
 
-```
-ingest raw/papers/attention-is-all-you-need.md
-```
+## 这是什么
 
-```
+这个仓库同时扮演两种角色：
+
+- 一个可直接使用的知识库项目
+- 一个可复制、可扩展的知识库模板
+
+核心目录：
+
+```text
 wiki/
-├── index.md          所有页面的目录——每次导入时更新
-├── log.md            所有操作的追加式记录
-├── overview.md       跨所有来源的动态综合
-├── sources/          每个源文档一个摘要页
-├── entities/         人物、公司、项目——自动创建
-├── concepts/         想法、框架、方法——自动创建
-└── syntheses/        查询答案保存为知识库页面
+├── index.md
+├── overview.md
+├── log.md
+├── sources/
+├── entities/
+├── concepts/
+└── syntheses/
 graph/
-├── graph.json        持久化的节点/边数据
-├── graph.html        交互式 vis.js 可视化——在浏览器中打开
-└── .refresh_cache.json   SHA-256 哈希缓存（支持增量重建）
+├── graph.json
+├── graph.html
+└── .refresh_cache.json
+raw/
+tools/
 ```
 
 ## 安装
 
-**前置条件：** [Claude Code](https://claude.ai/code)、[Codex](https://openai.com/codex)、[Gemini CLI](https://github.com/google-gemini/gemini-cli)，或任何能读取配置文件的代理。
+前置条件：任一可读取规则文件的代理，如 Claude Code、Codex、OpenCode、Gemini CLI。
 
-**Python 环境：** Python `>=3.10, <3.14`
+Python 要求：`>=3.10, <3.14`
 
 ```bash
 git clone https://github.com/WLH55/llm-wiki-agent.git
@@ -44,269 +51,229 @@ python -m venv .venv
 pip install -e .
 ```
 
-## 启动项目
+## 代理入口
 
-这个项目没有 Web 服务或单独的后台进程；“启动”方式取决于你使用哪种模式。
+- Claude Code：读取 `CLAUDE.md` 和 `.claude/commands/`
+- Codex / OpenCode：读取 `AGENTS.md`
+- Gemini CLI：读取 `GEMINI.md`
 
-### 代理驱动
+工作流分两类：
 
-在仓库根目录启动你的代理，让它读取仓库里的规则文件：
+| 类型 | 用途 |
+|---|---|
+| 仓库内工作流 | `wiki-ingest`、`wiki-lint`、`wiki-graph`、`wiki-refresh` |
+| 全局 skill | `wiki-query`、`wiki-update`、`wiki-switch`、`wiki-setup` |
 
-```bash
-claude      # 读取 CLAUDE.md + .claude/commands/（可使用斜杠命令）
-codex       # 读取 AGENTS.md
-opencode    # 读取 AGENTS.md
-gemini      # 读取 GEMINI.md
+说明：`wiki-query`、`wiki-update`、`wiki-switch` 设计为跨项目使用；`wiki-ingest`、`wiki-lint`、`wiki-graph`、`wiki-refresh` 主要在知识库项目目录中执行。
+
+以下示例使用 Claude 风格的 `/wiki-...` 写法；其他代理执行同名 workflow 即可。
+
+## 第一次使用
+
+第一次使用时，先做两件事：
+
+1. 安装全局 skill
+2. 选择一个知识库进行初始化
+
+### 1. 安装全局 skill
+
+```text
+/wiki-setup install
 ```
 
-启动后就可以直接用自然语言或命令：
+这一步会安装：
 
-```bash
-/wiki-ingest raw/papers/my-paper.md
-/wiki-query 主要主题有哪些？
+- `llm-wiki`
+- `wiki-query`
+- `wiki-update`
+- `wiki-switch`
+- `wiki-setup`
+
+## 初始化已有知识库
+
+适用于：你已经有一个知识库目录，只是还没注册到 `~/.llm-wiki/`。
+
+如果当前目录就是知识库：
+
+```text
+/wiki-setup init .
+```
+
+如果知识库在别的目录：
+
+```text
+/wiki-setup init D:/AI/my-wiki
+```
+
+初始化完成后会：
+
+- 创建 `~/.llm-wiki/config.<名称>`
+- 将该名称写入 `~/.llm-wiki/active`
+- 让 `wiki-query`、`wiki-update`、`wiki-switch` 能在任意项目中找到这个知识库
+
+## 创建新的知识库
+
+适用于：你还没有知识库，想从零创建一个新的 wiki 项目。
+
+```text
+/wiki-setup new
+```
+
+执行时会询问：
+
+- 目标路径，例如 `D:/AI/work-wiki`
+- 配置名称，例如 `work`
+
+创建完成后会：
+
+- 生成新的知识库骨架：`wiki/`、`raw/`、`graph/`、`tools/` 等
+- 自动注册到 `~/.llm-wiki/config.<名称>`
+- 自动设为当前活跃知识库
+
+常见后续步骤：
+
+```text
+cd <目标路径>
+pip install -e .
+/wiki-ingest
+```
+
+## 切换不同的知识库
+
+当你维护多个知识库时，使用 `wiki-switch` 管理它们。
+
+常用命令：
+
+```text
+/wiki-switch
+/wiki-switch list
+/wiki-switch show work
+/wiki-switch work
+/wiki-switch new research
+```
+
+含义：
+
+- `/wiki-switch`：查看当前活跃知识库
+- `/wiki-switch list`：列出所有已注册知识库
+- `/wiki-switch show work`：查看指定配置内容
+- `/wiki-switch work`：切换到名为 `work` 的知识库
+- `/wiki-switch new research`：新增一个命名配置，代理会继续询问知识库路径
+
+切换时会：
+
+- 更新全局默认配置 `~/.llm-wiki/active`
+- 如果当前项目命中了 `.env`，同步更新其中的 `LLM_WIKI_PATH`
+
+## 日常使用
+
+### 在知识库项目目录中
+
+```text
+/wiki-ingest raw/my-notes.md
+/wiki-ingest
 /wiki-lint
 /wiki-graph
-```
-## 快速开始
-
-### 1. 准备源文档
-
-将你要导入的文档放入 `raw/` 目录。支持 Markdown 文件、PDF、arXiv 论文等——代理会自动调用 `tools/pdf2md.py` 处理非 Markdown 文件，无需手动转换。
-
-```bash
-cp my-notes.md raw/          # Markdown 直接放入
-cp paper.pdf raw/            # PDF 也可以直接放入
-```
-
-### 2. 编译文档
-使用 /wiki-ingest命令 编译原始文档
-```
-/wiki-ingest raw/my-notes.md         # 导入单个文件
-/wiki-ingest                          # 无参数：扫描 raw/ 批量导入所有变更文件
-```
-
-代理会自动创建源页面、实体页面、概念页面，更新索引和概览。
-
-### 3. 查询知识库
-
-```
-/wiki-query 主要主题有哪些？
-/wiki-query D0广告收入占比是怎么算的
-/wiki-query 这个媒体CPI是怎么算的
-```
-
-代理会从所有 wiki 页面中综合回答，附带 `[[WikiLinks]]` 引用和来源列表。你可以选择将答案保存为综合页面。
-
-### 4. 健康检查
-
-```
-/wiki-lint
-```
-
-检查孤立页面、断裂链接、缺失实体、矛盾内容等，输出报告。
-
-### 5. 构建知识图谱
-
-```
-/wiki-graph
-```
-
-两步构建：脚本提取 `[[wikilinks]]` 边 → 代理推断语义关系。生成 `graph/graph.html`，浏览器打开即可交互浏览。
-
-### 6. 刷新过期来源
-
-当你修改了 `raw/` 中的源文档后：
-
-```
 /wiki-refresh
+/wiki-refresh --force
 ```
 
-代理检测哈希变更，重新导入过期来源并更新知识库。
-## 架构
+用途：
 
-### 运行模式
+- `/wiki-ingest`：导入一个文件，或批量处理 `raw/` 中的变更
+- `/wiki-lint`：做结构健康检查，结构问题直接修，语义问题只报告
+- `/wiki-graph`：构建或重建图谱
+- `/wiki-refresh`：按 `check_stale.py` 的结果刷新新增、更新、删除来源
 
-**代理驱动** — 例如Claude Code 读取 `CLAUDE.md` 和 `.claude/commands/`，使用内置能力执行导入/查询/检查/图谱操作，包括语义推断。
+说明：
 
-### 核心数据流
+- 导入前会先运行 `python tools/check_stale.py --scan --json`
+- 刷新流程以 `python tools/check_stale.py` 为准
+- `python tools/refresh.py` 只用于列出候选，不执行实际刷新
 
-```
-raw/<文件>.md  →  [导入]  →  wiki/sources/<slug>.md
-                                  ├── 更新 wiki/index.md
-                                  ├── 更新 wiki/overview.md
-                                  ├── 创建 wiki/entities/*.md
-                                  ├── 创建 wiki/concepts/*.md
-                                  └── 追加到 wiki/log.md
-```
+### 在任意项目中
 
-### 页面格式
-
-所有知识库页面使用 YAML frontmatter，包含 `title`、`type`（source|entity|concept|synthesis）、`tags`、`sources`、`last_updated`。页面通过 `[[PageName]]` wikilink 互相链接。
-
-### 图谱层
-
-通过 `/wiki-graph` 分两步构建：
-- 第一步（脚本）：解析 `[[wikilinks]]` → `EXTRACTED` 边（确定性），Louvain 社区检测聚类节点
-- 第二步（Claude）：推断隐式关系 → `INFERRED` 边（带置信度分数），写入 graph.json 后重新生成
-- 输出 `graph/graph.json` + `graph/graph.html`（自包含 vis.js）
-
-### 工具脚本架构
-
-| 脚本 | 需要 LLM | 用途 |
-|---|---|---|
-| `ingest.py` | 否 | 验证 wiki 完整性（导入由代理完成） |
-| `query.py` | 否 | 关键词匹配查找相关页面 |
-| `lint.py` | 否 | 结构检查 + 图感知检查 |
-| `build_graph.py` | 否 | 构建图谱（语义推断由代理完成） |
-| `refresh.py` | 否 | 检测过期来源（刷新由代理完成） |
-| `check_stale.py` | 否 | 检测源文件变更（SHA-256 哈希对比） |
-| `pdf2md.py` | 否 | 将 PDF/arXiv 转换为 Markdown（使用 arxiv2md/marker/pymupdf4llm） |
-| `file_to_markdown.py` | 否 | 使用 markitdown 批量转换非 md 文件 |
-
-
-## 你将获得什么
-
-**持久化知识库** — 结构化的 Markdown 页面，跨会话累积。与聊天不同，不会丢失任何内容。
-
-**实体页面** — 每个来源中提到的每个人物、公司或项目自动创建。每当新来源引用它们时更新。
-
-**概念页面** — 每个关键想法或框架自动创建。与讨论它们的每个来源交叉引用。
-
-**动态概览** — `wiki/overview.md` 在每次导入时修订，反映所有已读内容的当前综合。
-
-**矛盾标记** — 当新来源与现有论点矛盾时，在导入时标记，而不是等到查询时才发现。
-
-**知识图谱** — `graph.html` 将每个知识库页面显示为节点，每个 `[[wikilink]]` 显示为边，Claude 推断的隐式关系显示为虚线边。社区检测将相关主题聚类。点击节点可高亮连接关系，右侧面板展示完整内容。
-
-**健康检查报告** — 孤立页面、断开的链接、缺失的实体页面、数据缺口及建议来源。
-
-## 使用场景
-
-### 研究
-
-数周内深入研究某个主题——阅读论文、文章、报告。
-
-```
-/wiki-ingest raw/papers/attention-is-all-you-need.md
-/wiki-ingest raw/papers/llama2.md
-/wiki-ingest raw/papers/rag-survey.md
-
-# 知识库自动构建实体页面（Meta AI、Google Brain）和
-# 概念页面（注意力机制、RLHF、上下文窗口）
-
-/wiki-query "减少幻觉的主要方法有哪些？"
-/wiki-query "上下文窗口大小在各模型中是如何演变的？"
-
-/wiki-lint
-# → "没有关于混合专家模型的来源——建议添加 Mixtral 论文"
+```text
+/wiki-query "知识库中有哪些关于 xxx 的内容？"
+/wiki-update
+/wiki-switch list
+/wiki-switch work
 ```
 
-最终你将拥有一个结构化的、互联的参考资料库——而不是一个你永远不会再打开的 PDF 文件夹。
+用途：
 
----
+- `/wiki-query`：查询并综合回答，可选择保存为 synthesis 页面
+- `/wiki-update`：把当前项目中值得长期保留的知识提炼进 wiki
+- `/wiki-switch`：切换当前项目使用的知识库
 
-### 阅读书籍
+## 配置模型
 
-逐章归档，为角色、主题、论点建立页面。
+所有需要 `LLM_WIKI_PATH` 的流程按以下优先级解析：
 
-```
-/wiki-ingest raw/book/chapter-01.md
-/wiki-ingest raw/book/chapter-02.md
+1. 当前项目向上查找 `.env` 中的 `LLM_WIKI_PATH`
+2. 若未找到，读取 `~/.llm-wiki/active`
+3. 再读取 `~/.llm-wiki/config.<名称>`
 
-# 知识库自动创建实体和主题页面
+示例：
 
-/wiki-query "主角的动机是如何演变的？"
-/wiki-query "到目前为止作者的论点存在哪些矛盾？"
-
-/wiki-graph   # → graph.html 显示每个角色/主题及其连接方式
-```
-
-想象一下像 Tolkien Gateway 这样的粉丝知识库——一边阅读一边构建，由代理完成所有交叉引用。
-
----
-
-### 个人知识库
-
-追踪目标、健康、习惯、自我提升——归档日志条目、文章、播客笔记。
-
-```
-/wiki-ingest raw/journal/2026-01-week1.md
-/wiki-ingest raw/articles/huberman-sleep-protocol.md
-/wiki-ingest raw/articles/atomic-habits-summary.md
-
-/wiki-query "我的日志中关于精力的模式有哪些？"
-/wiki-query "我尝试过哪些习惯，结果如何？"
+```bash
+echo 'LLM_WIKI_PATH=D:/AI/my-special-wiki' > .env
 ```
 
-知识库随时间构建出结构化的图景。"睡眠"、"运动"、"深度工作"等概念从每个归档的来源中累积证据。
+这意味着：
 
----
+- 没有 `.env` 的项目，使用全局活跃知识库
+- 有 `.env` 的项目，优先绑定自己的知识库
+- `wiki-switch` 会在切换全局配置时同步更新当前项目命中的 `.env`
 
-### 商业/团队情报
+多知识库场景示例：
 
-输入会议记录、项目文档、客户通话。
-
-```
-/wiki-ingest raw/meetings/q1-planning-transcript.md
-/wiki-ingest raw/docs/product-roadmap-2026.md
-/wiki-ingest raw/calls/customer-interview-acme.md
-
-/wiki-query "客户通话中出现最多的功能需求是什么？"
-/wiki-query "Q1 做了哪些决定，理由是什么？"
-
-/wiki-lint
-# → "项目 X 在 5 个页面中被提及但没有专属页面"
-# → "路线图与客户访谈在功能 Y 的优先级上存在矛盾"
+```text
+project-a/.env  -> LLM_WIKI_PATH=D:/AI/wiki-a
+project-b/.env  -> LLM_WIKI_PATH=D:/AI/wiki-b
+无 .env 的项目   -> 使用 ~/.llm-wiki/active
 ```
 
-知识库保持最新，因为代理做了没人愿意做的维护工作。
+这允许你同时打开两个不同项目，并让它们分别查询不同的知识库。
 
----
+## Wiki 规则
 
-### 竞争分析
+- 系统页面：`wiki/index.md`、`wiki/overview.md`、`wiki/log.md`、`wiki/lint-report.md`
+- 其他页面必须带 YAML frontmatter
+- 页面之间使用 `[[PageName]]` 交叉引用
+- 新信息优先合并到已有页面，不创建重复页面
 
-持续追踪某个公司、市场或技术。
+命名规则：
 
-```
-/wiki-ingest raw/competitors/openai-announcements.md
-/wiki-ingest raw/market/ai-funding-report-q1.md
+- 源页面：严格匹配原始文件主名的 kebab-case
+- 实体页面：`TitleCase.md`
+- 概念页面：`TitleCase.md`
 
-/wiki-query "OpenAI 和 Anthropic 在安全策略上有何不同？"
-/wiki-query "哪些公司在过去 6 个月宣布了多模态模型？"
-/wiki-query "截至今天的竞争格局总结"
-# → 代理展示答案，然后询问你是否要保存为综合页面
-```
+## 工具脚本
 
-## CLAUDE.md / AGENTS.md
+| 脚本 | 用途 |
+|---|---|
+| `python tools/ingest.py --validate-only` | 验证 wiki 完整性 |
+| `python tools/query.py "问题"` | 关键词匹配候选页面 |
+| `python tools/lint.py` | 结构健康检查 |
+| `python tools/build_graph.py` | 构建图谱 |
+| `python tools/check_stale.py --scan` | 检测 raw 的新增/更新/删除 |
+| `python tools/check_stale.py` | 检测已导入来源是否过期 |
+| `python tools/check_stale.py --update` | 刷新完成后更新缓存 |
+| `python tools/refresh.py` | 仅列出过期来源候选 |
+| `python tools/pdf2md.py <pdf/arxiv>` | PDF/arXiv 转 Markdown |
+| `python tools/file_to_markdown.py <目录>` | 批量转换非 md 文件 |
 
-模式文件告诉代理如何维护知识库——页面格式、导入/查询/检查/图谱工作流、命名规范。这是关键配置文件。编辑它以自定义你的领域行为。
+## 模式文件
 
-| 代理 | 模式文件 |
+这些文件定义代理在不同环境下的工作规则：
+
+| 代理 | 文件 |
 |---|---|
 | Claude Code | `CLAUDE.md` |
 | Codex / OpenCode | `AGENTS.md` |
 | Gemini CLI | `GEMINI.md` |
 
-## 与 RAG 的区别
-
-| RAG | LLM Wiki Agent |
-|---|---|
-| 每次查询重新推导知识 | 编译一次，持续更新 |
-| 原始文本块作为检索单元 | 结构化知识库页面 |
-| 没有交叉引用 | 预构建的交叉引用 |
-| 矛盾在查询时（也许）才会暴露 | 在导入时标记 |
-| 没有累积性 | 每个来源都让知识库更丰富 |
-
-
-## 技术栈
-
-NetworkX + Louvain + Claude + vis.js。无服务器、无数据库，完全在本地运行。所有内容都是纯 Markdown 文件。
-
-## 相关项目
-
-- [graphify](https://github.com/safishamsi/graphify) — 基于图谱的知识提取技能（图谱层的灵感来源）
-- [Vannevar Bush 的 Memex (1945)](https://en.wikipedia.org/wiki/Memex) — 这所类似的原始构想
-
 ## 许可证
 
-MIT 许可证——详见 [LICENSE](LICENSE)。
+MIT，见 [LICENSE](LICENSE)。

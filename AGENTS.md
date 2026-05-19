@@ -4,90 +4,50 @@
 
 ## 项目概述
 
-LLM Wiki Agent 是一个知识管理工具。将源文档放入 `raw/` 目录，代理会读取、提取知识，并构建一个持久互联的知识库。每个新来源都让知识库更加丰富。所有知识库内容以纯 Markdown 文件形式存储——无数据库、无服务器。
+LLM Wiki Agent 是一个知识管理工作流。将源文档放入 `raw/` 目录，代理会读取文档、提取知识，并维护一个持久互联的 Markdown 知识库。
 
-## 常用命令
+## 当前入口
 
-### Python 工具脚本（机械执行，不调用 LLM）
+- 全局 skill 定义在 `skills/`：`llm-wiki`、`wiki-query`、`wiki-update`、`wiki-switch`、`wiki-setup`
+- OpenCode 命令模板定义在 `.opencode/commands/`：`wiki-ingest`、`wiki-lint`、`wiki-graph`、`wiki-refresh`
+- `wiki-query`、`wiki-update`、`wiki-switch`、`wiki-setup` 优先按全局 skill 执行
+- 详细执行细节以 `skills/` 和 `.opencode/commands/` 为准；本文件负责统一规则和页面格式
 
-```bash
-# 验证 wiki 完整性（断链、未索引页面）
-python tools/ingest.py --validate-only
+## 配置解析
 
-# 查找与问题相关的 wiki 页面（关键词匹配）
-python tools/query.py "主要主题有哪些？"
+所有需要 `LLM_WIKI_PATH` 的流程都按同一优先级解析：
 
-# 健康检查（结构 + 图感知，不含语义检查）
-python tools/lint.py
-python tools/lint.py --save              # 保存报告到 wiki/lint-report.md
+1. 从当前工作目录向上查找 `.env` 中的 `LLM_WIKI_PATH`
+2. 如果未找到，读取 `~/.llm-wiki/active`，再读取 `~/.llm-wiki/config.<名称>`
 
-# 构建知识图谱（提取 wikilink 边 + 保留已有推断边）
-python tools/build_graph.py               # 构建图谱
-python tools/build_graph.py --open        # 构建后在浏览器中打开
-python tools/build_graph.py --report      # 生成图谱健康报告
+补充规则：
 
-# 检测过期的源页面（哈希对比，不执行刷新）
-python tools/refresh.py                   # 列出过期来源
-python tools/refresh.py --force           # 强制标记所有来源为过期
+- `wiki-switch` 切换时先更新全局 `active`，再同步更新当前项目命中的 `.env`
+- 未解析到 `LLM_WIKI_PATH` 时，停止并提示运行 `wiki-setup` 或创建 `.env`
 
-# 将 PDF/arXiv 转换为 Markdown
-python tools/pdf2md.py 2401.12345                           # arXiv ID
-python tools/pdf2md.py paper.pdf --backend marker            # 本地 PDF
-python tools/pdf2md.py paper.pdf -o raw/papers/output.md     # 自定义输出
-
-# 批量转换目录中所有非 md 文件
-python tools/file_to_markdown.py <输入目录>
-```
-
-### 触发工作流
-
-使用自然语言触发各工作流：
-
-| 工作流 | 触发方式 |
-|---|---|
-| 导入源文档 | `ingest raw/my-article.md` 或 "导入这个文件" |
-| 查询知识库 | `query: 主要主题有哪些？` 或 "知识库中关于xxx的内容" |
-| 健康检查 | `lint the wiki` 或 "检查知识库中的孤立页面" |
-| 构建图谱 | `build the knowledge graph` 或 "构建图谱" |
-| 刷新过期来源 | `refresh` 或 "刷新过期来源" |
-
-### 依赖安装
+## 常用工具脚本
 
 ```bash
-pip install -e .                # 核心依赖，单一真源为 pyproject.toml
-pip install networkx            # 社区检测（可选，build_graph.py --report 需要）
-pip install arxiv2markdown      # arXiv PDF 转换
-pip install marker-pdf          # 复杂学术 PDF（可选）
-pip install pymupdf4llm         # 轻量 PDF 提取（可选）
+python tools/ingest.py --validate-only      # 验证 wiki 完整性
+python tools/query.py "主要主题有哪些？"      # 关键词匹配候选页面
+python tools/lint.py                        # 结构健康检查
+python tools/build_graph.py                 # 构建图谱
+python tools/check_stale.py --scan          # 检测 raw/ 的新增/更新/删除
+python tools/check_stale.py                 # 检测已导入来源是否过期
+python tools/check_stale.py --update        # 刷新完成后更新哈希缓存
+python tools/refresh.py                     # 仅列出过期来源，实际刷新由代理执行
+python tools/pdf2md.py paper.pdf            # PDF/arXiv 转 Markdown
+python tools/file_to_markdown.py <输入目录>  # 批量转换非 md 文件
 ```
 
-要求 Python >=3.10, <3.14。工具脚本不依赖 litellm 或 API 密钥。
+要求 Python `>=3.10, <3.14`。
 
----
+## 页面规则
 
-## 导入工作流
-
-触发方式：*"ingest <文件>"* 或 "导入这个文件"
-
-### 页面元数据规则
-
-- `wiki/index.md` 和 `wiki/log.md` 是系统页面，不使用标准 frontmatter。
-- 其他所有 wiki 页面都必须以 YAML frontmatter 开头。
-- 每个普通 wiki 页面至少必须包含 `title`、`type` 和与页面类型对应的必需元数据字段。
-
-步骤（按顺序）：
-1. 完整读取源文档
-2. 读取 `wiki/index.md` 和 `wiki/overview.md` 获取当前知识库上下文
-3. **防重检查与写入**：在写入 `wiki/sources/` 之前，搜索 `wiki/sources/` 目录下 `source_file: <当前原始文件路径>` 是否已存在于其他源页面中。
-   - 如果找到了现有的源页面（即使文件名不符合当前规范），必须**覆盖更新**该现有文件，或者将其删除并使用规范的 `<slug>.md` 重建。**绝对禁止为同一个原始文件创建两个源页面。**
-   - 如果未找到，则正常写入 `wiki/sources/<slug>.md` — 使用下面的源页面格式
-4. 更新 `wiki/index.md` — 在 Sources 部分添加条目
-5. 更新 `wiki/overview.md` — 如有必要则修订综合内容
-6. 更新/创建提到的关键人物、公司、项目的实体页面
-7. 更新/创建讨论的关键想法和框架的概念页面
-8. 标记与现有知识库内容的任何矛盾
-9. 追加到 `wiki/log.md`：`## [YYYY-MM-DD] ingest | <标题>`
-10. **导入后验证** — 检查断裂的 `[[wikilinks]]`，验证所有新页面都在 `index.md` 中，打印变更摘要
+- 系统页面 `wiki/index.md`、`wiki/overview.md`、`wiki/log.md`、`wiki/lint-report.md` 不使用 frontmatter
+- 其他所有 wiki 页面都必须以 YAML frontmatter 开头
+- 页面间统一使用 `[[PageName]]` 进行交叉引用
+- 新信息优先合并到已有页面，不创建重复页面
 
 ### 源页面格式
 
@@ -101,21 +61,14 @@ source_file: raw/...
 ---
 
 ## 摘要
-2-4 句话概述。
 
 ## 核心论点
-- 论点 1
-- 论点 2
 
 ## 重要引述
-> "引述内容" — 背景
 
 ## 关联
-- [[EntityName]] — 关系说明
-- [[ConceptName]] — 连接说明
 
 ## 矛盾
-- 与 [[OtherPage]] 在以下方面矛盾：...
 ```
 
 ### 实体页面格式
@@ -134,7 +87,6 @@ last_updated: YYYY-MM-DD
 一句话定义。
 
 ## 关联
-- [[OtherPage]] — 关系说明
 ```
 
 ### 概念页面格式
@@ -153,7 +105,6 @@ last_updated: YYYY-MM-DD
 一句话定义。
 
 ## 关联
-- [[OtherPage]] — 关系说明
 ```
 
 ### 综合页面格式
@@ -172,171 +123,73 @@ last_updated: YYYY-MM-DD
 对问题的综合回答。
 ```
 
-### 领域专用模板
+## 导入工作流
 
-如果来源属于特定领域（如个人日记、会议记录），代理应使用专用模板替代上面的通用模板：
-
-#### 日记/日志模板
-```markdown
----
-title: "YYYY-MM-DD 日记"
-type: source
-tags: [diary]
-date: YYYY-MM-DD
----
-## 事件摘要
-...
-## 关键决定
-...
-## 精力与情绪
-...
-## 关联
-...
-## 变化与矛盾
-...
-```
-
-#### 会议记录模板
-```markdown
----
-title: "会议名称"
-type: source
-tags: [meeting]
-date: YYYY-MM-DD
----
-## 目标
-...
-## 关键讨论
-...
-## 做出的决定
-...
-## 行动项
-...
-```
-
----
+- `wiki-ingest <路径>` 走单文件模式；无参数时走批量模式
+- 单文件导入前先运行 `python tools/check_stale.py --scan --json` 做变更检测；未变更则跳过
+- 写入 `wiki/sources/` 之前，必须按 `source_file` 去重；同一个 raw 文件禁止生成两个来源页
+- 导入时更新 `wiki/index.md`、`wiki/overview.md`、相关实体页、相关概念页、`wiki/log.md`
+- 导入成功后运行 `python tools/check_stale.py --update-file <raw_path>` 写入哈希缓存
+- 批量模式还需要处理 `deleted` 文件，并询问是否删除对应来源页和索引条目
+- 收尾运行 `python tools/ingest.py --validate-only`
 
 ## 查询工作流
 
-触发方式：*"query: <问题>"* 或 "知识库中关于xxx的内容是什么？"
+- 通过全局 `wiki-query` skill 执行
+- 先按配置规则解析 `$LLM_WIKI_PATH`
+- 先读 `wiki/index.md` 和 `wiki/overview.md`
+- 检索顺序固定为：索引和 frontmatter 快查 -> `python tools/query.py` -> 分段 grep -> 完整读取
+- 回答必须使用 `[[PageName]]` 引用，并列出来源页面
+- 若用户同意保存为 synthesis：写入 `wiki/syntheses/`、更新 `index.md` / `overview.md` / `log.md`、补齐缺失实体或概念页、运行 `python tools/build_graph.py` 和 `python tools/ingest.py --validate-only`
 
-步骤：
-1. 读取 wiki/index.md 识别最相关的页面
-2. 读取这些页面（最多约 10 个最相关的）
-3. 综合生成一份详尽的 Markdown 答案，使用 [[页面名称]] 形式的 Wiki 链接进行引用；
-4. 在答案末尾添加 ## 来源 部分，列出你所引用的所有页面；
-5. 询问用户是否需要将此答案保存为 wiki/syntheses/<slug>.md 文件。
-6. 如果用户同意，执行**合成页面保存子流程**（见下）
+## 更新工作流
 
-### 合成页面保存子流程
-
-当用户确认保存 synthesis 页面时，按以下步骤执行：
-
-1. **写入文件** — 将综合答案保存为 `wiki/syntheses/<slug>.md`，slug 规则同源页面（kebab-case）
-2. **更新 index.md** — 在 `## 综合` 部分添加条目
-3. **补充缺失的实体/概念页面** — 扫描答案中的 `[[wikilinks]]`，对于指向不存在页面的链接：
-   - 在 `wiki/entities/` 或 `wiki/concepts/` 创建对应页面（一句话定义 + 关联回 synthesis）
-   - 更新 `index.md` 的对应部分
-4. **更新已有实体/概念页面** — 对于答案中引用的已存在页面，在 `## 关联` 中补充指向本 synthesis 的链接（如果尚无）
-5. **更新 overview.md** — 如果 synthesis 内容改变了项目的整体理解，修订 overview
-6. **追加日志** — 在 `wiki/log.md` 添加 `## [YYYY-MM-DD] query | <综合标题>`
-7. **运行 `python tools/build_graph.py`** — 重建知识图谱，使新页面和边生效
-8. **验证** — 运行 `python tools/ingest.py --validate-only` 检查断链和未索引页面
-9. **输出摘要** — 告知用户新建/更新了哪些页面、图谱已重建
-
----
+- 通过全局 `wiki-update` skill 执行
+- 从当前项目提炼值得长期保留的知识，不复制代码和文件列表
+- 优先合并已有实体页和概念页，不创建重复页
+- 更新 `wiki/index.md`、`wiki/overview.md`、`wiki/log.md`
+- 收尾运行 `python tools/ingest.py --validate-only` 和 `python tools/build_graph.py`
 
 ## 健康检查工作流
 
-触发方式：*"lint the wiki"* 或 "检查知识库中的孤立页面和矛盾"
-
-检查：
-- **断裂链接与缺失页面** — `[[wikilink]]` 指向不存在的页面，直接创建目标页面（实体/概念页）
-- **缺失或不完整的 frontmatter** — 普通 wiki 页面缺少 YAML frontmatter，或缺少其 `type` 对应的必需字段
-- **孤立页面** — 没有来自其他页面入站 `[[links]]` 的知识库页面，在相关页面的 `## 关联` 中添加 wikilink
-- **矛盾** — 页面间冲突的论点
-- **过时摘要** — 在更新来源后未更新的页面
-- **数据缺口** — 知识库无法回答的问题；建议新来源
-
-对结构性问题（断裂链接、缺失页面、frontmatter、孤立页面）**直接修复，无需确认**。
-语义问题（矛盾、过时、缺口）仅输出报告，需要人工判断。
-
-修复完成后输出健康检查报告，询问用户是否保存到 `wiki/lint-report.md`。
-
----
+- `wiki-lint`
+- 先运行 `python tools/lint.py`
+- 结构性问题直接修复：断裂链接、缺失页面、frontmatter 不完整、孤立页面
+- 语义问题只报告：矛盾、过时摘要、数据缺口
+- 可询问是否保存到 `wiki/lint-report.md`
+- 收尾运行 `python tools/ingest.py --validate-only`，并追加 `lint` 日志
 
 ## 图谱工作流
 
-触发方式：*"build the knowledge graph"* 或 "构建图谱"
-
-当用户要求构建图谱时：
-
-1. 运行 `python tools/build_graph.py` 完成机械部分：
-   - 从 wiki 页面构建节点
-   - 解析所有 `[[wikilinks]]` → 确定性的 `EXTRACTED` 边
-   - 保留 graph.json 中已有的 INFERRED/AMBIGUOUS 边
-   - 运行 Louvain 社区检测
-   - 输出 `graph/graph.json` + `graph/graph.html`
-2. 读取 graph.json，对节点进行语义推断
-3. 将推断边写入 graph.json，重新运行 `build_graph.py` 生成最终 HTML
-
-如果用户没有安装 Python/依赖，改为手动生成图谱数据：
-1. 查找所有知识库页面中的 `[[wikilinks]]`
-2. 构建节点/边列表
-3. 直接写入 `graph/graph.json`
-4. 使用 vis.js 模板写入 `graph/graph.html`
-
----
+- `wiki-graph`
+- 先运行 `python tools/build_graph.py`
+- 如需补充语义推断边，写回 `graph/graph.json` 后再次运行 `python tools/build_graph.py`
+- 输出 `graph/graph.json` 和 `graph/graph.html`
 
 ## 刷新工作流
 
-触发方式：*"refresh"* 或 "刷新过期来源"
+- `wiki-refresh [--force]`
+- 过期检测以 `python tools/check_stale.py` 为准；`python tools/refresh.py` 仅用于列出候选
+- 对 `updated` / `new` 重新走导入工作流
+- 对 `deleted` 询问是否删除对应来源页和索引条目
+- 刷新完成后运行 `python tools/check_stale.py --update`
+- 追加 `refresh` 日志
 
-当用户要求刷新过期来源时：
-1. 运行 `python tools/check_stale.py` 检测变更（基于 SHA-256 哈希对比 `graph/.refresh_cache.json`）
-2. 如果无过期来源，告知用户并结束
-3. 对每个过期来源，重新执行导入工作流（同导入工作流的步骤 3-9）
-4. 刷新完成后运行 `python tools/check_stale.py --update` 更新哈希缓存
-5. 输出摘要：刷新了几个、跳过了几个
+## 设置与切换
 
-追加到 `wiki/log.md`：`## [YYYY-MM-DD] refresh | 刷新了 N 个过期来源页面`
-
----
+- `wiki-setup` 负责安装全局 skills、注册知识库、创建新知识库
+- `wiki-switch` 负责 `current`、`list`、`show`、`new`、`switch`
+- `wiki-query`、`wiki-update`、`wiki-switch` 默认都按 `.env` 优先后的配置路径工作
 
 ## 命名规范
 
-- 源文档 slug：**必须**转换为小写英文 `kebab-case` 且**严格与源文件名的主名匹配**（例如 `raw/articles/My Article.md` 对应 `my-article.md`），**严禁根据文章标题或内容自行翻译或生造 slug。**
-- 实体页面：`TitleCase.md`（如 `OpenAI.md`、`SamAltman.md`）
-- 概念页面：`TitleCase.md`（如 `ReinforcementLearning.md`、`RAG.md`）
-- 源页面：`kebab-case.md`
-
-## 索引格式
-
-```markdown
-# Wiki 索引
-
-## 概览
-- [概览](overview.md) — 动态综合
-
-## 来源
-- [源文档标题](sources/slug.md) — 一句话摘要
-
-## 实体
-- [实体名称](entities/EntityName.md) — 一句话描述
-
-## 概念
-- [概念名称](concepts/ConceptName.md) — 一句话描述
-
-## 综合
-- [分析标题](syntheses/slug.md) — 回答的问题
-```
+- 源页面 slug 必须严格匹配原始文件主名的 kebab-case；禁止按标题意译或重命名
+- 实体页面使用 `TitleCase.md`
+- 概念页面使用 `TitleCase.md`
+- 页面内的 wikilink 不带目录前缀
 
 ## 日志格式
 
-每条记录以 `## [YYYY-MM-DD] <操作> | <标题>` 开头，便于 grep 解析：
+每条记录以 `## [YYYY-MM-DD] <操作> | <标题>` 开头。
 
-```
-grep "^## \[" wiki/log.md | tail -10
-```
-
-操作类型：`ingest`、`query`、`lint`、`graph`、`refresh`
+操作类型：`ingest`、`ingest-all`、`query`、`update`、`lint`、`graph`、`refresh`
