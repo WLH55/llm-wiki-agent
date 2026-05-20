@@ -280,4 +280,4 @@ MIT，见 [LICENSE](LICENSE)。
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/chart?repos=WLH55/llm-wiki-agent&type=date)](https://star-history.com/#WLH55/llm-wiki-agent&Date)
+[![Star History Chart](https://api.star-history.com/chart?repos=WLH55/llm-wiki-agent&type=date&legend=top-left)](https://www.star-history.com/?repos=WLH55%2Fllm-wiki-agent&type=date&legend=top-left)
