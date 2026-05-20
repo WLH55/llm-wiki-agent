@@ -51,7 +51,7 @@ def find_relevant_pages(question: str, index_content: str) -> list[Path]:
     graph_json = REPO_ROOT / "graph" / "graph.json"
     if graph_json.exists() and relevant:
         try:
-            graph_data = json.loads(graph_json.read_text())
+            graph_data = json.loads(graph_json.read_text(encoding="utf-8"))
             page_ids = {p.relative_to(WIKI_DIR).as_posix().replace('.md', '') for p in relevant}
             neighbors = set()
             for edge in graph_data.get('edges', []):
