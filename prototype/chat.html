@@ -10,6 +10,7 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       height: calc(100vh - 56px);
+      position: relative;
     }
     .chat-header {
       padding: var(--space-5) var(--space-7);
@@ -41,10 +42,12 @@
       border-top: 1px solid var(--border);
       background: var(--bg-card);
       padding: var(--space-4) var(--space-7);
+      position: relative;
     }
     .chat-input-wrap {
       max-width: 880px;
       margin: 0 auto;
+      position: relative;
     }
     .chat-input-box {
       display: flex;
@@ -120,18 +123,16 @@
     .citation-row__title {
       color: var(--ink);
     }
-    .citation-row__file {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--ink-faint);
-    }
 
     /* AI response body styling */
     .ai-response {
       font-family: var(--font-sans);
     }
-    .ai-response p {
-      margin-bottom: var(--space-3);
+    .ai-response br + br { display: block; margin-top: 4px; }
+
+    /* 顶部 brand 让出空间给 kb-switcher */
+    .app-header__actions {
+      gap: var(--space-3);
     }
   </style>
 </head>
@@ -146,6 +147,13 @@
       <span class="app-header__subtitle">editorial · v1.0</span>
     </div>
     <div class="app-header__actions">
+      <!-- 知识库切换器 -->
+      <div class="kb-switcher" id="kb-switcher" aria-expanded="false">
+        <span class="kb-switcher__icon">▸</span>
+        <span class="kb-switcher__name" id="kb-name">工作知识库</span>
+        <span class="kb-switcher__caret">▾</span>
+        <div class="kb-dropdown" id="kb-dropdown" aria-hidden="true"></div>
+      </div>
       <a href="search.html" class="kbd-search">
         <kbd>⌘</kbd><kbd>K</kbd>
         <span>搜索</span>
@@ -165,107 +173,41 @@
       <div class="chat-header">
         <div class="chat-header__title">
           <span class="chat-header__num">01 ─</span>
-          <span class="h2">IAP 系统退款流程</span>
+          <span class="h2" id="chat-title">IAP 系统退款流程</span>
         </div>
         <div class="flex gap-2">
-          <button class="btn btn--ghost">+ 新建对话</button>
-          <button class="btn btn--ghost">⟳ 清空上下文</button>
+          <button class="btn btn--ghost" id="btn-new-chat" title="开始新对话">+ 新建对话</button>
+          <button class="btn btn--ghost" id="btn-clear-context" title="清空当前对话上下文">⟳ 清空上下文</button>
         </div>
       </div>
 
-      <!-- 消息列表 -->
-      <div class="chat-messages">
-
-        <!-- 用户消息 -->
-        <div class="msg fade-in">
-          <div class="msg__meta">
-            <span class="msg__sender">你</span>
-            <span>·</span>
-            <span>12:34</span>
-          </div>
-          <div class="msg__body msg__body--user">
-            IAP 系统怎么处理退款？
-          </div>
-        </div>
-
-        <!-- AI 消息 -->
-        <div class="msg fade-in" style="animation-delay: 100ms;">
-          <div class="msg__meta">
-            <span class="msg__sender msg__sender--ai">AI</span>
-            <span>·</span>
-            <span>12:34</span>
-            <span>·</span>
-            <span style="color: var(--accent);">引用 3 个来源</span>
-          </div>
-          <div class="msg__body ai-response">
-            <p>退款流程分为三个步骤：</p>
-            <p>① 用户在订单页发起退款请求，需提供订单 ID、退款金额、退款原因。<span class="citation">01</span></p>
-            <p>② 系统校验订单状态与退款资格。检查订单是否在 7 天退款期内、是否已发货。<span class="citation">02</span></p>
-            <p>③ 退款通过原支付渠道返回。通常 3-5 工作日到账。<span class="citation">02</span><span class="citation">03</span></p>
-            <p>如果用户对退款结果有异议，可以通过用户中心的"退款申诉"入口提交工单，由财务团队人工审核。</p>
-            <p><span class="cursor-blink"></span></p>
-          </div>
-        </div>
-
-        <!-- 引用抽屉 -->
-        <div class="citations-drawer">
-          <div class="citations-drawer__title">── 引用来源 · 3 个匹配页面</div>
-
-          <div class="citation-row">
-            <span class="citation-row__num">[01]</span>
-            <div>
-              <div class="citation-row__title">IAP退款流程</div>
-            </div>
-            <span class="type-badge type-badge--source">source</span>
-            <div class="progress" style="width: 120px;">
-              <div class="progress__bar">
-                <div class="progress__fill" style="width: 91%;"></div>
-              </div>
-              <span class="progress__value">0.91</span>
-            </div>
-          </div>
-
-          <div class="citation-row">
-            <span class="citation-row__num">[02]</span>
-            <div>
-              <div class="citation-row__title">PaymentSystem</div>
-            </div>
-            <span class="type-badge type-badge--entity">entity</span>
-            <div class="progress" style="width: 120px;">
-              <div class="progress__bar">
-                <div class="progress__fill" style="width: 74%;"></div>
-              </div>
-              <span class="progress__value">0.74</span>
-            </div>
-          </div>
-
-          <div class="citation-row">
-            <span class="citation-row__num">[03]</span>
-            <div>
-              <div class="citation-row__title">UserCenter</div>
-            </div>
-            <span class="type-badge type-badge--entity">entity</span>
-            <div class="progress" style="width: 120px;">
-              <div class="progress__bar">
-                <div class="progress__fill" style="width: 68%;"></div>
-              </div>
-              <span class="progress__value">0.68</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
+      <!-- 消息区（动态渲染：空状态 or 有消息） -->
+      <div class="chat-messages" id="chat-messages"></div>
 
       <!-- 输入区 -->
       <div class="chat-input-area">
         <div class="chat-input-wrap">
-          <div class="chat-context-hint">
+          <div class="chat-context-hint" id="context-hint">
             <span class="chat-context-hint__dot"></span>
-            <span>已检索到 <span style="color: var(--accent); font-weight: 500;">3 个相关页面</span> · 将自动注入上下文</span>
+            <span id="context-hint-text">已检索到 <span style="color: var(--accent); font-weight: 500;">3 个相关页面</span> · 将自动注入上下文</span>
           </div>
+
+          <!-- 斜杠命令面板 -->
+          <div class="slash-menu" id="slash-menu" aria-hidden="true">
+            <div class="slash-menu__header">
+              <span>WIKI COMMANDS · 6</span>
+              <span class="slash-menu__hint">
+                <kbd>↑</kbd><kbd>↓</kbd> 选择 · <kbd>↵</kbd> 执行 · <kbd>Esc</kbd> 关闭
+              </span>
+            </div>
+            <div id="slash-items"></div>
+          </div>
+
           <div class="chat-input-box">
-            <textarea placeholder="输入消息...  (Enter 发送 · Shift+Enter 换行)" rows="1"></textarea>
-            <button class="btn btn--primary" style="height: 44px;">
+            <textarea id="chat-input"
+                      placeholder="输入消息... 输入 / 调出 wiki 命令 · (Enter 发送 · Shift+Enter 换行)"
+                      rows="1"></textarea>
+            <button class="btn btn--primary" id="btn-send" style="height: 44px;">
               发送
               <span style="font-family: var(--font-mono); font-size: 11px;">↵</span>
             </button>
@@ -278,7 +220,390 @@
 </div>
 
 <script src="assets/mock-data.js"></script>
+<script>
+  /* ============== Sidebar 配置（必须在 sidebar.js 加载前设置） ============== */
+  function buildSidebarItems() {
+    return MOCK.conversations.map(c => ({
+      id: c.id, title: c.title, time: c.time, active: c.active,
+    }));
+  }
+  window.SIDEBAR_CONFIG = {
+    historyLabel: '最近对话',
+    historyItems: buildSidebarItems(),
+    onHistoryClick: (item) => switchConversation(item.id),
+    onHistoryDelete: (item) => {
+      if (!confirm('确定删除对话「' + item.title + '」？')) return;
+      const idx = MOCK.conversations.findIndex(c => c.id === item.id);
+      if (idx >= 0) MOCK.conversations.splice(idx, 1);
+      delete MOCK.conversationData[item.id];
+      window.SIDEBAR_CONFIG.historyItems = buildSidebarItems();
+      renderSidebar();
+      if (currentConversationId === item.id) {
+        if (MOCK.conversations.length > 0) {
+          switchConversation(MOCK.conversations[0].id);
+        } else {
+          newConversation();
+        }
+      }
+    },
+  };
+</script>
 <script src="assets/sidebar.js"></script>
+<script>
+  /* ============== 状态 ============== */
+  let currentConversationId = 'c1';
+  let isEmpty = false;
+  let activeSlashIdx = 0;
+  let filteredSlash = [];
+
+  /* ============== 工具：HTML 转义 ============== */
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* ============== 工具：渲染消息内容（含引用） ============== */
+  function renderMessageContent(text, sources) {
+    let html = escapeHtml(text);
+    if (sources && sources.length) {
+      sources.forEach(src => {
+        const re = new RegExp('\\[' + src.num + '\\]', 'g');
+        const url = 'documents.html?file=' + encodeURIComponent(src.file)
+                  + '&title=' + encodeURIComponent(src.title);
+        html = html.replace(re, '<a class="citation" href="' + url + '" title="' + escapeHtml(src.title) + '">' + src.num + '</a>');
+      });
+    }
+    return html.replace(/\n/g, '<br>');
+  }
+
+  /* ============== 渲染对话消息 ============== */
+  function renderConversation(convId) {
+    const messagesEl = document.getElementById('chat-messages');
+    const titleEl = document.getElementById('chat-title');
+    const hintEl = document.getElementById('context-hint');
+
+    if (isEmpty) {
+      hintEl.style.display = 'none';
+      renderEmpty(messagesEl, titleEl);
+      return;
+    }
+
+    const conv = MOCK.conversationData[convId];
+    if (!conv) {
+      isEmpty = true;
+      return renderConversation(null);
+    }
+
+    const convMeta = MOCK.conversations.find(c => c.id === convId);
+    titleEl.textContent = convMeta ? convMeta.title : '对话';
+    hintEl.style.display = '';
+
+    let html = '';
+    conv.messages.forEach(msg => {
+      const isAi = msg.sender === 'ai';
+      const senderClass = isAi ? 'msg__sender--ai' : '';
+      const bodyClass = isAi ? 'msg__body ai-response' : 'msg__body msg__body--user';
+      const contentHtml = isAi
+        ? renderMessageContent(msg.content, conv.sources)
+        : escapeHtml(msg.content).replace(/\n/g, '<br>');
+
+      html += `
+        <div class="msg fade-in">
+          <div class="msg__meta">
+            <span class="msg__sender ${senderClass}">${isAi ? 'AI' : '你'}</span>
+            <span>·</span>
+            <span>${msg.time}</span>
+            ${isAi && conv.sources.length
+              ? `<span>·</span><span style="color: var(--accent);">引用 ${conv.sources.length} 个来源</span>`
+              : ''}
+          </div>
+          <div class="${bodyClass}">${contentHtml}</div>
+          ${isAi ? renderMessageActions() : ''}
+        </div>
+      `;
+    });
+
+    if (conv.sources.length) {
+      html += renderCitationsDrawer(conv.sources);
+    }
+
+    messagesEl.innerHTML = html;
+    bindMessageActions(messagesEl);
+
+    // 更新顶部 context hint
+    document.getElementById('context-hint-text').innerHTML =
+      `已检索到 <span style="color: var(--accent); font-weight: 500;">${conv.sources.length} 个相关页面</span> · 将自动注入上下文`;
+  }
+
+  function renderMessageActions() {
+    return `
+      <div class="msg__actions">
+        <button class="msg-action-btn" data-action="copy" title="复制回复">📋 复制</button>
+        <button class="msg-action-btn" data-action="regen" title="重新生成">⟳ 重新生成</button>
+        <button class="msg-action-btn" data-action="like" title="赞同">👍</button>
+        <button class="msg-action-btn" data-action="dislike" title="不赞同">👎</button>
+      </div>
+    `;
+  }
+
+  function bindMessageActions(container) {
+    container.querySelectorAll('.msg-action-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.action;
+        if (action === 'like' || action === 'dislike') {
+          btn.classList.toggle('msg-action-btn--active');
+        } else if (action === 'copy') {
+          btn.textContent = '✓ 已复制';
+          setTimeout(() => btn.innerHTML = '📋 复制', 1500);
+        } else if (action === 'regen') {
+          btn.textContent = '⟳ 重新生成中...';
+          setTimeout(() => btn.innerHTML = '⟳ 重新生成', 1200);
+        }
+      });
+    });
+  }
+
+  function renderCitationsDrawer(sources) {
+    const rowsHtml = sources.map(src => {
+      const url = 'documents.html?file=' + encodeURIComponent(src.file)
+                + '&title=' + encodeURIComponent(src.title);
+      return `
+        <div class="citation-row">
+          <span class="citation-row__num">[${src.num}]</span>
+          <a href="${url}" class="citation-row__title" style="text-decoration: none;">${escapeHtml(src.title)}</a>
+          <span class="type-badge type-badge--${src.type}">${src.type}</span>
+          <div class="progress" style="width: 120px;">
+            <div class="progress__bar">
+              <div class="progress__fill" style="width: ${Math.round(src.score * 100)}%;"></div>
+            </div>
+            <span class="progress__value">${src.score.toFixed(2)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="citations-drawer">
+        <div class="citations-drawer__title">── 引用来源 · ${sources.length} 个匹配页面</div>
+        ${rowsHtml}
+      </div>
+    `;
+  }
+
+  /* ============== 空状态（推荐问题） ============== */
+  function renderEmpty(messagesEl, titleEl) {
+    titleEl.textContent = '新对话';
+    messagesEl.innerHTML = `
+      <div class="chat-empty">
+        <div class="chat-empty__overline">01 ─ AI DIALOGUE</div>
+        <h2 class="chat-empty__title">问点什么？</h2>
+        <p class="chat-empty__desc">
+          输入消息开始对话，AI 会自动检索当前知识库的相关页面并综合回答。<br>
+          也可以输入 <code style="font-family: var(--font-mono); color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 3px;">/</code> 调出 wiki 命令面板。
+        </p>
+        <div class="chat-empty__suggestions">
+          ${MOCK.suggestedQuestions.map(q => `
+            <div class="suggestion-chip" data-question="${escapeHtml(q.label)}">
+              <span class="suggestion-chip__category">${q.category}</span>
+              <span class="suggestion-chip__label">${escapeHtml(q.label)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    messagesEl.querySelectorAll('.suggestion-chip').forEach(el => {
+      el.addEventListener('click', () => {
+        const input = document.getElementById('chat-input');
+        input.value = el.dataset.question;
+        input.focus();
+      });
+    });
+  }
+
+  /* ============== 切换对话 ============== */
+  function switchConversation(id) {
+    if (!MOCK.conversationData[id]) return;
+    MOCK.conversations.forEach(c => c.active = (c.id === id));
+    window.SIDEBAR_CONFIG.historyItems = buildSidebarItems();
+    renderSidebar();
+    currentConversationId = id;
+    isEmpty = false;
+    renderConversation(id);
+  }
+
+  function newConversation() {
+    MOCK.conversations.forEach(c => c.active = false);
+    window.SIDEBAR_CONFIG.historyItems = buildSidebarItems();
+    renderSidebar();
+    currentConversationId = null;
+    isEmpty = true;
+    renderConversation(null);
+  }
+
+  /* ============== 知识库切换器 ============== */
+  function renderKbDropdown() {
+    const dropdown = document.getElementById('kb-dropdown');
+    dropdown.innerHTML = MOCK.knowledgeBases.map(kb => `
+      <div class="kb-dropdown__item ${kb.active ? 'kb-dropdown__item--active' : ''}" data-kb-id="${kb.id}">
+        <div class="kb-dropdown__name">
+          <span>${escapeHtml(kb.name)}</span>
+          <span class="kb-dropdown__count">${kb.pages} 页</span>
+        </div>
+        <div class="kb-dropdown__desc">${escapeHtml(kb.desc)}</div>
+      </div>
+    `).join('');
+
+    dropdown.querySelectorAll('.kb-dropdown__item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = el.dataset.kbId;
+        MOCK.knowledgeBases.forEach(kb => kb.active = (kb.id === id));
+        const active = MOCK.knowledgeBases.find(kb => kb.active);
+        document.getElementById('kb-name').textContent = active.name;
+        renderKbDropdown();
+        closeKbDropdown();
+      });
+    });
+  }
+
+  function openKbDropdown() {
+    document.getElementById('kb-switcher').setAttribute('aria-expanded', 'true');
+    document.getElementById('kb-dropdown').setAttribute('aria-hidden', 'false');
+  }
+  function closeKbDropdown() {
+    document.getElementById('kb-switcher').setAttribute('aria-expanded', 'false');
+    document.getElementById('kb-dropdown').setAttribute('aria-hidden', 'true');
+  }
+
+  /* ============== 斜杠命令面板 ============== */
+  function renderSlashMenu(filter) {
+    const itemsEl = document.getElementById('slash-items');
+    filteredSlash = MOCK.slashCommands.filter(cmd =>
+      cmd.cmd.includes(filter) || cmd.alias.includes(filter) || cmd.desc.includes(filter)
+    );
+    activeSlashIdx = 0;
+
+    if (filteredSlash.length === 0) {
+      itemsEl.innerHTML = `<div style="padding: var(--space-4); text-align: center; color: var(--ink-faint); font-size: 12px;">无匹配命令</div>`;
+      return;
+    }
+
+    itemsEl.innerHTML = filteredSlash.map((cmd, idx) => `
+      <div class="slash-item ${idx === 0 ? 'slash-item--active' : ''}" data-idx="${idx}">
+        <div class="slash-item__cmd">
+          <span class="slash-item__name">${cmd.cmd}</span>
+          <span class="slash-item__alias">${cmd.alias}</span>
+        </div>
+        <div class="slash-item__desc">${escapeHtml(cmd.desc)}</div>
+        <span class="slash-item__wiki">${cmd.wikiCommand}</span>
+      </div>
+    `).join('');
+
+    itemsEl.querySelectorAll('.slash-item').forEach((el, idx) => {
+      el.addEventListener('click', () => executeSlashCommand(filteredSlash[idx]));
+      el.addEventListener('mouseenter', () => {
+        activeSlashIdx = idx;
+        updateActiveSlash();
+      });
+    });
+  }
+
+  function openSlashMenu() {
+    const val = document.getElementById('chat-input').value;
+    document.getElementById('slash-menu').setAttribute('aria-hidden', 'false');
+    renderSlashMenu(val);
+  }
+  function closeSlashMenu() {
+    document.getElementById('slash-menu').setAttribute('aria-hidden', 'true');
+  }
+  function isSlashMenuOpen() {
+    return document.getElementById('slash-menu').getAttribute('aria-hidden') === 'false';
+  }
+  function executeSlashCommand(cmd) {
+    const input = document.getElementById('chat-input');
+    input.value = cmd.cmd + ' ';
+    closeSlashMenu();
+    input.focus();
+  }
+  function updateActiveSlash() {
+    document.querySelectorAll('#slash-items .slash-item').forEach((el, idx) => {
+      el.classList.toggle('slash-item--active', idx === activeSlashIdx);
+    });
+  }
+
+  /* ============== 初始化 ============== */
+  document.addEventListener('DOMContentLoaded', () => {
+    renderKbDropdown();
+    renderConversation(currentConversationId);
+
+    /* 知识库切换器 */
+    document.getElementById('kb-switcher').addEventListener('click', (e) => {
+      if (e.target.closest('.kb-dropdown__item')) return;
+      const isOpen = document.getElementById('kb-dropdown').getAttribute('aria-hidden') === 'false';
+      isOpen ? closeKbDropdown() : openKbDropdown();
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#kb-switcher')) closeKbDropdown();
+    });
+
+    /* 新建对话 / 清空 */
+    document.getElementById('btn-new-chat').addEventListener('click', newConversation);
+    document.getElementById('btn-clear-context').addEventListener('click', () => {
+      if (currentConversationId && MOCK.conversationData[currentConversationId]) {
+        // mock：仅重置 sources 为空（演示效果）
+        document.getElementById('context-hint-text').innerHTML =
+          `<span style="color: var(--ink-faint);">上下文已清空 · 下次提问将不注入历史</span>`;
+      }
+    });
+
+    /* 输入框：斜杠命令 + 发送 */
+    const input = document.getElementById('chat-input');
+    input.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (val.startsWith('/')) {
+        if (!isSlashMenuOpen()) {
+          document.getElementById('slash-menu').setAttribute('aria-hidden', 'false');
+        }
+        renderSlashMenu(val);
+      } else if (isSlashMenuOpen()) {
+        closeSlashMenu();
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (isSlashMenuOpen()) {
+        const items = document.querySelectorAll('#slash-items .slash-item');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeSlashIdx = (activeSlashIdx + 1) % items.length;
+          updateActiveSlash();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeSlashIdx = (activeSlashIdx - 1 + items.length) % items.length;
+          updateActiveSlash();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (filteredSlash[activeSlashIdx]) executeSlashCommand(filteredSlash[activeSlashIdx]);
+        } else if (e.key === 'Escape') {
+          closeSlashMenu();
+        }
+        return;
+      }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        e.target.value = '';
+        e.target.focus();
+      }
+    });
+
+    document.getElementById('btn-send').addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+    });
+
+    /* 文档跳转参数（从 chat 跳到 documents 时由 documents.html 解析） */
+  });
+</script>
 
 </body>
 </html>

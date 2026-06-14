@@ -22,25 +22,48 @@ const MOCK = {
     },
   },
 
-  /* ---------- 对话历史 ---------- */
-  conversations: [
-    { id: 'c1', title: 'IAP 退款流程', time: '12:34', active: true },
-    { id: 'c2', title: '投放策略优化', time: '昨天', active: false },
-    { id: 'c3', title: '钉钉多维表格', time: '昨天', active: false },
-    { id: 'c4', title: '支付系统异常', time: '3 天前', active: false },
+  /* ---------- 多知识库（顶部切换器） ---------- */
+  knowledgeBases: [
+    { id: 'kb1', name: '工作知识库', active: true,  pages: 37, desc: 'IAP/投放/钉钉/工作积累' },
+    { id: 'kb2', name: '技术文档库', active: false, pages: 124, desc: 'API/SDK/架构设计' },
+    { id: 'kb3', name: '产品需求库', active: false, pages: 56, desc: 'PRD/设计稿/评审记录' },
   ],
 
-  /* ---------- 当前对话的消息 ---------- */
-  messages: [
-    {
-      sender: 'user',
-      time: '12:34',
-      content: 'IAP 系统怎么处理退款？',
-    },
-    {
-      sender: 'ai',
-      time: '12:34',
-      content: `退款流程分为三个步骤：
+  /* ---------- 斜杠命令（输入框打 / 弹出） ---------- */
+  slashCommands: [
+    { cmd: '/检索',  alias: '/query',   desc: '在当前知识库中检索关键词，精确返回匹配页面',   wikiCommand: 'wiki-query' },
+    { cmd: '/导入',  alias: '/ingest',  desc: '上传新文档到知识库（PDF/Markdown/TXT）',       wikiCommand: 'wiki-ingest' },
+    { cmd: '/刷新',  alias: '/refresh', desc: '检测并刷新被源文件更新的过期文档',             wikiCommand: 'wiki-refresh' },
+    { cmd: '/检查',  alias: '/lint',    desc: '运行结构健康检查，发现死链/孤儿页/格式问题',   wikiCommand: 'wiki-lint' },
+    { cmd: '/图谱',  alias: '/graph',   desc: '重新构建知识图谱，分析实体关系',               wikiCommand: 'wiki-graph' },
+    { cmd: '/切换',  alias: '/switch',  desc: '切换到其他知识库',                             wikiCommand: 'wiki-switch' },
+  ],
+
+  /* ---------- 推荐问题 chip（首次进入空状态） ---------- */
+  suggestedQuestions: [
+    { label: 'IAP 退款流程是什么？',           category: '业务流程' },
+    { label: '投放策略有哪些优化方向？',       category: '运营决策' },
+    { label: '钉钉多维表格怎么自动化？',       category: '工具使用' },
+    { label: '最近更新的文档有哪些？',         category: '知识动态' },
+  ],
+
+  /* ---------- 对话历史（侧栏列表，可切换） ---------- */
+  conversations: [
+    { id: 'c1', title: 'IAP 退款流程',   time: '12:34',   active: true  },
+    { id: 'c2', title: '投放策略优化',   time: '昨天',   active: false },
+    { id: 'c3', title: '钉钉多维表格',   time: '昨天',   active: false },
+    { id: 'c4', title: '支付系统异常',   time: '3 天前', active: false },
+  ],
+
+  /* ---------- 多组对话（点击侧栏历史切换显示） ---------- */
+  conversationData: {
+    c1: {
+      messages: [
+        { sender: 'user', time: '12:34', content: 'IAP 系统怎么处理退款？' },
+        {
+          sender: 'ai',
+          time: '12:34',
+          content: `退款流程分为三个步骤：
 
 ① 用户在订单页发起退款请求，需提供订单 ID、退款金额、退款原因。[01]
 
@@ -49,16 +72,91 @@ const MOCK = {
 ③ 退款通过原支付渠道返回。通常 3-5 工作日到账。[02][03]
 
 如果用户对退款结果有异议，可以通过用户中心的"退款申诉"入口提交工单，由财务团队人工审核。`,
-      streaming: false,
+          streaming: false,
+        },
+      ],
+      sources: [
+        { num: '01', title: 'IAP退款流程',   type: 'source', file: 'iap-refund-flow.md', score: 0.91 },
+        { num: '02', title: 'PaymentSystem', type: 'entity', file: 'PaymentSystem.md',   score: 0.74 },
+        { num: '03', title: 'UserCenter',    type: 'entity', file: 'UserCenter.md',      score: 0.68 },
+      ],
     },
-  ],
+    c2: {
+      messages: [
+        { sender: 'user', time: '昨天 14:20', content: '投放策略有哪些优化方向？' },
+        {
+          sender: 'ai',
+          time: '昨天 14:20',
+          content: `基于近期投放数据，建议从三个方向优化：
 
-  /* ---------- 引用的来源页面（chat 抽屉展示） ---------- */
-  sources: [
-    { num: '01', title: 'IAP退款流程',     type: 'source',     file: 'iap-refund-flow.md',   score: 0.91 },
-    { num: '02', title: 'PaymentSystem',   type: 'entity',     file: 'PaymentSystem.md',     score: 0.74 },
-    { num: '03', title: 'UserCenter',      type: 'entity',     file: 'UserCenter.md',        score: 0.68 },
-  ],
+① 渠道结构：当前头部渠道占比 78%，建议引入 2-3 个新渠道分散风险。[01][02]
+
+② 出价策略：日预算低于 5000 元的计划建议用 oCPM，高于则用 tROAS。[03]
+
+③ 素材迭代：素材生命周期平均 5.2 天，建议每周更新 3 条创意。`,
+          streaming: false,
+        },
+      ],
+      sources: [
+        { num: '01', title: '投放策略优化',   type: 'source',    file: 'ad-strategy.md',         score: 0.88 },
+        { num: '02', title: 'AdChannel',     type: 'concept',   file: 'AdChannelSelection.md',  score: 0.72 },
+        { num: '03', title: '出价策略',       type: 'concept',   file: 'BidStrategy.md',         score: 0.65 },
+      ],
+    },
+    c3: {
+      messages: [
+        { sender: 'user', time: '昨天 16:10', content: '钉钉多维表格怎么自动化？' },
+        {
+          sender: 'ai',
+          time: '昨天 16:10',
+          content: `钉钉多维表格自动化主要靠"自动化规则"+"扩展脚本"两种方式：
+
+① 自动化规则：字段变更、定时触发、表单提交等事件，可触发通知/字段更新/记录创建。[01]
+
+② 扩展脚本：复杂逻辑用 JavaScript 写，调用钉钉 OpenAPI 实现跨表/跨应用联动。[02]
+
+典型案例：每日 9 点拉取昨日投放数据 → 计算ROI → 低ROI 自动标红 → 推送给运营。[01][02]`,
+          streaming: false,
+        },
+      ],
+      sources: [
+        { num: '01', title: '钉钉多维表格自动化', type: 'source', file: 'dingtalk-table.md', score: 0.92 },
+        { num: '02', title: '钉钉OpenAPI',       type: 'entity', file: 'DingtalkAPI.md',    score: 0.71 },
+      ],
+    },
+    c4: {
+      messages: [
+        { sender: 'user', time: '3 天前 10:30', content: '支付系统异常如何排查？' },
+        {
+          sender: 'ai',
+          time: '3 天前 10:30',
+          content: `支付系统异常排查遵循"由外到内、由近到远"原则：
+
+① 入口检查：确认是单用户还是全量，确认是某个支付方式还是全部。[01]
+
+② 网关层：检查支付网关返回码，常见 4001/5002/8003 对应不同问题。[02]
+
+③ 业务层：检查订单状态机是否卡住，幂等性是否破坏。[03]
+
+④ 资金层：调用对账接口核对流水，必要时人工介入。`,
+          streaming: false,
+        },
+      ],
+      sources: [
+        { num: '01', title: 'PaymentSystem',    type: 'entity',  file: 'PaymentSystem.md',  score: 0.85 },
+        { num: '02', title: '支付网关错误码',    type: 'concept', file: 'PaymentGateway.md', score: 0.78 },
+        { num: '03', title: '订单状态机',        type: 'concept', file: 'OrderStateMachine.md', score: 0.69 },
+      ],
+    },
+  },
+
+  /* ---------- 当前对话的消息（默认 c1，兼容旧引用） ---------- */
+  get messages() {
+    return this.conversationData.c1.messages;
+  },
+  get sources() {
+    return this.conversationData.c1.sources;
+  },
 
   /* ---------- 文档列表（documents 页面） ---------- */
   documents: [
