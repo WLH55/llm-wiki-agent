@@ -1,0 +1,78 @@
+# ---- 会话/临时文件 ----
+会话备份.md
+*.session.md
+*.tmp.md
+
+# ---- 系统 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ---- IDE / 编辑器 ----
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ---- Node.js ----
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Next.js / 构建产物 ----
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
+
+# ---- 环境变量与密钥 ----
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ---- 数据库 ----
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- Tauri / Rust ----
+target/
+src-tauri/target/
+
+# ---- LanceDB 向量数据 ----
+.lancedb/
+*.lance
+
+# ---- 操作系统缓存 ----
+.cache/
+.eslintcache
+
+# ---- 其他 ----
+coverage/
+.nyc_output/

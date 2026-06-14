@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 对话 · 工作知识库</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .chat-layout {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: calc(100vh - 56px);
+    }
+    .chat-header {
+      padding: var(--space-5) var(--space-7);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-header__title {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-3);
+    }
+    .chat-header__num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+    .chat-messages {
+      padding: var(--space-7) var(--space-8);
+      overflow-y: auto;
+      max-width: 880px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .chat-input-area {
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+      padding: var(--space-4) var(--space-7);
+    }
+    .chat-input-wrap {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .chat-input-box {
+      display: flex;
+      gap: var(--space-3);
+      align-items: flex-end;
+    }
+    .chat-input-box textarea {
+      flex: 1;
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--ink);
+      resize: none;
+      min-height: 44px;
+      max-height: 200px;
+      outline: none;
+      transition: border-color 150ms;
+      line-height: 1.6;
+    }
+    .chat-input-box textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .chat-context-hint {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+    .chat-context-hint__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* Citations drawer */
+    .citations-drawer {
+      border-top: 1px dashed var(--border);
+      padding-top: var(--space-4);
+      margin-top: var(--space-5);
+    }
+    .citations-drawer__title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      margin-bottom: var(--space-3);
+    }
+    .citation-row {
+      display: grid;
+      grid-template-columns: 32px 1fr auto auto;
+      gap: var(--space-3);
+      align-items: center;
+      padding: var(--space-2) 0;
+      border-bottom: 1px dashed var(--border-soft);
+      font-size: 13px;
+    }
+    .citation-row:last-child { border-bottom: none; }
+    .citation-row__num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .citation-row__title {
+      color: var(--ink);
+    }
+    .citation-row__file {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    /* AI response body styling */
+    .ai-response {
+      font-family: var(--font-sans);
+    }
+    .ai-response p {
+      margin-bottom: var(--space-3);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== Header ========== -->
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__title">工 作 知 识 库</span>
+      <span class="app-header__subtitle">editorial · v1.0</span>
+    </div>
+    <div class="app-header__actions">
+      <a href="search.html" class="kbd-search">
+        <kbd>⌘</kbd><kbd>K</kbd>
+        <span>搜索</span>
+      </a>
+      <button class="icon-btn" title="设置">⚙</button>
+    </div>
+  </header>
+
+  <!-- ========== Sidebar ========== -->
+  <aside class="app-sidebar" id="sidebar"></aside>
+
+  <!-- ========== Main: AI 对话 ========== -->
+  <main class="app-main" style="padding: 0;">
+    <div class="chat-layout">
+
+      <!-- 对话头部 -->
+      <div class="chat-header">
+        <div class="chat-header__title">
+          <span class="chat-header__num">01 ─</span>
+          <span class="h2">IAP 系统退款流程</span>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn--ghost">+ 新建对话</button>
+          <button class="btn btn--ghost">⟳ 清空上下文</button>
+        </div>
+      </div>
+
+      <!-- 消息列表 -->
+      <div class="chat-messages">
+
+        <!-- 用户消息 -->
+        <div class="msg fade-in">
+          <div class="msg__meta">
+            <span class="msg__sender">你</span>
+            <span>·</span>
+            <span>12:34</span>
+          </div>
+          <div class="msg__body msg__body--user">
+            IAP 系统怎么处理退款？
+          </div>
+        </div>
+
+        <!-- AI 消息 -->
+        <div class="msg fade-in" style="animation-delay: 100ms;">
+          <div class="msg__meta">
+            <span class="msg__sender msg__sender--ai">AI</span>
+            <span>·</span>
+            <span>12:34</span>
+            <span>·</span>
+            <span style="color: var(--accent);">引用 3 个来源</span>
+          </div>
+          <div class="msg__body ai-response">
+            <p>退款流程分为三个步骤：</p>
+            <p>① 用户在订单页发起退款请求，需提供订单 ID、退款金额、退款原因。<span class="citation">01</span></p>
+            <p>② 系统校验订单状态与退款资格。检查订单是否在 7 天退款期内、是否已发货。<span class="citation">02</span></p>
+            <p>③ 退款通过原支付渠道返回。通常 3-5 工作日到账。<span class="citation">02</span><span class="citation">03</span></p>
+            <p>如果用户对退款结果有异议，可以通过用户中心的"退款申诉"入口提交工单，由财务团队人工审核。</p>
+            <p><span class="cursor-blink"></span></p>
+          </div>
+        </div>
+
+        <!-- 引用抽屉 -->
+        <div class="citations-drawer">
+          <div class="citations-drawer__title">── 引用来源 · 3 个匹配页面</div>
+
+          <div class="citation-row">
+            <span class="citation-row__num">[01]</span>
+            <div>
+              <div class="citation-row__title">IAP退款流程</div>
+            </div>
+            <span class="type-badge type-badge--source">source</span>
+            <div class="progress" style="width: 120px;">
+              <div class="progress__bar">
+                <div class="progress__fill" style="width: 91%;"></div>
+              </div>
+              <span class="progress__value">0.91</span>
+            </div>
+          </div>
+
+          <div class="citation-row">
+            <span class="citation-row__num">[02]</span>
+            <div>
+              <div class="citation-row__title">PaymentSystem</div>
+            </div>
+            <span class="type-badge type-badge--entity">entity</span>
+            <div class="progress" style="width: 120px;">
+              <div class="progress__bar">
+                <div class="progress__fill" style="width: 74%;"></div>
+              </div>
+              <span class="progress__value">0.74</span>
+            </div>
+          </div>
+
+          <div class="citation-row">
+            <span class="citation-row__num">[03]</span>
+            <div>
+              <div class="citation-row__title">UserCenter</div>
+            </div>
+            <span class="type-badge type-badge--entity">entity</span>
+            <div class="progress" style="width: 120px;">
+              <div class="progress__bar">
+                <div class="progress__fill" style="width: 68%;"></div>
+              </div>
+              <span class="progress__value">0.68</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 输入区 -->
+      <div class="chat-input-area">
+        <div class="chat-input-wrap">
+          <div class="chat-context-hint">
+            <span class="chat-context-hint__dot"></span>
+            <span>已检索到 <span style="color: var(--accent); font-weight: 500;">3 个相关页面</span> · 将自动注入上下文</span>
+          </div>
+          <div class="chat-input-box">
+            <textarea placeholder="输入消息...  (Enter 发送 · Shift+Enter 换行)" rows="1"></textarea>
+            <button class="btn btn--primary" style="height: 44px;">
+              发送
+              <span style="font-family: var(--font-mono); font-size: 11px;">↵</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/sidebar.js"></script>
+
+</body>
+</html>

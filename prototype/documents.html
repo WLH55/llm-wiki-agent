@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文档管理 · 工作知识库</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 280px 360px 1fr;
+      height: calc(100vh - 56px);
+    }
+
+    /* 文档列表筛选侧栏 */
+    .docs-filter {
+      background: var(--bg-soft);
+      border-right: 1px solid var(--border);
+      padding: var(--space-5) var(--space-4);
+      overflow-y: auto;
+    }
+    .filter-section {
+      margin-bottom: var(--space-5);
+    }
+    .filter-section__title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      margin-bottom: var(--space-2);
+    }
+    .filter-stats {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .filter-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 150ms;
+      font-size: 13px;
+    }
+    .filter-stat-row:hover {
+      background: var(--bg-card);
+    }
+    .filter-stat-row__count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    /* 文档列表 */
+    .docs-list {
+      background: var(--bg-card);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: var(--space-5) 0;
+    }
+    .docs-list__header {
+      padding: 0 var(--space-5) var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+    .docs-list__search {
+      width: 100%;
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      outline: none;
+    }
+    .docs-list__search:focus {
+      border-color: var(--accent);
+    }
+    .doc-item {
+      padding: var(--space-3) var(--space-5);
+      border-bottom: 1px solid var(--border-soft);
+      cursor: pointer;
+      transition: background 150ms;
+      border-left: 2px solid transparent;
+    }
+    .doc-item:hover {
+      background: var(--bg-page);
+    }
+    .doc-item--active {
+      background: var(--bg-page);
+      border-left-color: var(--accent);
+    }
+    .doc-item__title {
+      font-size: 13px;
+      color: var(--ink);
+      margin-bottom: var(--space-1);
+      font-weight: 500;
+    }
+    .doc-item__meta {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-faint);
+    }
+
+    /* 文档详情 */
+    .docs-detail {
+      background: var(--bg-page);
+      overflow-y: auto;
+      padding: var(--space-7) var(--space-7);
+    }
+    .docs-detail__container {
+      max-width: 720px;
+    }
+    .docs-detail__frontmatter {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-4) var(--space-5);
+      margin-bottom: var(--space-6);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+    }
+    .frontmatter-field__label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
+      margin-bottom: 2px;
+    }
+    .frontmatter-field__value {
+      font-size: 13px;
+      color: var(--ink);
+      font-family: var(--font-mono);
+    }
+
+    .markdown-body {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-7) var(--space-7);
+      box-shadow: var(--shadow-sm);
+    }
+    .markdown-body h2 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-top: var(--space-6);
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .markdown-body h2:first-child {
+      margin-top: 0;
+    }
+    .markdown-body p {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--ink);
+      margin-bottom: var(--space-3);
+    }
+    .markdown-body ul {
+      padding-left: var(--space-5);
+      margin-bottom: var(--space-3);
+    }
+    .markdown-body li {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--ink);
+    }
+    .markdown-body blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: var(--space-4);
+      margin: var(--space-4) 0;
+      font-style: italic;
+      color: var(--ink-muted);
+    }
+    .wikilink {
+      color: var(--accent);
+      border-bottom: 1px dashed var(--accent);
+      cursor: pointer;
+    }
+    .wikilink:hover {
+      background: var(--accent-soft);
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: var(--space-2);
+      margin-top: var(--space-5);
+      padding-top: var(--space-5);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== Header ========== -->
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__title">工 作 知 识 库</span>
+      <span class="app-header__subtitle">editorial · v1.0</span>
+    </div>
+    <div class="app-header__actions">
+      <a href="search.html" class="kbd-search">
+        <kbd>⌘</kbd><kbd>K</kbd>
+        <span>搜索</span>
+      </a>
+      <button class="icon-btn" title="设置">⚙</button>
+    </div>
+  </header>
+
+  <!-- ========== Sidebar ========== -->
+  <aside class="app-sidebar" id="sidebar"></aside>
+
+  <!-- ========== Main: 文档管理 ========== -->
+  <main class="app-main" style="padding: 0;">
+    <div class="docs-layout">
+
+      <!-- 筛选区（左侧第二栏）-->
+      <aside class="docs-filter">
+        <div class="filter-section">
+          <div class="filter-section__title">02 ─ DOCUMENTS</div>
+          <div class="h2" style="margin-top: 4px;">文档管理</div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section__title">类型筛选</div>
+          <div class="filter-stats">
+            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+              <input type="checkbox" checked>
+              <span>源 Source</span>
+              <span class="filter-stat-row__count" style="margin-left: auto;">12</span>
+            </label>
+            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+              <input type="checkbox" checked>
+              <span>实体 Entity</span>
+              <span class="filter-stat-row__count" style="margin-left: auto;">8</span>
+            </label>
+            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+              <input type="checkbox" checked>
+              <span>概念 Concept</span>
+              <span class="filter-stat-row__count" style="margin-left: auto;">15</span>
+            </label>
+            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+              <input type="checkbox" checked>
+              <span>综合 Synthesis</span>
+              <span class="filter-stat-row__count" style="margin-left: auto;">2</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section__title">操作</div>
+          <div class="flex flex-col gap-2">
+            <button class="btn" style="justify-content: flex-start;">+ 导入新文档</button>
+            <button class="btn" style="justify-content: flex-start;">⟳ 批量刷新过期</button>
+            <button class="btn" style="justify-content: flex-start;">🩺 Lint 检查</button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section__title">统计</div>
+          <div class="filter-stats">
+            <div class="filter-stat-row">
+              <span>总计</span>
+              <span class="filter-stat-row__count">37 个页面</span>
+            </div>
+            <div class="filter-stat-row">
+              <span>已过期</span>
+              <span class="filter-stat-row__count" style="color: var(--accent);">3 个</span>
+            </div>
+            <div class="filter-stat-row">
+              <span>待导入</span>
+              <span class="filter-stat-row__count">1 个</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 文档列表 -->
+      <div class="docs-list">
+        <div class="docs-list__header">
+          <input type="text" class="docs-list__search" placeholder="🔍 搜索文档...">
+        </div>
+
+        <div class="doc-item doc-item--active">
+          <div class="doc-item__title">IAP退款流程</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--source">source</span>
+            <span>·</span>
+            <span>2024-03-15</span>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <div class="doc-item__title">PaymentSystem</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--entity">entity</span>
+            <span>·</span>
+            <span>2024-03-10</span>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <div class="doc-item__title">UserCenter</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--entity">entity</span>
+            <span>·</span>
+            <span>2024-03-08</span>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <div class="doc-item__title">投放策略优化</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--source">source</span>
+            <span>·</span>
+            <span>2024-02-28</span>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <div class="doc-item__title">钉钉多维表格自动化</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--source">source</span>
+            <span>·</span>
+            <span>2024-02-20</span>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <div class="doc-item__title">RefundPolicy</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--concept">concept</span>
+            <span>·</span>
+            <span>2024-02-15</span>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <div class="doc-item__title">AdChannelSelection</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--concept">concept</span>
+            <span>·</span>
+            <span>2024-02-10</span>
+          </div>
+        </div>
+
+        <div class="doc-item">
+          <div class="doc-item__title">IAP系统综合分析</div>
+          <div class="doc-item__meta">
+            <span class="type-badge type-badge--synthesis">synthesis</span>
+            <span>·</span>
+            <span>2024-03-20</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 文档详情 -->
+      <div class="docs-detail">
+        <div class="docs-detail__container">
+
+          <!-- 标题 -->
+          <div class="text-meta">SOURCE · 2024-03-15</div>
+          <h1 class="h1" style="margin: 8px 0 32px;">IAP退款流程</h1>
+
+          <!-- frontmatter -->
+          <div class="docs-detail__frontmatter">
+            <div>
+              <div class="frontmatter-field__label">type</div>
+              <div class="frontmatter-field__value">source</div>
+            </div>
+            <div>
+              <div class="frontmatter-field__label">date</div>
+              <div class="frontmatter-field__value">2024-03-15</div>
+            </div>
+            <div>
+              <div class="frontmatter-field__label">tags</div>
+              <div class="frontmatter-field__value">IAP, 退款, 支付</div>
+            </div>
+          </div>
+
+          <!-- Markdown 渲染 -->
+          <article class="markdown-body">
+            <h2>摘要</h2>
+            <p>IAP 系统退款流程包括用户发起、系统校验、退款执行三个核心步骤，需在 7 天退款期内完成。</p>
+
+            <h2>核心论点</h2>
+            <ul>
+              <li>退款必须在订单创建后 7 天内发起</li>
+              <li>退款金额按原支付金额原路返回</li>
+              <li>已发货订单需先回收货物才能退款</li>
+              <li>退款失败自动重试 3 次，超限转人工处理</li>
+            </ul>
+
+            <h2>重要引述</h2>
+            <blockquote>
+              "退款流程的设计目标是让用户在最少的操作步骤内完成退款，同时保证商家资金安全。" — IAP 系统设计文档
+            </blockquote>
+
+            <h2>关键流程</h2>
+            <p>1. 用户在订单列表选择需要退款的订单，点击"申请退款"。</p>
+            <p>2. 填写退款原因、退款金额，提交申请。</p>
+            <p>3. 系统校验订单状态（已支付、未超过退款期、未发货或已退货）。</p>
+            <p>4. 校验通过后，退款进入处理队列，由支付网关执行原路返回。</p>
+            <p>5. 用户在 3-5 工作日后查看退款到账状态。</p>
+
+            <h2>关联</h2>
+            <p>
+              <span class="wikilink">[[PaymentSystem]]</span> ·
+              <span class="wikilink">[[UserCenter]]</span> ·
+              <span class="wikilink">[[RefundPolicy]]</span>
+            </p>
+          </article>
+
+          <!-- 操作 -->
+          <div class="detail-actions">
+            <button class="btn btn--primary">✏ 编辑</button>
+            <button class="btn">⟳ 刷新</button>
+            <button class="btn">💬 加入对话</button>
+            <button class="btn btn--ghost" style="margin-left: auto; color: var(--accent);">🗑 删除</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/sidebar.js"></script>
+
+</body>
+</html>

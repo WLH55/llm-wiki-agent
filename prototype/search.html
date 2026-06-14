@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>全局搜索 · 工作知识库</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .search-layout {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: var(--space-7) var(--space-7);
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+
+    /* 纯检索模式 banner */
+    .mode-banner {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-5);
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+    .mode-banner__icon {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .mode-banner a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-decoration-style: dashed;
+      text-underline-offset: 3px;
+      margin-left: auto;
+    }
+
+    /* 搜索区 */
+    .search-hero {
+      margin-bottom: var(--space-6);
+    }
+    .search-box {
+      display: flex;
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    .search-box__input {
+      flex: 1;
+      padding: var(--space-4) var(--space-5);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      color: var(--ink);
+      outline: none;
+      transition: all 150ms;
+    }
+    .search-box__input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .search-box__btn {
+      padding: 0 var(--space-5);
+      background: var(--ink);
+      color: var(--bg-card);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 150ms;
+    }
+    .search-box__btn:hover {
+      background: var(--accent);
+    }
+
+    /* 筛选行 */
+    .search-filters {
+      display: flex;
+      gap: var(--space-5);
+      align-items: center;
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px dashed var(--border);
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .filter-group__label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
+    }
+
+    /* 结果列表 */
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: var(--space-6) 0 var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border);
+    }
+    .results-header__count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+    .results-header__time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    .result-card {
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--border-soft);
+      transition: background 150ms;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: var(--space-4);
+      align-items: start;
+    }
+    .result-card:hover {
+      background: var(--bg-card);
+      box-shadow: var(--shadow-sm);
+    }
+    .result-card__num {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      padding-top: 2px;
+    }
+    .result-card__title {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      margin-bottom: var(--space-2);
+    }
+    .result-card__title-text {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .result-card__snippet {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--ink-muted);
+      margin-bottom: var(--space-3);
+    }
+    .result-card__snippet mark {
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+      padding: 1px 3px;
+      border-radius: 2px;
+    }
+    .result-card__footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .result-card__file {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+    .result-card__actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== Header ========== -->
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__title">工 作 知 识 库</span>
+      <span class="app-header__subtitle">editorial · v1.0</span>
+    </div>
+    <div class="app-header__actions">
+      <a href="search.html" class="kbd-search">
+        <kbd>⌘</kbd><kbd>K</kbd>
+        <span>搜索</span>
+      </a>
+      <button class="icon-btn" title="设置">⚙</button>
+    </div>
+  </header>
+
+  <!-- ========== Sidebar ========== -->
+  <aside class="app-sidebar" id="sidebar"></aside>
+
+  <!-- ========== Main: 全局搜索 ========== -->
+  <main class="app-main" style="padding: 0;">
+    <div class="search-layout">
+
+      <!-- 模式 banner：明确告诉用户这是纯检索 -->
+      <div class="mode-banner">
+        <span class="mode-banner__icon">[01]</span>
+        <span><strong style="color: var(--ink);">纯检索模式</strong> — 直接查询 wiki 页面，不调用 AI。延迟低、结果精确。</span>
+        <a href="chat.html">需要 AI 综合回答？去对话 →</a>
+      </div>
+
+      <!-- 搜索区 -->
+      <section class="search-hero">
+        <div class="text-meta">04 — SEARCH</div>
+        <h1 class="h1" style="margin: 8px 0 24px;">全局搜索</h1>
+
+        <div class="search-box">
+          <input type="text" class="search-box__input" value="IAP 退款流程" placeholder="输入关键词或语义查询...">
+          <button class="search-box__btn">搜索</button>
+        </div>
+
+        <!-- 筛选 -->
+        <div class="search-filters">
+          <div class="filter-group">
+            <span class="filter-group__label">模式</span>
+            <div class="radio-group">
+              <div class="radio-group__option radio-group__option--active">混合</div>
+              <div class="radio-group__option">关键词</div>
+              <div class="radio-group__option">向量</div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-group__label">范围</span>
+            <label class="checkbox"><input type="checkbox" checked><span>源</span></label>
+            <label class="checkbox"><input type="checkbox" checked><span>实体</span></label>
+            <label class="checkbox"><input type="checkbox" checked><span>概念</span></label>
+            <label class="checkbox"><input type="checkbox" checked><span>综合</span></label>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-group__label">Top-K</span>
+            <select style="padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono); font-size: 11px; background: var(--bg-card);">
+              <option>5</option>
+              <option selected>10</option>
+              <option>20</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- 结果 -->
+      <div class="results-header">
+        <span class="results-header__count">5 个结果 · 按相关度排序</span>
+        <span class="results-header__time">查询耗时 42ms</span>
+      </div>
+
+      <!-- 结果卡片 -->
+      <div class="result-card">
+        <div class="result-card__num">01</div>
+        <div>
+          <div class="result-card__title">
+            <span class="result-card__title-text">IAP退款流程</span>
+            <span class="type-badge type-badge--source">source</span>
+          </div>
+          <p class="result-card__snippet">
+            <mark>IAP</mark> 系统<mark>退款</mark><mark>流程</mark>包括用户发起、系统校验、退款执行三个核心步骤，需在 7 天退款期内完成。退款金额按原支付金额原路返回，通常 3-5 工作日到账...
+          </p>
+          <div class="result-card__footer">
+            <span class="result-card__file">iap-refund-flow.md</span>
+            <div class="result-card__actions">
+              <div class="progress" style="width: 160px;">
+                <div class="progress__bar">
+                  <div class="progress__fill" style="width: 91%;"></div>
+                </div>
+                <span class="progress__value">0.91</span>
+              </div>
+              <a href="documents.html" class="btn btn--ghost" style="padding: 4px 12px;">查看 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card__num">02</div>
+        <div>
+          <div class="result-card__title">
+            <span class="result-card__title-text">PaymentSystem</span>
+            <span class="type-badge type-badge--entity">entity</span>
+          </div>
+          <p class="result-card__snippet">
+            支付系统，处理 <mark>IAP</mark>、投放、订阅等所有支付场景。包含支付网关、订单管理、<mark>退款</mark>处理等核心模块...
+          </p>
+          <div class="result-card__footer">
+            <span class="result-card__file">PaymentSystem.md</span>
+            <div class="result-card__actions">
+              <div class="progress" style="width: 160px;">
+                <div class="progress__bar">
+                  <div class="progress__fill" style="width: 74%;"></div>
+                </div>
+                <span class="progress__value">0.74</span>
+              </div>
+              <a href="documents.html" class="btn btn--ghost" style="padding: 4px 12px;">查看 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card__num">03</div>
+        <div>
+          <div class="result-card__title">
+            <span class="result-card__title-text">UserCenter</span>
+            <span class="type-badge type-badge--entity">entity</span>
+          </div>
+          <p class="result-card__snippet">
+            用户中心，管理用户账号、订单、<mark>退款</mark>记录等。提供统一的用户视图与历史查询接口...
+          </p>
+          <div class="result-card__footer">
+            <span class="result-card__file">UserCenter.md</span>
+            <div class="result-card__actions">
+              <div class="progress" style="width: 160px;">
+                <div class="progress__bar">
+                  <div class="progress__fill" style="width: 68%;"></div>
+                </div>
+                <span class="progress__value">0.68</span>
+              </div>
+              <a href="documents.html" class="btn btn--ghost" style="padding: 4px 12px;">查看 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card__num">04</div>
+        <div>
+          <div class="result-card__title">
+            <span class="result-card__title-text">IAP系统综合分析</span>
+            <span class="type-badge type-badge--synthesis">synthesis</span>
+          </div>
+          <p class="result-card__snippet">
+            综合 <mark>IAP</mark> 系统设计、<mark>退款</mark><mark>流程</mark>、用户体验等维度的整体分析。提出三项优化建议：缩短退款周期、增加进度通知、提供多渠道退款...
+          </p>
+          <div class="result-card__footer">
+            <span class="result-card__file">IAP系统综合分析.md</span>
+            <div class="result-card__actions">
+              <div class="progress" style="width: 160px;">
+                <div class="progress__bar">
+                  <div class="progress__fill" style="width: 62%;"></div>
+                </div>
+                <span class="progress__value">0.62</span>
+              </div>
+              <a href="documents.html" class="btn btn--ghost" style="padding: 4px 12px;">查看 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card__num">05</div>
+        <div>
+          <div class="result-card__title">
+            <span class="result-card__title-text">RefundPolicy</span>
+            <span class="type-badge type-badge--concept">concept</span>
+          </div>
+          <p class="result-card__snippet">
+            <mark>退款</mark>政策概念页。定义 7 天退款期、原路返回、人工审核触发条件等核心规则。适用于所有支付场景的退款...
+          </p>
+          <div class="result-card__footer">
+            <span class="result-card__file">RefundPolicy.md</span>
+            <div class="result-card__actions">
+              <div class="progress" style="width: 160px;">
+                <div class="progress__bar">
+                  <div class="progress__fill" style="width: 55%;"></div>
+                </div>
+                <span class="progress__value">0.55</span>
+              </div>
+              <a href="documents.html" class="btn btn--ghost" style="padding: 4px 12px;">查看 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部 -->
+      <div class="divider divider--dashed" style="margin-top: 32px;"></div>
+      <div class="flex justify-between text-mono text-faint" style="font-size: 10px; letter-spacing: 0.1em;">
+        <span>SEARCH · HYBRID MODE · RRF FUSION</span>
+        <span>5 / 5 RESULTS</span>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/sidebar.js"></script>
+
+</body>
+</html>
