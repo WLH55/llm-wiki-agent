@@ -29,16 +29,6 @@ const MOCK = {
     { id: 'kb3', name: '产品需求库', active: false, pages: 56, desc: 'PRD/设计稿/评审记录' },
   ],
 
-  /* ---------- 斜杠命令（输入框打 / 弹出） ---------- */
-  slashCommands: [
-    { cmd: '/检索',  alias: '/query',   desc: '在当前知识库中检索关键词，精确返回匹配页面',   wikiCommand: 'wiki-query' },
-    { cmd: '/导入',  alias: '/ingest',  desc: '上传新文档到知识库（PDF/Markdown/TXT）',       wikiCommand: 'wiki-ingest' },
-    { cmd: '/刷新',  alias: '/refresh', desc: '检测并刷新被源文件更新的过期文档',             wikiCommand: 'wiki-refresh' },
-    { cmd: '/检查',  alias: '/lint',    desc: '运行结构健康检查，发现死链/孤儿页/格式问题',   wikiCommand: 'wiki-lint' },
-    { cmd: '/图谱',  alias: '/graph',   desc: '重新构建知识图谱，分析实体关系',               wikiCommand: 'wiki-graph' },
-    { cmd: '/切换',  alias: '/switch',  desc: '切换到其他知识库',                             wikiCommand: 'wiki-switch' },
-  ],
-
   /* ---------- 推荐问题 chip（首次进入空状态） ---------- */
   suggestedQuestions: [
     { label: 'IAP 退款流程是什么？',           category: '业务流程' },

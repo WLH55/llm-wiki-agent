@@ -158,7 +158,9 @@
         <kbd>⌘</kbd><kbd>K</kbd>
         <span>搜索</span>
       </a>
-      <button class="icon-btn" title="设置">⚙</button>
+      <div class="settings-wrap">
+        <button class="icon-btn" id="settings-btn" title="设置">⚙</button>
+      </div>
     </div>
   </header>
 
@@ -192,20 +194,13 @@
             <span id="context-hint-text">已检索到 <span style="color: var(--accent); font-weight: 500;">3 个相关页面</span> · 将自动注入上下文</span>
           </div>
 
-          <!-- 斜杠命令面板 -->
-          <div class="slash-menu" id="slash-menu" aria-hidden="true">
-            <div class="slash-menu__header">
-              <span>WIKI COMMANDS · 6</span>
-              <span class="slash-menu__hint">
-                <kbd>↑</kbd><kbd>↓</kbd> 选择 · <kbd>↵</kbd> 执行 · <kbd>Esc</kbd> 关闭
-              </span>
-            </div>
-            <div id="slash-items"></div>
-          </div>
-
           <div class="chat-input-box">
+            <button class="btn btn--ghost chat-lint-btn" id="btn-lint" title="运行结构健康检查">
+              <span class="chat-lint-btn__icon">⚑</span>
+              <span>检查</span>
+            </button>
             <textarea id="chat-input"
-                      placeholder="输入消息... 输入 / 调出 wiki 命令 · (Enter 发送 · Shift+Enter 换行)"
+                      placeholder="输入消息... (Enter 发送 · Shift+Enter 换行)"
                       rows="1"></textarea>
             <button class="btn btn--primary" id="btn-send" style="height: 44px;">
               发送
@@ -253,8 +248,6 @@
   /* ============== 状态 ============== */
   let currentConversationId = 'c1';
   let isEmpty = false;
-  let activeSlashIdx = 0;
-  let filteredSlash = [];
 
   /* ============== 工具：HTML 转义 ============== */
   function escapeHtml(s) {
@@ -318,6 +311,7 @@
           </div>
           <div class="${bodyClass}">${contentHtml}</div>
           ${isAi ? renderMessageActions() : ''}
+          ${isAi ? renderSaveSynthesisBtn() : ''}
         </div>
       `;
     });
@@ -345,6 +339,15 @@
     `;
   }
 
+  function renderSaveSynthesisBtn() {
+    return `
+      <button class="msg-save-synthesis" data-action="save-synthesis">
+        <span>◈</span>
+        <span>保存为综合页面 · 将触发图谱构建</span>
+      </button>
+    `;
+  }
+
   function bindMessageActions(container) {
     container.querySelectorAll('.msg-action-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -358,6 +361,18 @@
           btn.textContent = '⟳ 重新生成中...';
           setTimeout(() => btn.innerHTML = '⟳ 重新生成', 1200);
         }
+      });
+    });
+
+    container.querySelectorAll('.msg-save-synthesis').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.innerHTML = '<span class="dot-loader"><span class="dot-loader__dot"></span><span class="dot-loader__dot"></span><span class="dot-loader__dot"></span></span><span>正在生成综合页面并构建图谱...</span>';
+        btn.disabled = true;
+        setTimeout(() => {
+          btn.classList.add('msg-save-synthesis--saved');
+          btn.innerHTML = '<span>✓</span><span>已保存为综合页面 · 图谱已更新</span>';
+          btn.disabled = false;
+        }, 2000);
       });
     });
   }
@@ -398,7 +413,7 @@
         <h2 class="chat-empty__title">问点什么？</h2>
         <p class="chat-empty__desc">
           输入消息开始对话，AI 会自动检索当前知识库的相关页面并综合回答。<br>
-          也可以输入 <code style="font-family: var(--font-mono); color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 3px;">/</code> 调出 wiki 命令面板。
+          回答中将标注引用来源，点击编号可跳转至对应文档。
         </p>
         <div class="chat-empty__suggestions">
           ${MOCK.suggestedQuestions.map(q => `
@@ -475,62 +490,6 @@
     document.getElementById('kb-dropdown').setAttribute('aria-hidden', 'true');
   }
 
-  /* ============== 斜杠命令面板 ============== */
-  function renderSlashMenu(filter) {
-    const itemsEl = document.getElementById('slash-items');
-    filteredSlash = MOCK.slashCommands.filter(cmd =>
-      cmd.cmd.includes(filter) || cmd.alias.includes(filter) || cmd.desc.includes(filter)
-    );
-    activeSlashIdx = 0;
-
-    if (filteredSlash.length === 0) {
-      itemsEl.innerHTML = `<div style="padding: var(--space-4); text-align: center; color: var(--ink-faint); font-size: 12px;">无匹配命令</div>`;
-      return;
-    }
-
-    itemsEl.innerHTML = filteredSlash.map((cmd, idx) => `
-      <div class="slash-item ${idx === 0 ? 'slash-item--active' : ''}" data-idx="${idx}">
-        <div class="slash-item__cmd">
-          <span class="slash-item__name">${cmd.cmd}</span>
-          <span class="slash-item__alias">${cmd.alias}</span>
-        </div>
-        <div class="slash-item__desc">${escapeHtml(cmd.desc)}</div>
-        <span class="slash-item__wiki">${cmd.wikiCommand}</span>
-      </div>
-    `).join('');
-
-    itemsEl.querySelectorAll('.slash-item').forEach((el, idx) => {
-      el.addEventListener('click', () => executeSlashCommand(filteredSlash[idx]));
-      el.addEventListener('mouseenter', () => {
-        activeSlashIdx = idx;
-        updateActiveSlash();
-      });
-    });
-  }
-
-  function openSlashMenu() {
-    const val = document.getElementById('chat-input').value;
-    document.getElementById('slash-menu').setAttribute('aria-hidden', 'false');
-    renderSlashMenu(val);
-  }
-  function closeSlashMenu() {
-    document.getElementById('slash-menu').setAttribute('aria-hidden', 'true');
-  }
-  function isSlashMenuOpen() {
-    return document.getElementById('slash-menu').getAttribute('aria-hidden') === 'false';
-  }
-  function executeSlashCommand(cmd) {
-    const input = document.getElementById('chat-input');
-    input.value = cmd.cmd + ' ';
-    closeSlashMenu();
-    input.focus();
-  }
-  function updateActiveSlash() {
-    document.querySelectorAll('#slash-items .slash-item').forEach((el, idx) => {
-      el.classList.toggle('slash-item--active', idx === activeSlashIdx);
-    });
-  }
-
   /* ============== 初始化 ============== */
   document.addEventListener('DOMContentLoaded', () => {
     renderKbDropdown();
@@ -556,39 +515,9 @@
       }
     });
 
-    /* 输入框：斜杠命令 + 发送 */
+    /* 输入框：发送 */
     const input = document.getElementById('chat-input');
-    input.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (val.startsWith('/')) {
-        if (!isSlashMenuOpen()) {
-          document.getElementById('slash-menu').setAttribute('aria-hidden', 'false');
-        }
-        renderSlashMenu(val);
-      } else if (isSlashMenuOpen()) {
-        closeSlashMenu();
-      }
-    });
-
     input.addEventListener('keydown', (e) => {
-      if (isSlashMenuOpen()) {
-        const items = document.querySelectorAll('#slash-items .slash-item');
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          activeSlashIdx = (activeSlashIdx + 1) % items.length;
-          updateActiveSlash();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          activeSlashIdx = (activeSlashIdx - 1 + items.length) % items.length;
-          updateActiveSlash();
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          if (filteredSlash[activeSlashIdx]) executeSlashCommand(filteredSlash[activeSlashIdx]);
-        } else if (e.key === 'Escape') {
-          closeSlashMenu();
-        }
-        return;
-      }
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         e.target.value = '';
@@ -601,9 +530,25 @@
       input.focus();
     });
 
+    /* 检查按钮 */
+    document.getElementById('btn-lint').addEventListener('click', () => {
+      const btn = document.getElementById('btn-lint');
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="dot-loader"><span class="dot-loader__dot"></span><span class="dot-loader__dot"></span><span class="dot-loader__dot"></span></span><span>检查中...</span>';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.innerHTML = '<span style="color: var(--accent);">✓</span><span>检查完成 · 无异常</span>';
+        setTimeout(() => {
+          btn.innerHTML = origHtml;
+          btn.disabled = false;
+        }, 2000);
+      }, 1500);
+    });
+
     /* 文档跳转参数（从 chat 跳到 documents 时由 documents.html 解析） */
   });
 </script>
+<script src="assets/settings.js"></script>
 
 </body>
 </html>
