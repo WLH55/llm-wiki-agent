@@ -8,15 +8,15 @@
   <style>
     /* Graph page specific styles */
     .graph-layout {
-      display: grid;
-      grid-template-columns: 240px 1fr 280px;
+      position: relative;
       height: calc(100vh - 56px);
+      overflow: hidden;
     }
     .graph-canvas {
       background: var(--bg-page);
-      position: relative;
+      position: absolute;
+      inset: 0;
       overflow: hidden;
-      border-right: 1px solid var(--border);
     }
     .graph-canvas__svg {
       width: 100%;
@@ -33,6 +33,7 @@
       justify-content: space-between;
       align-items: flex-start;
       pointer-events: none;
+      z-index: 2;
     }
     .graph-toolbar > * { pointer-events: auto; }
     .graph-toolbar__title {
@@ -58,6 +59,7 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-2);
+      z-index: 2;
     }
     .legend-row {
       display: flex;
@@ -98,11 +100,44 @@
       stroke-width: 1.5;
     }
 
-    /* Right panel - node detail */
+    /* Right drawer - node detail (slides in from right) */
     .node-detail {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 340px;
+      height: 100%;
       background: var(--bg-card);
+      border-left: 1px solid var(--border);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.06);
       padding: var(--space-6) var(--space-5);
       overflow-y: auto;
+      z-index: 10;
+      transform: translateX(100%);
+      transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .node-detail.is-open {
+      transform: translateX(0);
+    }
+    .node-detail__close {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-4);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm, 4px);
+      background: var(--bg-page);
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--ink-muted);
+      transition: background 150ms;
+    }
+    .node-detail__close:hover {
+      background: var(--bg-hover, #f0ede6);
     }
     .node-detail__empty {
       color: var(--ink-faint);
@@ -130,6 +165,21 @@
     .node-detail__value--mono {
       font-family: var(--font-mono);
       color: var(--accent);
+    }
+
+    /* Backdrop overlay when drawer is open */
+    .drawer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.08);
+      z-index: 5;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 280ms ease;
+    }
+    .drawer-backdrop.is-visible {
+      opacity: 1;
+      pointer-events: auto;
     }
   </style>
 </head>
@@ -185,9 +235,9 @@
             </g>
 
             <!-- IAP退款 (source, n1) - 中央琥珀色 -->
-            <g class="node-group node--active" data-id="n1">
+            <g class="node-group" data-id="n1">
               <circle class="node-circle" cx="400" cy="240" r="22" fill="#B45309" stroke="#78350F" stroke-width="2"/>
-              <text class="node-label" x="400" y="280" font-weight="700" fill="#B45309">IAP退款</text>
+              <text class="node-label" x="400" y="280" font-weight="600">IAP退款</text>
             </g>
 
             <!-- PaymentSystem (entity, n2) -->
@@ -269,25 +319,30 @@
         </div>
       </div>
 
-      <!-- 节点详情面板 -->
-      <aside class="node-detail">
-        <div class="text-meta mb-4">NODE DETAIL</div>
+      <!-- 点击空白关闭抽屉的遮罩 -->
+      <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+      <!-- 节点详情面板（右侧抽屉） -->
+      <aside class="node-detail" id="node-detail">
+        <button class="node-detail__close" id="detail-close" title="关闭">✕</button>
+
+        <div class="text-meta mb-4" style="padding-right: 32px;">NODE DETAIL</div>
 
         <div class="node-detail__field">
           <div class="node-detail__label">名称</div>
-          <div class="h2">IAP退款</div>
+          <div class="h2" id="detail-name">IAP退款</div>
         </div>
 
         <div class="node-detail__field">
           <div class="node-detail__label">类型</div>
-          <div><span class="type-badge type-badge--source">source</span></div>
+          <div><span class="type-badge type-badge--source" id="detail-type">source</span></div>
         </div>
 
         <div class="node-detail__field">
           <div class="node-detail__label">入度 / 出度</div>
           <div class="node-detail__value">
-            <span class="node-detail__value--mono">1</span> 入 /
-            <span class="node-detail__value--mono">3</span> 出
+            <span class="node-detail__value--mono" id="detail-in">1</span> 入 /
+            <span class="node-detail__value--mono" id="detail-out">3</span> 出
           </div>
         </div>
 
@@ -295,7 +350,7 @@
 
         <div class="node-detail__field">
           <div class="node-detail__label">关联节点（出边）</div>
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2" id="detail-outgoing">
             <a href="documents.html" class="text-body" style="font-size: 13px;">
               <span class="num-badge">→</span> PaymentSystem
             </a>
@@ -310,7 +365,7 @@
 
         <div class="node-detail__field">
           <div class="node-detail__label">被引用（入边）</div>
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2" id="detail-incoming">
             <a href="documents.html" class="text-body" style="font-size: 13px;">
               <span class="num-badge">←</span> IAP系统综合分析
             </a>
@@ -331,6 +386,71 @@
 <script src="assets/mock-data.js"></script>
 <script src="assets/sidebar.js"></script>
 <script src="assets/settings.js"></script>
+
+<script>
+(function () {
+  const drawer   = document.getElementById('node-detail');
+  const backdrop = document.getElementById('drawer-backdrop');
+  const closeBtn = document.getElementById('detail-close');
+
+  /* ---- open / close helpers ---- */
+  function openDrawer() {
+    drawer.classList.add('is-open');
+    backdrop.classList.add('is-visible');
+  }
+  function closeDrawer() {
+    drawer.classList.remove('is-open');
+    backdrop.classList.remove('is-visible');
+    /* remove active highlight and dim from all nodes */
+    document.querySelectorAll('.node-group').forEach(g => {
+      g.classList.remove('node--active');
+      g.classList.remove('node--dim');
+    });
+    /* reset edge opacity */
+    document.querySelectorAll('.edge-line').forEach(line => {
+      line.style.opacity = '';
+    });
+  }
+
+  closeBtn.addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+
+  /* ---- node click → open drawer ---- */
+  document.querySelectorAll('.node-group').forEach(group => {
+    group.addEventListener('click', function (e) {
+      e.stopPropagation();
+
+      /* highlight active node */
+      document.querySelectorAll('.node-group').forEach(g => g.classList.remove('node--active'));
+      this.classList.add('node--active');
+
+      /* dim unrelated nodes (optional polish) */
+      const activeId = this.dataset.id;
+      document.querySelectorAll('.node-group').forEach(g => {
+        if (g !== this) g.classList.add('node--dim');
+        else g.classList.remove('node--dim');
+      });
+      /* highlight connected edges */
+      document.querySelectorAll('.edge-line').forEach(line => {
+        line.classList.remove('edge-line--active');
+        line.style.opacity = '0.25';
+      });
+
+      /* update detail panel fields from the clicked node */
+      const nameEl  = group.querySelector('.node-label');
+      if (nameEl) document.getElementById('detail-name').textContent = nameEl.textContent.trim();
+
+      /* open the drawer */
+      openDrawer();
+    });
+  });
+
+  /* ESC key closes drawer */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeDrawer();
+  });
+})();
+</script>
 
 </body>
 </html>

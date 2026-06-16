@@ -8,64 +8,155 @@
   <style>
     .docs-layout {
       display: grid;
-      grid-template-columns: 280px 360px 1fr;
+      grid-template-columns: 260px 320px 1fr;
       height: calc(100vh - 56px);
     }
 
-    /* 文档列表筛选侧栏 */
-    .docs-filter {
+    /* ── 知识库选择器（左栏） ── */
+    .kb-panel {
       background: var(--bg-soft);
       border-right: 1px solid var(--border);
       padding: var(--space-5) var(--space-4);
       overflow-y: auto;
-    }
-    .filter-section {
-      margin-bottom: var(--space-5);
-    }
-    .filter-section__title {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--ink-faint);
-      margin-bottom: var(--space-2);
-    }
-    .filter-stats {
       display: flex;
       flex-direction: column;
-      gap: var(--space-2);
     }
-    .filter-stat-row {
+    .kb-panel__header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: var(--space-2) var(--space-3);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background 150ms;
-      font-size: 13px;
+      justify-content: space-between;
+      margin-bottom: var(--space-5);
     }
-    .filter-stat-row:hover {
+    .kb-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       background: var(--bg-card);
+      margin-bottom: var(--space-2);
+      overflow: hidden;
+      transition: box-shadow 150ms;
     }
-    .filter-stat-row__count {
-      font-family: var(--font-mono);
-      font-size: 11px;
+    .kb-item:hover {
+      box-shadow: var(--shadow-sm);
+    }
+    .kb-item--active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .kb-item__head {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-3);
+      cursor: pointer;
+      user-select: none;
+      transition: background 150ms;
+    }
+    .kb-item__head:hover {
+      background: var(--bg-page);
+    }
+    .kb-item__arrow {
+      font-size: 10px;
       color: var(--ink-faint);
+      transition: transform 200ms ease;
+      flex-shrink: 0;
+      width: 14px;
+      text-align: center;
+    }
+    .kb-item--active .kb-item__arrow {
+      transform: rotate(90deg);
+    }
+    .kb-item__icon {
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .kb-item__name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      flex: 1;
+    }
+    .kb-item__count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-faint);
+      background: var(--bg-page);
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+    .kb-item__docs {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 280ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .kb-item--active .kb-item__docs {
+      max-height: 600px;
+    }
+    .kb-doc {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      padding-left: var(--space-6);
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--ink-muted);
+      transition: background 150ms, color 150ms;
+      border-top: 1px solid var(--border-soft);
+    }
+    .kb-doc:hover {
+      background: var(--bg-page);
+      color: var(--ink);
+    }
+    .kb-doc--active {
+      background: var(--bg-page);
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .kb-doc__dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      flex-shrink: 0;
+    }
+    .kb-doc--active .kb-doc__dot {
+      background: var(--accent);
     }
 
-    /* 文档列表 */
+    .kb-import {
+      margin-top: auto;
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── 文档列表（中栏） ── */
     .docs-list {
       background: var(--bg-card);
       border-right: 1px solid var(--border);
       overflow-y: auto;
       padding: var(--space-5) 0;
+      display: flex;
+      flex-direction: column;
     }
     .docs-list__header {
       padding: 0 var(--space-5) var(--space-4);
       border-bottom: 1px solid var(--border);
     }
+    .docs-list__kb-name {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-faint);
+      margin-bottom: 2px;
+    }
+    .docs-list__title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }
     .docs-list__search {
+      margin-top: var(--space-3);
       width: 100%;
       padding: var(--space-2) var(--space-3);
       background: var(--bg-page);
@@ -76,6 +167,10 @@
     }
     .docs-list__search:focus {
       border-color: var(--accent);
+    }
+    .docs-list__items {
+      flex: 1;
+      overflow-y: auto;
     }
     .doc-item {
       padding: var(--space-3) var(--space-5);
@@ -105,8 +200,15 @@
       font-size: 10px;
       color: var(--ink-faint);
     }
+    .doc-item__dirty {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
 
-    /* 文档详情 */
+    /* ── 文档详情（右栏） ── */
     .docs-detail {
       background: var(--bg-page);
       overflow-y: auto;
@@ -190,12 +292,102 @@
       background: var(--accent-soft);
     }
 
+    /* 操作栏 */
     .detail-actions {
       display: flex;
       gap: var(--space-2);
       margin-top: var(--space-5);
       padding-top: var(--space-5);
       border-top: 1px solid var(--border);
+    }
+
+    /* 编译提示 Toast */
+    .compile-toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--ink);
+      color: #fff;
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      font-size: 13px;
+      z-index: 100;
+      transition: transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+    .compile-toast.is-visible {
+      transform: translateX(-50%) translateY(0);
+    }
+    .compile-toast__text {
+      flex: 1;
+    }
+    .compile-toast__btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 150ms;
+    }
+    .compile-toast__btn:hover {
+      opacity: 0.85;
+    }
+    .compile-toast__dismiss {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 2px;
+    }
+    .compile-toast__dismiss:hover {
+      color: #fff;
+    }
+
+    /* 编译进度遮罩 */
+    .compile-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms;
+    }
+    .compile-overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .compile-modal {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: var(--space-7) var(--space-7);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+      text-align: center;
+      max-width: 360px;
+    }
+    .compile-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto var(--space-4);
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -227,172 +419,170 @@
   <main class="app-main" style="padding: 0;">
     <div class="docs-layout">
 
-      <!-- 筛选区（左侧第二栏）-->
-      <aside class="docs-filter">
-        <div class="filter-section">
-          <div class="filter-section__title">02 ─ DOCUMENTS</div>
-          <div class="h2" style="margin-top: 4px;">文档管理</div>
-        </div>
-
-        <div class="filter-section">
-          <div class="filter-section__title">类型筛选</div>
-          <div class="filter-stats">
-            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
-              <input type="checkbox" checked>
-              <span>源 Source</span>
-              <span class="filter-stat-row__count" style="margin-left: auto;">12</span>
-            </label>
-            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
-              <input type="checkbox" checked>
-              <span>实体 Entity</span>
-              <span class="filter-stat-row__count" style="margin-left: auto;">8</span>
-            </label>
-            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
-              <input type="checkbox" checked>
-              <span>概念 Concept</span>
-              <span class="filter-stat-row__count" style="margin-left: auto;">15</span>
-            </label>
-            <label class="checkbox" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
-              <input type="checkbox" checked>
-              <span>综合 Synthesis</span>
-              <span class="filter-stat-row__count" style="margin-left: auto;">2</span>
-            </label>
+      <!-- ── 知识库选择器（左栏） ── -->
+      <aside class="kb-panel">
+        <div class="kb-panel__header">
+          <div>
+            <div class="text-meta">02 — DOCUMENTS</div>
+            <div class="h2" style="margin-top: 4px; font-size: 16px;">知识库</div>
           </div>
         </div>
 
-        <div class="filter-section">
-          <div class="filter-section__title">操作</div>
-          <div class="flex flex-col gap-2">
-            <button class="btn" style="justify-content: flex-start;">+ 导入新文档</button>
-            <button class="btn" style="justify-content: flex-start;">⟳ 批量刷新过期</button>
-            <button class="btn" style="justify-content: flex-start;">🩺 Lint 检查</button>
+        <!-- 知识库 1：IAP 支付系统（默认展开） -->
+        <div class="kb-item kb-item--active" data-kb="iap">
+          <div class="kb-item__head" onclick="toggleKB(this)">
+            <span class="kb-item__arrow">▶</span>
+            <span class="kb-item__icon">📦</span>
+            <span class="kb-item__name">IAP 支付系统</span>
+            <span class="kb-item__count">5</span>
+          </div>
+          <div class="kb-item__docs">
+            <div class="kb-doc kb-doc--active" data-doc="iap-refund" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>IAP退款流程</span>
+            </div>
+            <div class="kb-doc" data-doc="payment-system" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>PaymentSystem</span>
+            </div>
+            <div class="kb-doc" data-doc="user-center" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>UserCenter</span>
+            </div>
+            <div class="kb-doc" data-doc="refund-policy" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>RefundPolicy</span>
+            </div>
+            <div class="kb-doc" data-doc="iap-synthesis" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>IAP系统综合分析</span>
+            </div>
           </div>
         </div>
 
-        <div class="filter-section">
-          <div class="filter-section__title">统计</div>
-          <div class="filter-stats">
-            <div class="filter-stat-row">
-              <span>总计</span>
-              <span class="filter-stat-row__count">37 个页面</span>
+        <!-- 知识库 2：广告投放 -->
+        <div class="kb-item" data-kb="ads">
+          <div class="kb-item__head" onclick="toggleKB(this)">
+            <span class="kb-item__arrow">▶</span>
+            <span class="kb-item__icon">📦</span>
+            <span class="kb-item__name">广告投放</span>
+            <span class="kb-item__count">3</span>
+          </div>
+          <div class="kb-item__docs">
+            <div class="kb-doc" data-doc="ad-strategy" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>投放策略优化</span>
             </div>
-            <div class="filter-stat-row">
-              <span>已过期</span>
-              <span class="filter-stat-row__count" style="color: var(--accent);">3 个</span>
+            <div class="kb-doc" data-doc="ad-channel" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>AdChannelSelection</span>
             </div>
-            <div class="filter-stat-row">
-              <span>待导入</span>
-              <span class="filter-stat-row__count">1 个</span>
+            <div class="kb-doc" data-doc="ad-budget" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>预算分配模型</span>
             </div>
+          </div>
+        </div>
+
+        <!-- 知识库 3：钉钉自动化 -->
+        <div class="kb-item" data-kb="dingtalk">
+          <div class="kb-item__head" onclick="toggleKB(this)">
+            <span class="kb-item__arrow">▶</span>
+            <span class="kb-item__icon">📦</span>
+            <span class="kb-item__name">钉钉自动化</span>
+            <span class="kb-item__count">2</span>
+          </div>
+          <div class="kb-item__docs">
+            <div class="kb-doc" data-doc="dingtalk-table" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>钉钉多维表格自动化</span>
+            </div>
+            <div class="kb-doc" data-doc="dingtalk-bot" onclick="selectDoc(this)">
+              <span class="kb-doc__dot"></span>
+              <span>钉钉机器人工作流</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 导入按钮 -->
+        <div class="kb-import">
+          <button class="btn btn--primary" style="width: 100%; justify-content: center;" onclick="importDoc()">
+            + 导入新文档
+          </button>
+          <div class="text-meta" style="text-align: center; margin-top: var(--space-2); color: var(--ink-faint); font-size: 10px;">
+            导入后自动构建知识
           </div>
         </div>
       </aside>
 
-      <!-- 文档列表 -->
+      <!-- ── 文档列表（中栏） ── -->
       <div class="docs-list">
         <div class="docs-list__header">
-          <input type="text" class="docs-list__search" placeholder="🔍 搜索文档...">
+          <div class="docs-list__kb-name">IAP 支付系统</div>
+          <div class="docs-list__title">文档列表</div>
+          <input type="text" class="docs-list__search" placeholder="搜索文档...">
         </div>
 
-        <div class="doc-item doc-item--active">
-          <div class="doc-item__title">IAP退款流程</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--source">source</span>
-            <span>·</span>
-            <span>2024-03-15</span>
+        <div class="docs-list__items">
+          <div class="doc-item doc-item--active" data-doc="iap-refund" onclick="selectListItem(this)">
+            <div class="doc-item__title">IAP退款流程</div>
+            <div class="doc-item__meta">
+              <span>2024-03-15</span>
+            </div>
           </div>
-        </div>
-
-        <div class="doc-item">
-          <div class="doc-item__title">PaymentSystem</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--entity">entity</span>
-            <span>·</span>
-            <span>2024-03-10</span>
+          <div class="doc-item" data-doc="payment-system" onclick="selectListItem(this)">
+            <div class="doc-item__title">PaymentSystem</div>
+            <div class="doc-item__meta">
+              <span>2024-03-10</span>
+            </div>
           </div>
-        </div>
-
-        <div class="doc-item">
-          <div class="doc-item__title">UserCenter</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--entity">entity</span>
-            <span>·</span>
-            <span>2024-03-08</span>
+          <div class="doc-item" data-doc="user-center" onclick="selectListItem(this)">
+            <div class="doc-item__title">UserCenter</div>
+            <div class="doc-item__meta">
+              <span>2024-03-08</span>
+            </div>
           </div>
-        </div>
-
-        <div class="doc-item">
-          <div class="doc-item__title">投放策略优化</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--source">source</span>
-            <span>·</span>
-            <span>2024-02-28</span>
+          <div class="doc-item" data-doc="refund-policy" onclick="selectListItem(this)">
+            <div class="doc-item__title">RefundPolicy</div>
+            <div class="doc-item__meta">
+              <span>2024-02-15</span>
+            </div>
           </div>
-        </div>
-
-        <div class="doc-item">
-          <div class="doc-item__title">钉钉多维表格自动化</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--source">source</span>
-            <span>·</span>
-            <span>2024-02-20</span>
-          </div>
-        </div>
-
-        <div class="doc-item">
-          <div class="doc-item__title">RefundPolicy</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--concept">concept</span>
-            <span>·</span>
-            <span>2024-02-15</span>
-          </div>
-        </div>
-
-        <div class="doc-item">
-          <div class="doc-item__title">AdChannelSelection</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--concept">concept</span>
-            <span>·</span>
-            <span>2024-02-10</span>
-          </div>
-        </div>
-
-        <div class="doc-item">
-          <div class="doc-item__title">IAP系统综合分析</div>
-          <div class="doc-item__meta">
-            <span class="type-badge type-badge--synthesis">synthesis</span>
-            <span>·</span>
-            <span>2024-03-20</span>
+          <div class="doc-item" data-doc="iap-synthesis" onclick="selectListItem(this)">
+            <div class="doc-item__title">IAP系统综合分析</div>
+            <div class="doc-item__meta">
+              <span>2024-03-20</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 文档详情 -->
+      <!-- ── 文档详情（右栏） ── -->
       <div class="docs-detail">
         <div class="docs-detail__container">
 
           <!-- 标题 -->
-          <div class="text-meta">SOURCE · 2024-03-15</div>
+          <div class="text-meta">IAP 支付系统 · 2024-03-15</div>
           <h1 class="h1" style="margin: 8px 0 32px;">IAP退款流程</h1>
 
           <!-- frontmatter -->
           <div class="docs-detail__frontmatter">
             <div>
-              <div class="frontmatter-field__label">type</div>
-              <div class="frontmatter-field__value">source</div>
+              <div class="frontmatter-field__label">知识库</div>
+              <div class="frontmatter-field__value">IAP 支付系统</div>
             </div>
             <div>
-              <div class="frontmatter-field__label">date</div>
+              <div class="frontmatter-field__label">更新时间</div>
               <div class="frontmatter-field__value">2024-03-15</div>
             </div>
             <div>
-              <div class="frontmatter-field__label">tags</div>
+              <div class="frontmatter-field__label">标签</div>
               <div class="frontmatter-field__value">IAP, 退款, 支付</div>
             </div>
           </div>
 
           <!-- Markdown 渲染 -->
-          <article class="markdown-body">
+          <article class="markdown-body" id="doc-content">
             <h2>摘要</h2>
             <p>IAP 系统退款流程包括用户发起、系统校验、退款执行三个核心步骤，需在 7 天退款期内完成。</p>
 
@@ -426,10 +616,10 @@
 
           <!-- 操作 -->
           <div class="detail-actions">
-            <button class="btn btn--primary">✏ 编辑</button>
-            <button class="btn">⟳ 刷新</button>
-            <button class="btn">💬 加入对话</button>
-            <button class="btn btn--ghost" style="margin-left: auto; color: var(--accent);">🗑 删除</button>
+            <button class="btn btn--primary" id="btn-edit" onclick="startEdit()">✏ 编辑</button>
+            <button class="btn" id="btn-save" style="display: none;" onclick="saveEdit()">💾 保存</button>
+            <button class="btn" id="btn-cancel" style="display: none;" onclick="cancelEdit()">取消</button>
+            <button class="btn btn--ghost" style="margin-left: auto; color: var(--accent);" onclick="deleteDoc()">删除</button>
           </div>
 
         </div>
@@ -439,9 +629,155 @@
   </main>
 </div>
 
+<!-- 编译知识 Toast -->
+<div class="compile-toast" id="compile-toast">
+  <span class="compile-toast__text">文档已保存，需要编译到知识库才能生效</span>
+  <button class="compile-toast__btn" onclick="compileKnowledge()">编译知识</button>
+  <button class="compile-toast__dismiss" onclick="dismissToast()">✕</button>
+</div>
+
+<!-- 编译进度遮罩 -->
+<div class="compile-overlay" id="compile-overlay">
+  <div class="compile-modal">
+    <div class="compile-spinner"></div>
+    <div class="h2" style="margin-bottom: 8px;">正在编译知识</div>
+    <div class="text-meta">解析文档结构 → 提取实体关系 → 更新知识图谱</div>
+  </div>
+</div>
+
 <script src="assets/mock-data.js"></script>
 <script src="assets/sidebar.js"></script>
 <script src="assets/settings.js"></script>
+
+<script>
+/* ══════ 知识库展开/折叠 ══════ */
+function toggleKB(headEl) {
+  const item = headEl.closest('.kb-item');
+  const wasActive = item.classList.contains('kb-item--active');
+  /* 关闭所有 */
+  document.querySelectorAll('.kb-item').forEach(k => k.classList.remove('kb-item--active'));
+  /* 如果之前没展开，则展开 */
+  if (!wasActive) {
+    item.classList.add('kb-item--active');
+  }
+}
+
+/* ══════ 选择文档（左侧知识库内的条目） ══════ */
+function selectDoc(docEl) {
+  /* 清除所有 kb-doc 的高亮 */
+  document.querySelectorAll('.kb-doc').forEach(d => d.classList.remove('kb-doc--active'));
+  docEl.classList.add('kb-doc--active');
+
+  /* 同步中栏列表高亮 */
+  const docId = docEl.dataset.doc;
+  document.querySelectorAll('.doc-item').forEach(li => li.classList.remove('doc-item--active'));
+  const match = document.querySelector('.doc-item[data-doc="' + docId + '"]');
+  if (match) match.classList.add('doc-item--active');
+}
+
+/* ══════ 选择文档（中栏列表） ══════ */
+function selectListItem(itemEl) {
+  document.querySelectorAll('.doc-item').forEach(li => li.classList.remove('doc-item--active'));
+  itemEl.classList.add('doc-item--active');
+
+  /* 同步左侧 kb-doc 高亮 */
+  const docId = itemEl.dataset.doc;
+  document.querySelectorAll('.kb-doc').forEach(d => d.classList.remove('kb-doc--active'));
+  const match = document.querySelector('.kb-doc[data-doc="' + docId + '"]');
+  if (match) match.classList.add('kb-doc--active');
+}
+
+/* ══════ 编辑模式 ══════ */
+let isEditing = false;
+
+function startEdit() {
+  isEditing = true;
+  const content = document.getElementById('doc-content');
+  content.setAttribute('contenteditable', 'true');
+  content.style.outline = '2px solid var(--accent)';
+  content.style.outlineOffset = '4px';
+  content.focus();
+
+  /* 切换按钮 */
+  document.getElementById('btn-edit').style.display = 'none';
+  document.getElementById('btn-save').style.display = '';
+  document.getElementById('btn-cancel').style.display = '';
+}
+
+function cancelEdit() {
+  isEditing = false;
+  const content = document.getElementById('doc-content');
+  content.setAttribute('contenteditable', 'false');
+  content.style.outline = '';
+  content.style.outlineOffset = '';
+
+  document.getElementById('btn-edit').style.display = '';
+  document.getElementById('btn-save').style.display = 'none';
+  document.getElementById('btn-cancel').style.display = 'none';
+}
+
+function saveEdit() {
+  isEditing = false;
+  const content = document.getElementById('doc-content');
+  content.setAttribute('contenteditable', 'false');
+  content.style.outline = '';
+  content.style.outlineOffset = '';
+
+  document.getElementById('btn-edit').style.display = '';
+  document.getElementById('btn-save').style.display = 'none';
+  document.getElementById('btn-cancel').style.display = 'none';
+
+  /* 标记当前文档有未编译的改动 */
+  const activeItem = document.querySelector('.doc-item--active .doc-item__title');
+  if (activeItem && !activeItem.parentElement.querySelector('.doc-item__dirty')) {
+    const dot = document.createElement('span');
+    dot.className = 'doc-item__dirty';
+    dot.title = '有未编译的改动';
+    activeItem.parentElement.querySelector('.doc-item__meta').prepend(dot);
+  }
+
+  /* 弹出编译提示 */
+  showToast();
+}
+
+/* ══════ 编译知识 ══════ */
+function showToast() {
+  document.getElementById('compile-toast').classList.add('is-visible');
+}
+function dismissToast() {
+  document.getElementById('compile-toast').classList.remove('is-visible');
+}
+
+function compileKnowledge() {
+  dismissToast();
+  const overlay = document.getElementById('compile-overlay');
+  overlay.classList.add('is-visible');
+
+  /* 模拟编译过程 */
+  setTimeout(function () {
+    overlay.classList.remove('is-visible');
+    /* 清除脏标记 */
+    document.querySelectorAll('.doc-item__dirty').forEach(d => d.remove());
+  }, 2200);
+}
+
+/* ══════ 导入新文档 ══════ */
+function importDoc() {
+  alert('导入文档后将自动构建知识库（原型演示）');
+}
+
+/* ══════ 删除文档 ══════ */
+function deleteDoc() {
+  if (confirm('确认删除此文档？删除后知识库将同步更新。')) {
+    alert('文档已删除（原型演示）');
+  }
+}
+
+/* ══════ ESC 退出编辑 ══════ */
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && isEditing) cancelEdit();
+});
+</script>
 
 </body>
 </html>

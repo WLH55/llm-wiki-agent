@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>产品需求文档 · 工作知识库</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .prd-layout {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 48px 120px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+
+    /* ── 文档头部 ── */
+    .prd-header {
+      margin-bottom: 56px;
+      padding-bottom: 32px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .prd-header__meta {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .prd-header__field-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      margin-bottom: 4px;
+    }
+    .prd-header__field-value {
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    /* ── 章节标题 ── */
+    .prd-section {
+      margin-top: 56px;
+    }
+    .prd-section__num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+    }
+    .prd-section__title {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── 子标题 ── */
+    .prd-h3 {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 32px 0 12px;
+    }
+    .prd-h4 {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      margin: 20px 0 8px;
+    }
+
+    /* ── 正文段落 ── */
+    .prd-body p {
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+    .prd-body ul, .prd-body ol {
+      padding-left: 24px;
+      margin-bottom: 14px;
+    }
+    .prd-body li {
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    /* ── 表格 ── */
+    .prd-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 13px;
+    }
+    .prd-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: var(--bg-soft);
+      border-bottom: 2px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+    }
+    .prd-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+
+    /* ── 卡片 ── */
+    .prd-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 16px 0;
+    }
+    .prd-card + .prd-card {
+      margin-top: 12px;
+    }
+    .prd-card__title {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    /* ── 模块图 ── */
+    .prd-diagram {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 32px;
+      margin: 16px 0 24px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--ink-muted);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* ── 引用块 ── */
+    .prd-callout {
+      border-left: 3px solid var(--accent);
+      padding: 12px 20px;
+      margin: 16px 0;
+      background: var(--accent-soft);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--accent-ink);
+    }
+
+    /* ── 流程编号 ── */
+    .prd-flow {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0 24px;
+      flex-wrap: wrap;
+    }
+    .prd-flow__step {
+      flex: 1;
+      min-width: 140px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      position: relative;
+    }
+    .prd-flow__step-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .prd-flow__step-text {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+    .prd-flow__step + .prd-flow__step::before {
+      content: '→';
+      position: absolute;
+      left: -16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-faint);
+      font-size: 14px;
+    }
+
+    /* ── TOC ── */
+    .prd-toc {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 28px;
+      margin-bottom: 32px;
+    }
+    .prd-toc__title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      margin-bottom: 12px;
+    }
+    .prd-toc a {
+      display: block;
+      padding: 4px 0;
+      font-size: 13px;
+      color: var(--ink-muted);
+      text-decoration: none;
+      transition: color 150ms;
+    }
+    .prd-toc a:hover { color: var(--accent); }
+    .prd-toc a .toc-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      margin-right: 8px;
+    }
+
+    /* ── 打印友好 ── */
+    @media print {
+      .app-sidebar, .app-header { display: none; }
+      .app { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .prd-layout { padding: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== Header ========== -->
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__title">工 作 知 识 库</span>
+      <span class="app-header__subtitle">editorial · v1.0</span>
+    </div>
+    <div class="app-header__actions">
+      <a href="search.html" class="kbd-search">
+        <kbd>⌘</kbd><kbd>K</kbd>
+        <span>搜索</span>
+      </a>
+      <div class="settings-wrap">
+        <button class="icon-btn" id="settings-btn" title="设置">⚙</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== Sidebar ========== -->
+  <aside class="app-sidebar" id="sidebar"></aside>
+
+  <!-- ========== Main: PRD ========== -->
+  <main class="app-main prd-body" style="padding: 0;">
+    <div class="prd-layout">
+
+      <!-- ── 文档头 ── -->
+      <div class="prd-header">
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT</div>
+        <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
+        <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">
+          基于知识图谱的本地优先桌面知识管理系统
+        </p>
+        <div class="prd-header__meta">
+          <div>
+            <div class="prd-header__field-label">版本</div>
+            <div class="prd-header__field-value">v1.0</div>
+          </div>
+          <div>
+            <div class="prd-header__field-label">日期</div>
+            <div class="prd-header__field-value">2026-06-16</div>
+          </div>
+          <div>
+            <div class="prd-header__field-label">状态</div>
+            <div class="prd-header__field-value">原型验证中</div>
+          </div>
+          <div>
+            <div class="prd-header__field-label">目标平台</div>
+            <div class="prd-header__field-value">Windows / macOS 桌面端</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 目录 ── -->
+      <nav class="prd-toc">
+        <div class="prd-toc__title">TABLE OF CONTENTS</div>
+        <a href="#s1"><span class="toc-num">01</span>产品定位与愿景</a>
+        <a href="#s2"><span class="toc-num">02</span>目标用户与使用场景</a>
+        <a href="#s3"><span class="toc-num">03</span>核心设计原则</a>
+        <a href="#s4"><span class="toc-num">04</span>功能架构总览</a>
+        <a href="#s5"><span class="toc-num">05</span>模块一：知识图谱</a>
+        <a href="#s6"><span class="toc-num">06</span>模块二：文档管理</a>
+        <a href="#s7"><span class="toc-num">07</span>模块三：AI 对话</a>
+        <a href="#s8"><span class="toc-num">08</span>模块四：全局搜索</a>
+        <a href="#s9"><span class="toc-num">09</span>全局交互规范</a>
+        <a href="#s10"><span class="toc-num">10</span>数据模型</a>
+        <a href="#s11"><span class="toc-num">11</span>技术架构</a>
+        <a href="#s12"><span class="toc-num">12</span>MCP 工具集成（开发者接口）</a>
+        <a href="#s13"><span class="toc-num">13</span>编译质量保障机制</a>
+        <a href="#s14"><span class="toc-num">14</span>开发路线与验收标准</a>
+      </nav>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 01. 产品定位 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s1">
+        <div class="prd-section__num">01 — POSITIONING</div>
+        <h2 class="prd-section__title">产品定位与愿景</h2>
+
+        <p>工作知识库是一款面向团队知识沉淀与检索的桌面应用。它将散落在各处的文档、笔记、技术方案统一收纳为结构化的 Wiki 页面，通过 AI 自动提取实体关系构建知识图谱，并提供基于语义的智能检索和问答能力。</p>
+
+        <div class="prd-callout">
+          <strong>一句话定位：</strong>本地优先的 AI 知识管理系统——把团队的隐性知识变成可检索、可对话、可视化的知识图谱。
+        </div>
+
+        <div class="prd-h3">核心价值主张</div>
+        <ul>
+          <li><strong>本地优先</strong>：所有数据以 Markdown 文件形式存储在本地，零云服务依赖，可 Git 版本管理，可离线使用</li>
+          <li><strong>AI 增强</strong>：自动从原始文档编译为结构化 Wiki 页面，自动提取实体关系构建知识图谱，对话式知识问答</li>
+          <li><strong>可插拔知识库</strong>：一个知识库即一个自包含目录（manifest + wiki + graph + vectors），可挂载/卸载/快照/迁移</li>
+          <li><strong>桌面原生体验</strong>：通过 Tauri 打包为轻量桌面应用（~10MB），双击即开，无浏览器地址栏</li>
+        </ul>
+
+        <div class="prd-h3">与竞品的差异化</div>
+        <table class="prd-table">
+          <tr>
+            <th>维度</th>
+            <th>Notion / Confluence</th>
+            <th>Obsidian / Logseq</th>
+            <th>工作知识库（本产品）</th>
+          </tr>
+          <tr>
+            <td>知识结构化</td>
+            <td>人工组织，手动分类</td>
+            <td>双向链接，手动维护</td>
+            <td>AI 自动编译 + 图谱构建</td>
+          </tr>
+          <tr>
+            <td>检索方式</td>
+            <td>全文搜索</td>
+            <td>关键词 + 图谱导航</td>
+            <td>混合检索（关键词 + 向量 + RRF）</td>
+          </tr>
+          <tr>
+            <td>知识问答</td>
+            <td>无</td>
+            <td>插件支持</td>
+            <td>原生 AI 对话 + 引用溯源</td>
+          </tr>
+          <tr>
+            <td>数据存储</td>
+            <td>云端</td>
+            <td>本地 Markdown</td>
+            <td>本地 Markdown + LanceDB 向量</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 02. 目标用户 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s2">
+        <div class="prd-section__num">02 — USERS</div>
+        <h2 class="prd-section__title">目标用户与使用场景</h2>
+
+        <div class="prd-h3">用户画像</div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">画像 A：技术管理者</div>
+          <p>需要快速了解团队技术积累和业务知识的分布。关注"我们有什么知识、知识之间的关系是什么、知识质量如何"。主要通过知识图谱浏览和 AI 对话来消费知识，偶尔直接搜索特定文档。</p>
+          <table class="prd-table">
+            <tr><th>主要模块</th><td>知识图谱 → AI 对话 → 全局搜索</td></tr>
+            <tr><th>典型场景</th><td>"IAP 退款系统和哪些模块有关联？" → 图谱可视化一目了然</td></tr>
+            <tr><th>关键需求</th><td>可视化直观、检索准确、回答可信（有引用来源）</td></tr>
+          </table>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">画像 B：开发者 / 知识贡献者</div>
+          <p>日常产生大量技术文档、方案、排障记录。需要便捷地将这些原始内容导入系统，由 AI 自动编译为结构化知识。也通过 MCP 协议在 IDE 中直接查询知识库。</p>
+          <table class="prd-table">
+            <tr><th>主要模块</th><td>文档管理 → AI 对话 → 全局搜索</td></tr>
+            <tr><th>典型场景</th><td>写完技术方案 → 导入文档 → 自动编译到知识库 → 图谱自动更新</td></tr>
+            <tr><th>关键需求</th><td>导入流程简单、编译结果可预览可回退、MCP 集成</td></tr>
+          </table>
+        </div>
+
+        <div class="prd-h3">核心使用场景</div>
+        <table class="prd-table">
+          <tr><th>场景</th><th>入口</th><th>行为</th><th>期望结果</th></tr>
+          <tr>
+            <td>知识探索</td>
+            <td>知识图谱</td>
+            <td>浏览图谱、点击节点查看详情</td>
+            <td>理解知识间的关系网络</td>
+          </tr>
+          <tr>
+            <td>知识查询</td>
+            <td>AI 对话</td>
+            <td>提问，AI 综合知识库回答</td>
+            <td>获得带引用来源的准确回答</td>
+          </tr>
+          <tr>
+            <td>精确检索</td>
+            <td>全局搜索</td>
+            <td>输入关键词，快速定位文档</td>
+            <td>毫秒级返回相关文档列表</td>
+          </tr>
+          <tr>
+            <td>知识沉淀</td>
+            <td>文档管理</td>
+            <td>导入新文档 → 自动编译 → 更新图谱</td>
+            <td>新知识自动融入现有知识体系</td>
+          </tr>
+          <tr>
+            <td>知识编辑</td>
+            <td>文档管理</td>
+            <td>编辑已有文档 → 编译知识 → 更新图谱</td>
+            <td>修改生效并同步到图谱和向量索引</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 03. 设计原则 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s3">
+        <div class="prd-section__num">03 — PRINCIPLES</div>
+        <h2 class="prd-section__title">核心设计原则</h2>
+
+        <div class="prd-card">
+          <div class="prd-card__title">编辑级知识档案，不是 AI 工具</div>
+          <p>产品的视觉语言对标编辑出版物而非 SaaS 工具。宋体标题、米色背景、琥珀色单一强调色、编号化布局（01/02/03/04）——给用户"这是一个有沉淀的系统"的感知，而非"又一个 AI 产品"。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">对话与检索职责分离</div>
+          <p>AI 对话（模块一）负责智能问答：调用 AI 综合能力，回答慢但有深度，带引用溯源。全局搜索（模块四）负责纯检索：直接查询 wiki 页面，不调用 AI，延迟低、结果精确。两者在界面上有明确的 banner 引导，用户不会混淆。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">编辑-编译工作流</div>
+          <p>文档编辑不直接生效到知识库。用户编辑文档后保存，系统提示"编译知识"——编译过程包括：解析文档结构 → 提取实体关系 → 更新知识图谱 → 重建向量索引。这个两步设计让用户对"知识库状态"有明确感知，避免静默更新造成的不确定性。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">本地优先，可插拔</div>
+          <p>每个知识库是一个自包含目录，包含 manifest.json、wiki/、graph/、raw/、vectors/ 五个部分。知识库可以在应用内挂载/卸载/切换，也可以导出为 zip 在实例间迁移。数据存储完全脱离应用本身。</p>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 04. 功能架构 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s4">
+        <div class="prd-section__num">04 — ARCHITECTURE</div>
+        <h2 class="prd-section__title">功能架构总览</h2>
+
+        <div class="prd-diagram">┌──────────────────────────────────────────────────────────────────┐
+│  工 作 知 识 库                              ⌘K 搜索    ⚙ 设置   │
+├──────────┬───────────────────────────────────────────────────────┤
+│          │                                                       │
+│ 01 对话  │  ┌─────────────────────────────────────────────────┐  │
+│ 02 文档  │  │                                                 │  │
+│ 03 图谱  │  │            Main Content Area                    │  │
+│ 04 搜索  │  │                                                 │  │
+│          │  │   四个功能模块共用全局 Shell：                    │  │
+│ ──────   │  │   · Header (56px) + Sidebar (240px) + Main     │  │
+│          │  │   · 统一设计系统（Editorial Knowledge Base）     │  │
+│ 最近记录  │  │   · 模块间通过侧边栏导航切换                    │  │
+│          │  │                                                 │  │
+│          │  └─────────────────────────────────────────────────┘  │
+└──────────┴───────────────────────────────────────────────────────┘</div>
+
+        <div class="prd-h3">模块清单</div>
+        <table class="prd-table">
+          <tr><th>编号</th><th>模块</th><th>入口文件</th><th>核心职责</th></tr>
+          <tr><td>01</td><td>AI 对话</td><td>chat.html</td><td>知识库驱动的智能问答，带引用溯源</td></tr>
+          <tr><td>02</td><td>文档管理</td><td>documents.html</td><td>知识库文档的浏览、编辑、导入、编译</td></tr>
+          <tr><td>03</td><td>知识图谱</td><td>index.html</td><td>知识关系的力导向图可视化，应用入口</td></tr>
+          <tr><td>04</td><td>全局搜索</td><td>search.html</td><td>混合检索（关键词 + 向量），快速定位文档</td></tr>
+        </table>
+
+        <div class="prd-h3">模块间数据流</div>
+        <div class="prd-diagram">┌──────────┐    导入文档     ┌──────────┐    自动提取     ┌──────────┐
+│  原始文档  │ ───────────→  │  Wiki 页面 │ ───────────→  │  知识图谱  │
+│  (raw/)   │              │ (wiki/)   │              │ (graph/)  │
+└──────────┘              └──────────┘              └──────────┘
+                                │                         │
+                                │ 向量化                    │ 节点关系
+                                ▼                         ▼
+                          ┌──────────┐              ┌──────────┐
+                          │ 向量索引  │              │ 图谱可视化 │
+                          │(vectors/) │              │(index.html)│
+                          └──────────┘              └──────────┘
+                                │
+                                ▼
+                    ┌────────────────────┐
+                    │ 全局搜索 / AI 对话   │
+                    │ (search / chat)    │
+                    └────────────────────┘</div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 05. 知识图谱 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s5">
+        <div class="prd-section__num">05 — KNOWLEDGE GRAPH</div>
+        <h2 class="prd-section__title">模块一：知识图谱</h2>
+
+        <p>知识图谱是应用的入口页面（index.html）。用户打开应用第一眼看到的就是知识关系的可视化全貌，建立对知识体系的整体认知。</p>
+
+        <div class="prd-h3">页面布局</div>
+        <div class="prd-diagram">┌──────────┬───────────────────────────────────────────────────────┐
+│          │  ┌─ 工具栏 ─────────────────────────────────────────┐ │
+│ Sidebar  │  │ 03 — KNOWLEDGE GRAPH  知识图谱   8节点·7边 [⟳⛶⬇]│ │
+│ (240px)  │  └──────────────────────────────────────────────────┘ │
+│          │                                                       │
+│          │          ○ IAP系统综合                                 │
+│          │         / │ \                                         │
+│          │      ○──●──○──○                                      │
+│          │  Payment  IAP退款  UserCenter                         │
+│          │   System    │                                         │
+│          │         ○───○                                         │
+│          │     RefundPolicy                                      │
+│          │                                                       │
+│          │  ┌─ 图例 ─┐                                          │
+│          │  │● 源     │                                          │
+│          │  │○ 实体   │                                          │
+│          │  │◇ 概念   │                                          │
+│          │  │◎ 综合   │                                          │
+│          │  └────────┘                                          │
+└──────────┴───────────────────────────────────────────────────────┘
+                       ↓ 点击节点
+                 ┌─────────────────┐
+                 │  NODE DETAIL     │ ← 右侧抽屉 340px
+                 │  ✕               │
+                 │  名称: IAP退款    │
+                 │  类型: source     │
+                 │  入/出: 1/3       │
+                 │  ────────────     │
+                 │  出边:            │
+                 │   → PaymentSystem │
+                 │   → UserCenter    │
+                 │   → RefundPolicy  │
+                 │  入边:            │
+                 │   ← IAP系统综合   │
+                 │  ────────────     │
+                 │  [查看完整文档 →]  │
+                 └─────────────────┘</div>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th><th>交互细节</th></tr>
+          <tr>
+            <td>力导向图渲染</td>
+            <td>基于 D3.js 或 react-force-graph 的力导向图可视化</td>
+            <td>全画布铺满主区域，工具栏和图例浮于画布上方</td>
+          </tr>
+          <tr>
+            <td>节点类型区分</td>
+            <td>四种节点类型使用不同视觉形态</td>
+            <td>Source = 琥珀实心圆，Entity = 圆角矩形，Concept = 菱形，Synthesis = 六边形</td>
+          </tr>
+          <tr>
+            <td>节点点击</td>
+            <td>点击节点展示详情</td>
+            <td>被点击节点高亮，其他节点变暗，右侧抽屉滑出显示节点信息和关联关系</td>
+          </tr>
+          <tr>
+            <td>详情抽屉</td>
+            <td>340px 宽的右侧抽屉面板</td>
+            <td>显示节点名称、类型、入/出度、关联节点列表、"查看完整文档"按钮。关闭方式：✕ 按钮 / 点击遮罩 / ESC 键</td>
+          </tr>
+          <tr>
+            <td>工具栏</td>
+            <td>悬浮于画布上方的操作栏</td>
+            <td>左侧标题卡（模块编号 + 名称 + 统计），右侧操作按钮（刷新 / 全屏 / 导出）</td>
+          </tr>
+          <tr>
+            <td>图例</td>
+            <td>悬浮于画布左下角</td>
+            <td>显示四种节点类型的颜色与名称</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">交互流程</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 01</div>
+            <div class="prd-flow__step-text">用户打开应用，进入图谱首页，看到知识关系全景</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 02</div>
+            <div class="prd-flow__step-text">点击感兴趣的节点，该节点高亮，其余节点变暗</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 03</div>
+            <div class="prd-flow__step-text">右侧滑出详情抽屉，展示节点信息和关联关系</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 04</div>
+            <div class="prd-flow__step-text">点击"查看完整文档"跳转到文档管理页查看详情</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 06. 文档管理 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s6">
+        <div class="prd-section__num">06 — DOCUMENTS</div>
+        <h2 class="prd-section__title">模块二：文档管理</h2>
+
+        <p>文档管理是知识库的核心操作模块，承载知识库维度的文档组织、浏览、编辑和编译工作流。左侧以知识库为单位组织文档树，中间展示文档列表，右侧展示文档详情。</p>
+
+        <div class="prd-h3">页面布局</div>
+        <div class="prd-diagram">┌──────────┬──────────┬──────────┬─────────────────────────────────┐
+│          │ 知识库    │ 文档列表  │ 文档详情                         │
+│ Sidebar  │ 选择器   │ (320px)  │ (flex 1)                        │
+│ (240px)  │ (260px)  │          │                                 │
+│          │          │          │  IAP 支付系统 · 2024-03-15       │
+│          │ 📦 IAP   │ IAP退款  │  IAP退款流程                      │
+│          │  支付系统 │ ●流程    │                                  │
+│          │  ├ IAP退 │ Payment  │  ┌─ frontmatter ─────────────┐  │
+│          │  │ 款流程 │ System   │  │ 知识库: IAP 支付系统       │  │
+│          │  ├ Pay-  │ UserCen  │  │ 更新时间: 2024-03-15      │  │
+│          │  │ ment  │ ter      │  │ 标签: IAP, 退款, 支付      │  │
+│          │  ├ User  │ Refund   │  └────────────────────────────┘  │
+│          │  │ Center│ Policy   │                                  │
+│          │  ├ Ref-  │ IAP综合  │  ## 摘要                        │
+│          │  │ und   │          │  IAP 系统退款流程包括...          │
+│          │  │ Policy│          │                                  │
+│          │  └ IAP   │          │  ## 核心论点                     │
+│          │  综合分析 │          │  - 退款必须在 7 天内发起          │
+│          │          │          │                                  │
+│          │ 📦 广告  │          │  ## 关联                         │
+│          │  投放     │          │  [[PaymentSystem]] · [[User...]] │
+│          │          │          │                                  │
+│          │ 📦 钉钉  │          │  [✏ 编辑]  [🗑 删除]             │
+│          │  自动化   │          │                                  │
+│          │          │          │                                  │
+│          │ ──────── │          │                                  │
+│          │ [+ 导入  │          │                                  │
+│          │  新文档]  │          │                                  │
+└──────────┴──────────┴──────────┴─────────────────────────────────┘</div>
+
+        <div class="prd-h3">功能规格</div>
+
+        <div class="prd-h4">知识库选择器（左栏）</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr>
+            <td>知识库列表</td>
+            <td>展示所有已挂载的知识库，每个知识库显示名称和文档数量</td>
+          </tr>
+          <tr>
+            <td>展开/折叠</td>
+            <td>点击知识库条目展开显示其下的文档列表，同时只能展开一个</td>
+          </tr>
+          <tr>
+            <td>文档条目</td>
+            <td>展开后显示知识库内的文档，点击同步更新中栏列表和右栏详情</td>
+          </tr>
+          <tr>
+            <td>导入入口</td>
+            <td>底部固定的"导入新文档"按钮，导入后自动构建知识（编译 + 图谱更新）</td>
+          </tr>
+        </table>
+
+        <div class="prd-h4">文档列表（中栏）</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr>
+            <td>知识库标题</td>
+            <td>顶部显示当前知识库名称，下方为搜索框</td>
+          </tr>
+          <tr>
+            <td>文档条目</td>
+            <td>显示文档标题和更新时间，激活态左侧显示琥珀色边框</td>
+          </tr>
+          <tr>
+            <td>脏标记</td>
+            <td>编辑保存但未编译的文档显示琥珀色圆点标记，提示需要编译</td>
+          </tr>
+        </table>
+
+        <div class="prd-h4">文档详情（右栏）</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr>
+            <td>元信息区</td>
+            <td>显示所属知识库、更新时间、标签</td>
+          </tr>
+          <tr>
+            <td>Markdown 渲染</td>
+            <td>完整渲染文档内容，包括标题、列表、引用块、[[wikilink]] 等</td>
+          </tr>
+          <tr>
+            <td>编辑模式</td>
+            <td>点击编辑后文档内容变为可编辑（contenteditable），琥珀色描边提示编辑态</td>
+          </tr>
+          <tr>
+            <td>保存 + 编译提示</td>
+            <td>保存后底部弹出 toast："文档已保存，需要编译到知识库才能生效" → 点击"编译知识"触发编译流程</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">编辑-编译工作流</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 01</div>
+            <div class="prd-flow__step-text">点击"编辑"按钮，文档进入可编辑状态</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 02</div>
+            <div class="prd-flow__step-text">编辑完成后点击"保存"，按钮切换回"编辑"</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 03</div>
+            <div class="prd-flow__step-text">底部弹出 toast 提示"需要编译知识"</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 04</div>
+            <div class="prd-flow__step-text">点击"编译知识"，系统执行：解析结构 → 提取实体 → 更新图谱</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 05</div>
+            <div class="prd-flow__step-text">编译完成，脏标记消失，知识库已更新</div>
+          </div>
+        </div>
+
+        <div class="prd-callout">
+          <strong>设计决策：</strong>不做类型筛选。当前不确定知识库内文档会有哪些类型分类，以知识库为组织维度而非文档类型。后续如有需要可补充。
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 07. AI 对话 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s7">
+        <div class="prd-section__num">07 — AI DIALOGUE</div>
+        <h2 class="prd-section__title">模块三：AI 对话</h2>
+
+        <p>AI 对话是知识库的智能问答入口。用户提问时，系统自动从当前知识库中检索相关页面，注入为 AI 上下文，生成带有引用标注的回答。回答中的引用编号可点击跳转到对应文档。</p>
+
+        <div class="prd-h3">页面布局</div>
+        <div class="prd-diagram">┌──────────┬────────────────────────────────────────────────────────┐
+│          │  01 — AI 对话              [+ 新建对话] [⟳ 清空上下文] │
+│ Sidebar  │──────────────────────────────────────────────────────── │
+│ (240px)  │                                                        │
+│          │  👤 IAP 系统怎么处理退款？                               │
+│          │                                                        │
+│          │  🤖 根据知识库中的相关文档：                              │
+│          │     IAP 退款流程分为三个核心步骤 [1]：                    │
+│          │     1. 用户在订单页发起退款申请                           │
+│          │     2. 系统校验订单状态 [2]                              │
+│          │     3. 退款通过支付网关原路返回 [1]                       │
+│          │                                                        │
+│          │     [📋 复制] [⟳ 重新生成] [👍] [👎]                   │
+│          │     [◈ 保存为综合页面 · 将触发图谱构建]                   │
+│          │                                                        │
+│          │  ── 引用来源 · 3 个匹配页面 ──                           │
+│          │  [1] IAP退款流程          source    ▓▓▓▓▓▓▓░ 0.91     │
+│          │  [2] PaymentSystem        entity    ▓▓▓▓▓░░░ 0.74     │
+│          │  [3] UserCenter           entity    ▓▓▓▓░░░░ 0.68     │
+│          │──────────────────────────────────────────────────────── │
+│          │  ● 已检索到 3 个相关页面 · 将自动注入上下文               │
+│          │  [⚑ 检查]  [ 输入消息... ]  [发送 ↵]                    │
+└──────────┴────────────────────────────────────────────────────────┘</div>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th><th>交互细节</th></tr>
+          <tr>
+            <td>消息流</td>
+            <td>用户消息与 AI 回复的对话流</td>
+            <td>用户消息标注"你"，AI 消息标注"AI"，显示时间戳</td>
+          </tr>
+          <tr>
+            <td>引用标注</td>
+            <td>AI 回答中内联引用编号 [1][2][3]</td>
+            <td>点击编号跳转到对应文档详情页（documents.html）</td>
+          </tr>
+          <tr>
+            <td>引用来源面板</td>
+            <td>对话底部展示所有引用来源</td>
+            <td>显示文档标题、类型 badge、相关度进度条和分值</td>
+          </tr>
+          <tr>
+            <td>上下文提示</td>
+            <td>输入框上方显示当前检索状态</td>
+            <td>"已检索到 N 个相关页面 · 将自动注入上下文"</td>
+          </tr>
+          <tr>
+            <td>消息操作</td>
+            <td>AI 回复下方的操作按钮</td>
+            <td>复制、重新生成、赞同、不赞同</td>
+          </tr>
+          <tr>
+            <td>保存为综合页面</td>
+            <td>将有价值的 AI 回答保存为 wiki 页面</td>
+            <td>触发图谱构建，状态变为"已保存为综合页面 · 图谱已更新"</td>
+          </tr>
+          <tr>
+            <td>新建对话</td>
+            <td>开始新的对话会话</td>
+            <td>清空当前消息流，显示空状态推荐问题</td>
+          </tr>
+          <tr>
+            <td>清空上下文</td>
+            <td>重置当前对话的知识库检索上下文</td>
+            <td>下次提问将不注入历史上下文</td>
+          </tr>
+          <tr>
+            <td>空状态</td>
+            <td>新对话的初始界面</td>
+            <td>展示推荐问题 chip，点击自动填入输入框</td>
+          </tr>
+          <tr>
+            <td>知识库切换</td>
+            <td>Header 中的知识库切换器</td>
+            <td>切换知识库后对话上下文自动更新为新知识库的检索结果</td>
+          </tr>
+        </table>
+
+        <div class="prd-callout">
+          <strong>与全局搜索的职责分工：</strong>AI 对话 = 智能问答（慢，综合多个来源，带引用溯源，适合复杂问题）。全局搜索 = 纯检索（快，直接查询 wiki 页面，适合精确定位）。页面顶部 banner 明确标注"纯检索模式"并提供跳转链接。
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 08. 全局搜索 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s8">
+        <div class="prd-section__num">08 — SEARCH</div>
+        <h2 class="prd-section__title">模块四：全局搜索</h2>
+
+        <p>全局搜索是知识库的精确检索入口。支持混合搜索（关键词 + 向量语义），不调用 AI，延迟极低。搜索结果按相关度排序，每条结果显示文档标题、摘要片段（关键词高亮）、文件路径和相关度评分。</p>
+
+        <div class="prd-h3">页面布局</div>
+        <div class="prd-diagram">┌──────────┬────────────────────────────────────────────────────────┐
+│          │  [01] 纯检索模式 — 直接查询 wiki，不调用 AI    去对话 →  │
+│ Sidebar  │──────────────────────────────────────────────────────── │
+│ (240px)  │  04 — SEARCH                                          │
+│          │  全局搜索                                               │
+│          │  ┌──────────────────────────────────────┐              │
+│          │  │ IAP 退款流程                      [搜索]│             │
+│          │  └──────────────────────────────────────┘              │
+│          │  模式: ●混合 ○关键词 ○向量   范围: ☑源 ☑实体 ☑概念 ☑综合│
+│          │  Top-K: [10 ▼]                                        │
+│          │──────────────────────────────────────────────────────── │
+│          │  5 个结果 · 按相关度排序              查询耗时 42ms     │
+│          │                                                        │
+│          │  01  IAP退款流程 [source]                               │
+│          │      IAP 系统退款流程包括...三个核心步骤...              │
+│          │      iap-refund-flow.md              ▓▓▓▓▓▓▓░ 0.91    │
+│          │                                                        │
+│          │  02  PaymentSystem [entity]                             │
+│          │      支付系统，处理 IAP、投放...                        │
+│          │      PaymentSystem.md                ▓▓▓▓▓░░░ 0.74    │
+│          │                                                        │
+│          │  ...                                                    │
+│          │──────────────────────────────────────────────────────── │
+│          │  SEARCH · HYBRID MODE · RRF FUSION        5 / 5       │
+└──────────┴────────────────────────────────────────────────────────┘</div>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr>
+            <td>模式 banner</td>
+            <td>页面顶部横幅，标注"纯检索模式 — 直接查询 wiki 页面，不调用 AI"，提供跳转对话的链接</td>
+          </tr>
+          <tr>
+            <td>搜索模式切换</td>
+            <td>混合（关键词 + 向量 RRF 融合）/ 关键词（BM25）/ 向量（LanceDB 语义相似度）</td>
+          </tr>
+          <tr>
+            <td>范围筛选</td>
+            <td>按文档类型过滤：源 / 实体 / 概念 / 综合</td>
+          </tr>
+          <tr>
+            <td>Top-K 控制</td>
+            <td>下拉选择返回结果数量：5 / 10 / 20</td>
+          </tr>
+          <tr>
+            <td>结果卡片</td>
+            <td>编号 + 标题 + 类型 badge + 摘要（关键词高亮）+ 文件路径 + 相关度进度条 + "查看"按钮</td>
+          </tr>
+          <tr>
+            <td>Cmd+K 全局唤起</td>
+            <td>任意页面可通过 ⌘K 快捷键快速跳转到搜索页</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 09. 全局交互 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s9">
+        <div class="prd-section__num">09 — GLOBAL UX</div>
+        <h2 class="prd-section__title">全局交互规范</h2>
+
+        <div class="prd-h3">应用 Shell</div>
+        <table class="prd-table">
+          <tr><th>元素</th><th>规格</th></tr>
+          <tr>
+            <td>Header（56px）</td>
+            <td>左侧品牌标题（宋体）+ 副标题（等宽），右侧知识库切换器 + ⌘K 搜索快捷键 + 设置按钮</td>
+          </tr>
+          <tr>
+            <td>Sidebar（240px）</td>
+            <td>编号化导航 01-04（对话/文档/图谱/搜索），下方为模块相关的历史记录列表</td>
+          </tr>
+          <tr>
+            <td>Main</td>
+            <td>剩余空间，背景 --bg-page（暖米色），各模块自定义布局</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">导航逻辑</div>
+        <table class="prd-table">
+          <tr><th>跳转路径</th><th>触发方式</th><th>说明</th></tr>
+          <tr><td>图谱 → 文档</td><td>点击详情抽屉中的"查看完整文档"</td><td>跳转到对应文档详情页</td></tr>
+          <tr><td>对话 → 文档</td><td>点击引用编号 [1][2][3]</td><td>跳转到对应文档详情页</td></tr>
+          <tr><td>搜索 → 文档</td><td>点击结果卡片的"查看 →"</td><td>跳转到对应文档详情页</td></tr>
+          <tr><td>任意 → 搜索</td><td>⌘K 快捷键</td><td>快速打开全局搜索</td></tr>
+          <tr><td>搜索 → 对话</td><td>顶部 banner "去对话 →"</td><td>需要 AI 综合回答时跳转</td></tr>
+          <tr><td>文档 → 文档</td><td>点击 [[wikilink]]</td><td>跳转到关联文档详情</td></tr>
+        </table>
+
+        <div class="prd-h3">设计系统</div>
+        <table class="prd-table">
+          <tr><th>类别</th><th>规范</th></tr>
+          <tr>
+            <td>配色</td>
+            <td>暖米色背景（#FAF8F3）+ 近黑主文字（#1C1917）+ 琥珀色单一强调（#B45309）。全产品仅一个强调色</td>
+          </tr>
+          <tr>
+            <td>字体</td>
+            <td>中文标题：宋体（Songti SC / SimSun），英文标题：Georgia，正文：系统无衬线，代码/元信息：系统等宽。完全离线，零网络依赖</td>
+          </tr>
+          <tr>
+            <td>间距</td>
+            <td>4px 基础单位，常用 8/12/16/24/32/48/64。圆角 6px</td>
+          </tr>
+          <tr>
+            <td>动效</td>
+            <td>克制为主。加载 staggered fade-in（60ms 延迟），hover 背景 150ms 过渡，抽屉滑出 320ms cubic-bezier。无路由动画</td>
+          </tr>
+          <tr>
+            <td>装饰</td>
+            <td>编号化（01-04），等宽字体标签，引用标注 [01][02]</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 10. 数据模型 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s10">
+        <div class="prd-section__num">10 — DATA MODEL</div>
+        <h2 class="prd-section__title">数据模型</h2>
+
+        <div class="prd-h3">知识库目录结构</div>
+        <div class="prd-diagram">my-knowledge-base/              ← 一个知识库 = 一个自包含目录
+├── manifest.json               ← 元信息（名称、版本、引擎、统计）
+├── wiki/                       ← Markdown 知识页面
+│   ├── iap-refund-flow.md      ← 带 frontmatter 的 wiki 页面
+│   ├── PaymentSystem.md
+│   └── ...
+├── graph/                      ← 图谱数据
+│   ├── graph.json              ← 节点 + 边的 JSON 数据
+│   └── graph.html              ← 独立可视化（可选）
+├── raw/                        ← 原始文档（导入前的源文件）
+│   ├── IAP系统/
+│   └── 投放系统/
+└── vectors/                    ← LanceDB 向量数据（本地文件）</div>
+
+        <div class="prd-h3">Wiki 页面格式</div>
+        <div class="prd-diagram">---
+type: source                    # source | entity | concept | synthesis
+date: 2024-03-15
+tags: [IAP, 退款, 支付]
+source_file: raw/IAP系统/refund.md
+---
+
+## 摘要
+IAP 系统退款流程包括...
+
+## 核心论点
+- 退款必须在 7 天内发起
+- 退款金额原路返回
+
+## 关联
+[[PaymentSystem]] · [[UserCenter]] · [[RefundPolicy]]</div>
+
+        <div class="prd-h3">知识图谱数据结构</div>
+        <table class="prd-table">
+          <tr><th>实体</th><th>字段</th><th>类型</th><th>说明</th></tr>
+          <tr>
+            <td>Node</td>
+            <td>id, label, type, x, y, size</td>
+            <td>string, string, enum, number</td>
+            <td>type: source | entity | concept | synthesis</td>
+          </tr>
+          <tr>
+            <td>Edge</td>
+            <td>source, target, type</td>
+            <td>string, string, enum</td>
+            <td>type: references | relates_to | mentions</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">manifest.json</div>
+        <div class="prd-diagram">{
+  "name": "工作知识库",
+  "id": "kb-work-2026",
+  "version": "1.0.0",
+  "created": "2026-01-15",
+  "engine": {
+    "type": "lancedb",
+    "embedding_model": "text-embedding-3-small",
+    "dimension": 1536
+  },
+  "stats": {
+    "sources": 12,
+    "entities": 8,
+    "concepts": 15,
+    "syntheses": 2
+  }
+}</div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 11. 技术架构 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s11">
+        <div class="prd-section__num">11 — TECH STACK</div>
+        <h2 class="prd-section__title">技术架构</h2>
+
+        <div class="prd-h3">已确认技术决策</div>
+        <table class="prd-table">
+          <tr><th>决策项</th><th>选择</th><th>理由</th></tr>
+          <tr><td>前端框架</td><td>React / Next.js (App Router)</td><td>全栈框架，API Routes 即后端</td></tr>
+          <tr><td>后端语言</td><td>TypeScript (Next.js API Routes)</td><td>前后端统一，与 Python 工具链通过 child_process 桥接</td></tr>
+          <tr><td>向量数据库</td><td>LanceDB</td><td>纯文件存储，零服务进程，与 Markdown 文件架构一致</td></tr>
+          <tr><td>桌面打包</td><td>Tauri</td><td>体积小（~10MB），用系统 WebView，双击即开</td></tr>
+          <tr><td>图谱可视化</td><td>D3.js 或 react-force-graph</td><td>力导向图，支持大规模节点交互</td></tr>
+          <tr><td>流式通信</td><td>SSE (Server-Sent Events)</td><td>AI 对话流式输出，比 WebSocket 更轻量</td></tr>
+          <tr><td>AI 集成</td><td>Phase 0: Claude Code 代理 → Phase 3: Mini Agent</td><td>先快速验证，后替换为轻量专用 Agent</td></tr>
+        </table>
+
+        <div class="prd-h3">检索架构</div>
+        <div class="prd-diagram">用户查询
+  ├── 关键词检索（BM25）
+  ├── 向量检索（LanceDB 语义相似度）
+  └── 融合排序（Reciprocal Rank Fusion）
+      └── 返回 Top-K 结果</div>
+
+        <div class="prd-h3">AI 对话架构</div>
+        <div class="prd-diagram">用户在对话窗口输入
+  → 后端预检索知识库相关页面（tools/query.py）
+  → 拼接用户消息 + 检索上下文 → 发送给 AI
+  → AI 流式回复（SSE）
+  → 前端实时渲染，引用标注 [1][2][3] 可点击跳转</div>
+
+        <div class="prd-h3">部署形态</div>
+        <table class="prd-table">
+          <tr><th>形态</th><th>适用场景</th><th>技术方案</th></tr>
+          <tr><td>桌面应用</td><td>个人使用</td><td>Tauri 打包为 .exe / .dmg，双击即开</td></tr>
+          <tr><td>内网部署</td><td>团队共享</td><td>Docker Compose（Next.js 容器），浏览器访问</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 12. MCP 工具集成 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s12">
+        <div class="prd-section__num">12 — MCP TOOLS</div>
+        <h2 class="prd-section__title">MCP 工具集成（开发者接口）</h2>
+
+        <p>通过 MCP（Model Context Protocol）标准协议，将知识库能力暴露给外部 AI 编程工具（Claude Code、Cursor、Qoder 等）。开发者在日常编码过程中可以直接查询知识库、沉淀开发经验、保存问答到知识库，无需切换到桌面应用操作。</p>
+
+        <div class="prd-callout">
+          <strong>核心价值：</strong>让知识库"活"在开发者的工作流中——写代码时随手查、随手存，知识自然生长，而不是"写完文档再去维护"。
+        </div>
+
+        <div class="prd-h3">注册方式</div>
+        <p>开发者在支持 MCP 的 AI 工具中注册知识库服务，一行命令即可接入：</p>
+        <div class="prd-diagram"># Claude Code / Cursor / Qoder 中注册
+claude mcp add llm-wiki -- node app/dist/mcp-server.js
+
+# 注册后，AI 工具即可调用知识库的全部 MCP 工具</div>
+
+        <div class="prd-h3">MCP 工具清单</div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">search_wiki — 语义检索知识库</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>query</td><td>string</td><td>是</td><td>自然语言查询或关键词</td></tr>
+            <tr><td>mode</td><td>enum</td><td>否</td><td>hybrid（默认） / keyword / vector</td></tr>
+            <tr><td>top_k</td><td>number</td><td>否</td><td>返回结果数量，默认 5</td></tr>
+            <tr><td>type_filter</td><td>string[]</td><td>否</td><td>按类型过滤：source / entity / concept / synthesis</td></tr>
+          </table>
+          <p style="margin-top: 8px;"><strong>返回：</strong>匹配的 wiki 页面列表，每项含标题、摘要、类型、相关度评分、文件路径。</p>
+          <div class="prd-diagram">示例场景：开发者在写退款功能时，让 AI 查一下知识库里已有的退款相关文档
+→ AI 调用 search_wiki("退款流程", top_k=3)
+→ 返回 IAP退款流程(0.91)、PaymentSystem(0.74)、RefundPolicy(0.55)</div>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">get_page — 获取指定页面内容</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>page_id</td><td>string</td><td>是</td><td>页面 ID 或文件名（如 "iap-refund-flow"）</td></tr>
+            <tr><td>include_graph</td><td>boolean</td><td>否</td><td>是否包含该节点的图谱关联信息，默认 false</td></tr>
+          </table>
+          <p style="margin-top: 8px;"><strong>返回：</strong>完整的 Markdown 内容 + frontmatter 元信息 + 可选的图谱关联数据（入边/出边节点列表）。</p>
+          <div class="prd-diagram">示例场景：开发者需要了解 PaymentSystem 的完整架构
+→ AI 调用 get_page("PaymentSystem", include_graph=true)
+→ 返回完整文档内容 + 关联节点：IAP退款、AdChannelSelection、支付网关...</div>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">update_page — 更新或创建知识页面</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>page_id</td><td>string</td><td>是</td><td>页面 ID（已存在则更新，不存在则创建）</td></tr>
+            <tr><td>content</td><td>string</td><td>是</td><td>Markdown 内容（含 frontmatter）</td></tr>
+            <tr><td>type</td><td>enum</td><td>否</td><td>source / entity / concept / synthesis，默认 source</td></tr>
+            <tr><td>tags</td><td>string[]</td><td>否</td><td>标签列表</td></tr>
+            <tr><td>auto_compile</td><td>boolean</td><td>否</td><td>是否自动触发知识编译（更新图谱+向量），默认 true</td></tr>
+          </table>
+          <p style="margin-top: 8px;"><strong>返回：</strong>操作结果（创建/更新）、页面路径、编译状态。</p>
+          <div class="prd-diagram">示例场景：开发者在解决一个支付 bug 后，把经验沉淀到知识库
+→ AI 调用 update_page("payment-gateway-timeout-fix", content="...", type="source", tags=["支付","排障"])
+→ 页面创建成功，自动编译到知识库，图谱和向量索引同步更新</div>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">save_qa — 保存问答到知识库</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>question</td><td>string</td><td>是</td><td>问题原文</td></tr>
+            <tr><td>answer</td><td>string</td><td>是</td><td>回答内容（Markdown）</td></tr>
+            <tr><td>source_pages</td><td>string[]</td><td>否</td><td>引用的 wiki 页面 ID 列表</td></tr>
+            <tr><td>tags</td><td>string[]</td><td>否</td><td>标签列表</td></tr>
+            <tr><td>auto_compile</td><td>boolean</td><td>否</td><td>是否自动编译，默认 true</td></tr>
+          </table>
+          <p style="margin-top: 8px;"><strong>返回：</strong>生成的页面 ID、路径、编译状态。</p>
+          <div class="prd-diagram">示例场景：开发者问了一个很好的技术问题，AI 给了详细回答，想把这组 QA 保存下来
+→ AI 调用 save_qa(question="IAP退款超时如何处理？", answer="...", source_pages=["iap-refund-flow"])
+→ 自动生成 synthesis 类型页面，编入知识库，下次搜索可命中</div>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">list_pages — 列出知识库页面</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>type</td><td>enum</td><td>否</td><td>按类型过滤</td></tr>
+            <tr><td>tag</td><td>string</td><td>否</td><td>按标签过滤</td></tr>
+            <tr><td>limit</td><td>number</td><td>否</td><td>返回数量上限，默认 20</td></tr>
+          </table>
+          <p style="margin-top: 8px;"><strong>返回：</strong>页面列表（ID、标题、类型、标签、更新时间）。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">build_graph — 手动触发图谱构建</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>scope</td><td>enum</td><td>否</td><td>full（全量重建，默认）/ incremental（仅处理变更页面）</td></tr>
+          </table>
+          <p style="margin-top: 8px;"><strong>返回：</strong>构建结果（节点数、边数、耗时、是否有异常）。</p>
+        </div>
+
+        <div class="prd-h3">典型工作流</div>
+
+        <div class="prd-h4">流程一：开发中查询知识</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 01</div>
+            <div class="prd-flow__step-text">开发者在 Claude Code / Cursor 中写代码，遇到不确定的业务逻辑</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 02</div>
+            <div class="prd-flow__step-text">AI 自动调用 search_wiki 查询知识库，找到相关文档</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 03</div>
+            <div class="prd-flow__step-text">AI 结合知识库内容给出准确回答，附带引用来源</div>
+          </div>
+        </div>
+
+        <div class="prd-h4">流程二：沉淀开发经验</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 01</div>
+            <div class="prd-flow__step-text">开发者解决了一个复杂问题（如支付网关超时 bug）</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 02</div>
+            <div class="prd-flow__step-text">AI 主动提议：把这个经验写入知识库</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 03</div>
+            <div class="prd-flow__step-text">调用 update_page 创建新的 wiki 页面，自动编译到知识库</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 04</div>
+            <div class="prd-flow__step-text">图谱自动更新，下次搜索可命中这条新知识</div>
+          </div>
+        </div>
+
+        <div class="prd-h4">流程三：保存有价值的问答</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 01</div>
+            <div class="prd-flow__step-text">开发者与 AI 进行了一次高质量的技术问答</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 02</div>
+            <div class="prd-flow__step-text">AI 判断这组 QA 有沉淀价值，主动提议保存</div>
+          </div>
+          <div class="prd-flow__step">
+            <div class="prd-flow__step-num">STEP 03</div>
+            <div class="prd-flow__step-text">调用 save_qa 生成 synthesis 页面，自动编译入库</div>
+          </div>
+        </div>
+
+        <div class="prd-h3">MCP 服务端实现</div>
+        <table class="prd-table">
+          <tr><th>配置项</th><th>值</th></tr>
+          <tr><td>入口文件</td><td><code>app/src/lib/mcp-server.ts</code></td></tr>
+          <tr><td>启动命令</td><td><code>node app/dist/mcp-server.js</code></td></tr>
+          <tr><td>协议版本</td><td>MCP 1.0（stdio transport）</td></tr>
+          <tr><td>依赖</td><td>复用 hybrid-search.ts、wiki-store.ts、graph-builder.ts</td></tr>
+          <tr><td>知识库路径</td><td>通过环境变量 <code>WIKI_KB_PATH</code> 指定当前挂载的知识库目录</td></tr>
+        </table>
+
+        <div class="prd-h3">安全与权限</div>
+        <table class="prd-table">
+          <tr><th>策略</th><th>说明</th></tr>
+          <tr>
+            <td>只读默认</td>
+            <td>search_wiki、get_page、list_pages 为只读操作，无需额外确认</td>
+          </tr>
+          <tr>
+            <td>写入确认</td>
+            <td>update_page、save_qa、build_graph 为写入操作，MCP 协议层返回 description 告知 AI 将执行写入，由 AI 工具向用户确认</td>
+          </tr>
+          <tr>
+            <td>文件隔离</td>
+            <td>所有操作限定在当前挂载的知识库目录内，不访问外部文件系统</td>
+          </tr>
+          <tr>
+            <td>自动编译可关闭</td>
+            <td>auto_compile=false 时仅写入 wiki/ 目录，不触发图谱和向量更新，适合批量写入场景</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 13. 编译质量保障机制 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s13">
+        <div class="prd-section__num">13 — COMPILATION INTEGRITY</div>
+        <h2 class="prd-section__title">编译质量保障机制</h2>
+
+        <p>AI 将原始文档编译为结构化 Wiki 页面的过程中，存在信息丢失的风险：AI 可能过度摘要、遗漏细节、或"自作聪明"地改写原文意图。本章节定义一套多层保障机制，确保编译过程可追溯、可验证、可回退。</p>
+
+        <div class="prd-callout">
+          <strong>设计原则：</strong>编译是"给原始内容加结构化外壳"，不是"把整篇文档压缩成摘要"。原文的丰富度不丢，结构化是增量而非替代。
+        </div>
+
+        <div class="prd-h3">行业参考：obsidian-wiki 的三层防丢机制</div>
+
+        <p><a href="https://github.com/Ar9av/obsidian-wiki" style="color: var(--accent);">obsidian-wiki</a> 是目前在"AI 编译知识库"方向上做得最完整的开源项目。它的核心架构是三层分离：Tier 1（原始文档，不可变）/ Tier 2（编译后 Wiki，AI 维护）/ Tier 3（Schema，处理规则）。在防止编译信息丢失方面，它建立了多层重叠的保障机制，对我们的项目有直接的借鉴价值。</p>
+
+        <table class="prd-table">
+          <tr><th>obsidian-wiki 的机制</th><th>具体做法</th><th>对我们的借鉴</th></tr>
+          <tr>
+            <td>原始文档不可变</td>
+            <td>Raw sources 存储在独立目录，永远不修改不删除，wiki 页面通过 sources 字段指回原文</td>
+            <td>✅ 采纳：我们的 raw/ 目录 + source_file 字段已实现同等设计</td>
+          </tr>
+          <tr>
+            <td>Manifest 增量追踪</td>
+            <td>.manifest.json 记录每个原始文档的内容 hash、摄入时间、创建了哪些 wiki 页面。编译不是一次性黑箱，而是可追溯的增量过程</td>
+            <td>✅ 采纳：新增 manifest.json 到知识库结构，记录每次编译的输入输出</td>
+          </tr>
+          <tr>
+            <td>溯源标记（Provenance）</td>
+            <td>wiki 页面中每条信息标注来源状态：无标记 = 直接来自原文，^[inferred] = AI 推理，^[ambiguous] = 不确定。frontmatter 记录比例（extracted: 0.7, inferred: 0.2, ambiguous: 0.1）</td>
+            <td>✅ 采纳：在 wiki 页面 frontmatter 中增加 provenance 字段</td>
+          </tr>
+          <tr>
+            <td>Staging 审核流程</td>
+            <td>AI 编译产物先进 _staging/ 目录，人工审核后才进入主 wiki。用 diff 格式（+ 新增 - 删除）展示变更</td>
+            <td>✅ 采纳：编译后先展示 diff 对比视图，用户确认后再生效</td>
+          </tr>
+          <tr>
+            <td>结构健康度检测</td>
+            <td>wiki-status 分析知识图谱空洞、孤岛页面、分类连接度。wiki-lint 检查孤立页面、断裂链接、过期内容、推断比例超标</td>
+            <td>✅ 采纳：编译完成后输出结构健康报告</td>
+          </tr>
+          <tr>
+            <td>Rebuild 能力</td>
+            <td>随时可快照当前 wiki，从原始文档重新全量编译。保证编译过程完全可逆</td>
+            <td>✅ 采纳：提供全量重建入口，支持回退到任意历史快照</td>
+          </tr>
+          <tr>
+            <td>置信度评分</td>
+            <td>根据来源数量和质量自动计算 base_confidence（同行评审论文 = 0.9，博客 = 0.4），页面有 lifecycle 状态流转</td>
+            <td>⚠️ 延后：v2 再实现，v1 先用 provenance 比例</td>
+          </tr>
+          <tr>
+            <td>去重合并</td>
+            <td>wiki-dedup 用多信号评分检测重复页面，合并时选"幸存者"，失败方变为重定向占位符（不删除）</td>
+            <td>⚠️ 延后：v2 再实现</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">我们采纳的五层保障机制</div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">第一层：原文不可变 + 溯源链接</div>
+          <p>所有原始文档存储在 <code>raw/</code> 目录，编译后永不修改、不删除。每个 wiki 页面的 frontmatter 通过 <code>source_file</code> 字段指回原文。用户可以随时点击"查看原文"对照确认。这是我们架构的基础保障，已在当前设计中实现。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">第二层：Manifest 编译追踪</div>
+          <p>知识库根目录新增 <code>.manifest.json</code>，记录每次编译的完整轨迹。这使得编译过程从黑箱变为白箱——可以回答"这篇 wiki 页面是从哪些原始文档编译来的""上次编译是什么时候""原始文档有没有更新过"。</p>
+          <div class="prd-diagram">{
+  "version": 1,
+  "compilations": {
+    "iap-refund-flow": {
+      "source_hash": "sha256:a1b2c3...",
+      "source_file": "raw/IAP系统/refund.md",
+      "compiled_at": "2026-06-16T10:30:00Z",
+      "pages_created": ["wiki/iap-refund-flow.md"],
+      "pages_updated": ["wiki/PaymentSystem.md"],
+      "coverage": 0.92,
+      "provenance": { "extracted": 0.78, "inferred": 0.15, "ambiguous": 0.07 }
+    }
+  }
+}</div>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">第三层：Provenance 溯源标记</div>
+          <p>wiki 页面中的每一条信息都标注其来源状态，让用户一眼区分"原文说了什么"和"AI 推断出什么"。</p>
+          <table class="prd-table">
+            <tr><th>标记</th><th>含义</th><th>视觉表现</th></tr>
+            <tr>
+              <td>无标记</td>
+              <td>直接从原始文档中提取的信息</td>
+              <td>正常文字，无特殊样式</td>
+            </tr>
+            <tr>
+              <td><code>^[inferred]</code></td>
+              <td>AI 从多个来源综合推理得出的结论</td>
+              <td>淡琥珀色背景 + 虚线下划线，hover 显示推理来源</td>
+            </tr>
+            <tr>
+              <td><code>^[ambiguous]</code></td>
+              <td>存在矛盾或不确定的信息</td>
+              <td>淡红色背景 + 波浪下划线，hover 显示冲突来源</td>
+            </tr>
+          </table>
+          <p style="margin-top: 8px;">frontmatter 中增加 <code>provenance</code> 字段记录整体比例：</p>
+          <div class="prd-diagram">---
+title: IAP退款流程
+type: source
+provenance:
+  extracted: 0.78    # 78% 内容直接来自原文
+  inferred: 0.15     # 15% 为 AI 推理
+  ambiguous: 0.07    # 7% 存在不确定性
+---</div>
+          <p>编译后的 lint 检查会自动校验：如果 inferred 比例超过 40% 或 ambiguous 超过 15%，发出警告提示用户审查。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">第四层：编译结果 Diff 审核</div>
+          <p>编译完成后不直接生效，而是展示一个对比视图供用户审核。这个流程参考了 obsidian-wiki 的 <code>_staging/</code> → <code>wiki-stage-commit</code> 模式。</p>
+          <div class="prd-h4">审核视图布局</div>
+          <div class="prd-diagram">┌─────────────────────────┬─────────────────────────┐
+│  原始文档 (raw/)         │  编译结果 (wiki/)         │
+│                         │                           │
+│  IAP 系统退款流程包括    │  ## 摘要                  │
+│  用户发起、系统校验、    │  IAP 系统退款流程包括...  │
+│  退款执行三个核心步骤，  │                           │ ← 绿色高亮：已覆盖
+│  需在 7 天退款期内完成。 │  ## 核心论点              │
+│                         │  - 退款必须在 7 天内发起  │ ← 绿色高亮：已覆盖
+│  退款金额不超过原支付    │                           │
+│  金额的 100%，特殊情况   │                           │ ← 红色标记：未覆盖
+│  需人工审批。            │  (此段未被纳入编译结果)   │
+│                         │                           │
+│                         │  ## AI 补充               │
+│                         │  - 退款流程建议增加...  ^[inferred] │ ← 琥珀色：AI 推理
+├─────────────────────────┴─────────────────────────┤
+│  覆盖率: 92% (23/25 段已覆盖)                      │
+│  ⚠ 2 段未被覆盖，请检查是否需要手动补充              │
+│                                                    │
+│  [✓ 确认编译]  [✏ 手动补充]  [← 回退到原文]         │
+└────────────────────────────────────────────────────┘</div>
+          <p>用户可以逐项确认、手动补充未覆盖的段落，或者直接回退。确认后编译结果才正式生效到 wiki 和图谱。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">第五层：结构健康度检测</div>
+          <p>每次编译完成后自动运行结构检测，输出一份健康报告。参考 obsidian-wiki 的 <code>wiki-status</code> 和 <code>wiki-lint</code> 机制。</p>
+          <table class="prd-table">
+            <tr><th>检测项</th><th>说明</th><th>告警阈值</th></tr>
+            <tr>
+              <td>信息覆盖率</td>
+              <td>原始文档中有多少段落被编译结果覆盖</td>
+              <td>&lt; 80% 时警告</td>
+            </tr>
+            <tr>
+              <td>推断比例</td>
+              <td>wiki 页面中 AI 推理内容的占比</td>
+              <td>&gt; 40% 时警告</td>
+            </tr>
+            <tr>
+              <td>模糊比例</td>
+              <td>wiki 页面中不确定/矛盾信息的占比</td>
+              <td>&gt; 15% 时警告</td>
+            </tr>
+            <tr>
+              <td>孤岛页面</td>
+              <td>没有任何入链的 wiki 页面</td>
+              <td>存在时提示</td>
+            </tr>
+            <tr>
+              <td>断裂链接</td>
+              <td>[[wikilink]] 指向不存在的页面</td>
+              <td>存在时警告</td>
+            </tr>
+            <tr>
+              <td>过期内容</td>
+              <td>原始文档更新时间晚于 wiki 页面编译时间</td>
+              <td>存在时提示需要重新编译</td>
+            </tr>
+            <tr>
+              <td>知识空洞</td>
+              <td>经常共现但缺少桥接文档的概念对</td>
+              <td>存在时建议创建综合页面</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="prd-h3">编译完整流程图</div>
+        <div class="prd-diagram">原始文档 (raw/)
+  │
+  ▼
+① AI 编译引擎
+  ├── 提取结构化信息（frontmatter / 摘要 / 核心论点）
+  ├── 标注 provenance（extracted / inferred / ambiguous）
+  ├── 提取实体关系（[[wikilink]] / 图谱边）
+  └── 计算覆盖率（原文段落 vs 编译段落）
+  │
+  ▼
+② Manifest 记录
+  ├── 写入 .manifest.json（hash / 时间 / 输入输出映射）
+  └── 标记编译状态为 "pending_review"
+  │
+  ▼
+③ Diff 审核视图
+  ├── 左栏：原始文档
+  ├── 右栏：编译结果（provenance 颜色标记）
+  ├── 底部：覆盖率 + 未覆盖段落高亮
+  └── 用户操作：确认 / 手动补充 / 回退
+  │
+  ▼
+④ 确认后生效
+  ├── 写入 wiki/ 目录
+  ├── 更新向量索引（LanceDB）
+  ├── 更新知识图谱（graph/）
+  ├── 运行结构健康检测
+  └── 输出健康报告
+  │
+  ▼
+⑤ 知识就绪 — 搜索和对话可命中新知识</div>
+
+        <div class="prd-h3">可逆性保障</div>
+        <table class="prd-table">
+          <tr><th>操作</th><th>说明</th></tr>
+          <tr>
+            <td>单页面回退</td>
+            <td>任何 wiki 页面可回退到编译前的原始文档，删除结构化信息，还原为原文</td>
+          </tr>
+          <tr>
+            <td>全量重建</td>
+            <td>从 raw/ 目录重新编译全部 wiki 页面。编译前先快照当前 wiki（带时间戳），可随时恢复</td>
+          </tr>
+          <tr>
+            <td>增量重建</td>
+            <td>根据 manifest 中的 hash 对比，仅重新编译内容有变更的原始文档，适合日常维护</td>
+          </tr>
+        </table>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- 14. 开发路线 -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="prd-section" id="s14">
+        <div class="prd-section__num">14 — ROADMAP</div>
+        <h2 class="prd-section__title">开发路线与验收标准</h2>
+
+        <table class="prd-table">
+          <tr><th>阶段</th><th>时间</th><th>核心产出</th><th>验收标准</th></tr>
+          <tr>
+            <td>Phase 0<br>Claude Code 代理</td>
+            <td>第 1-2 周</td>
+            <td>Next.js 骨架 + WebSocket 对话 + CLI 代理</td>
+            <td>浏览器中可发送消息并收到流式回复</td>
+          </tr>
+          <tr>
+            <td>Phase 1<br>评估体系</td>
+            <td>第 2-4 周</td>
+            <td>测试集 + 评估脚本 + 基线数据</td>
+            <td>检索 P@5 > 0.6，编译覆盖率 > 0.8，图 F1 > 0.7</td>
+          </tr>
+          <tr>
+            <td>Phase 2<br>可视化 + 检索</td>
+            <td>第 3-8 周</td>
+            <td>文档管理 + 图谱 + 对话 + MCP + 混合搜索</td>
+            <td>四个模块完整可用，MCP 注册后可在 Claude Code 中调用</td>
+          </tr>
+          <tr>
+            <td>Phase 3<br>Mini Agent</td>
+            <td>第 6-8 周</td>
+            <td>自建轻量 AI Agent 替换 Claude Code</td>
+            <td>延迟 < 50%，Token 消耗 < 1/3</td>
+          </tr>
+          <tr>
+            <td>Phase 4<br>部署打包</td>
+            <td>第 7-9 周</td>
+            <td>Tauri 桌面版 + Docker 内网部署</td>
+            <td>.exe 双击可用，Docker 一键部署</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">当前状态</div>
+        <div class="prd-callout">
+          <strong>原型阶段已完成</strong>：四个核心模块的 HTML 静态原型已实现并通过验证。图谱页面布局已修正为全画布 + 右侧抽屉，文档管理页面已重构为知识库选择器 + 编辑编译工作流。下一步进入 Phase 0 开发阶段。
+        </div>
+
+        <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
+          <span>PRD · 工作知识库 · V1.0</span>
+          <span>2026-06-16</span>
+          <span>END OF DOCUMENT</span>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/sidebar.js"></script>
+<script src="assets/settings.js"></script>
+
+</body>
+</html>
