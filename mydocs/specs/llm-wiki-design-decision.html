@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Wiki 3.0 产品设计决策分析</title>
+<style>
+  :root {
+    --bg-page: #FAF8F3; --bg-card: #FFFFFF; --bg-code: #F5F0E8;
+    --text-primary: #1C1917; --text-secondary: #78716C; --text-muted: #A8A29E;
+    --accent: #B45309; --accent-light: #FEF3C7;
+    --border: #E7E5E4; --border-light: #F5F5F4;
+    --green: #166534; --green-bg: #F0FDF4;
+    --red: #991B1B; --red-bg: #FEF2F2;
+    --blue: #1E40AF; --blue-bg: #EFF6FF;
+    --purple: #6B21A8; --purple-bg: #FAF5FF;
+    --teal: #0F766E; --teal-bg: #F0FDFA;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+    background: var(--bg-page); color: var(--text-primary); line-height: 1.85; font-size: 15px;
+  }
+  .page { max-width: 900px; margin: 0 auto; padding: 60px 40px 100px; }
+  .page-header { border-bottom: 2px solid var(--text-primary); padding-bottom: 32px; margin-bottom: 48px; }
+  .page-header .meta { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 12px; }
+  .page-header h1 { font-size: 28px; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+  .page-header .subtitle { font-size: 16px; color: var(--text-secondary); font-style: italic; }
+
+  .section { margin-bottom: 56px; }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-num { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); font-weight: 600; }
+  .section-header h2 { font-size: 22px; font-weight: 700; line-height: 1.3; }
+  .section p { margin-bottom: 16px; text-align: justify; }
+  .section h3 { font-size: 17px; font-weight: 600; margin-top: 28px; margin-bottom: 12px; }
+  .section h4 { font-size: 15px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; color: var(--text-secondary); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13.5px; }
+  th { background: var(--bg-code); text-align: left; padding: 10px 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+  tr:hover td { background: var(--bg-code); }
+
+  code { font-family: "JetBrains Mono", monospace; font-size: 13px; background: var(--bg-code); padding: 2px 6px; border-radius: 3px; color: var(--accent); }
+  pre { background: #1C1917; color: #E7E5E4; padding: 20px 24px; border-radius: 8px; overflow-x: auto; margin: 16px 0 24px; line-height: 1.6; }
+  pre code { background: none; color: inherit; padding: 0; font-size: 12.5px; }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-light); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 14px; }
+  .callout.insight { border-left-color: var(--green); background: var(--green-bg); }
+  .callout.warning { border-left-color: var(--red); background: var(--red-bg); }
+  .callout.info { border-left-color: var(--blue); background: var(--blue-bg); }
+  .callout.purple { border-left-color: var(--purple); background: var(--purple-bg); }
+  .callout.teal { border-left-color: var(--teal); background: var(--teal-bg); }
+  .callout strong { display: block; margin-bottom: 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  ul, ol { margin: 12px 0 20px 24px; }
+  li { margin-bottom: 8px; }
+
+  .badge { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .badge-amber { background: var(--accent-light); color: var(--accent); }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+  .badge-purple { background: var(--purple-bg); color: var(--purple); }
+  .badge-teal { background: var(--teal-bg); color: var(--teal); }
+
+  .compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .compare-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .compare-card h4 { margin-top: 0; margin-bottom: 12px; font-size: 14px; }
+  .compare-card p { font-size: 13.5px; margin-bottom: 8px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .page-footer { margin-top: 60px; padding-top: 24px; border-top: 2px solid var(--text-primary); font-size: 12px; color: var(--text-muted); font-family: "JetBrains Mono", monospace; text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="page-header">
+  <div class="meta">Decision Clarity Analysis · 2026-06-21</div>
+  <h1>LLM Wiki 3.0 产品设计决策</h1>
+  <div class="subtitle">从单人工具到团队平台的架构演进路径</div>
+</header>
+
+<!-- ==================== 01 澄清 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>澄清：真正的问题是什么</h2>
+  </div>
+
+  <p>你描述的需求表面上是"升级 LLM Wiki 3.0"，但拆开后实际上包含了四个不同的问题，它们的优先级和复杂度差异巨大：</p>
+
+  <table>
+    <tr><th>表面需求</th><th>真正的问题</th></tr>
+    <tr><td>"编译过程黑箱，靠 AI 能力"</td><td>编译质量的<strong>可控性和可审计性</strong></td></tr>
+    <tr><td>"每次编译消耗 token"</td><td>知识库规模增长时的<strong>边际成本控制</strong></td></tr>
+    <tr><td>"从单人扩展到团队"</td><td><strong>多人协作</strong>的数据架构和权限模型</td></tr>
+    <tr><td>"开发用 MCP，非开发用 UI"</td><td>同一套知识库的<strong>两种消费模式</strong></td></tr>
+  </table>
+
+  <div class="callout warning">
+    <strong>你的 PLAN.md 没有解决前两个问题</strong>
+    你当前的升级计划（Phase 0-4）主要解决的是"加 UI"和"加向量检索"，但编译黑箱和 token 成本控制这两个核心痛点，在当前计划中几乎没有被触及。Mini Agent 能降低单次对话的 token，但不解决编译本身的 token 消耗。
+  </div>
+
+  <h3>一句话重新定义你的产品目标</h3>
+  <p>不是"给单人工具加个界面"，而是：<strong>构建一个编译质量可控、token 成本可预测、同时服务开发者（MCP）和非开发者（UI）的团队级知识管理平台。</strong></p>
+</section>
+
+<!-- ==================== 02 拆解 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>拆解：从事实出发</h2>
+  </div>
+
+  <h3>基本事实</h3>
+
+  <table>
+    <tr><th>事实</th><th>含义</th></tr>
+    <tr><td>LLM 编译 1 篇文档产出 ~5-15 个页面</td><td>编译成本随文档数线性增长，但产出页面数是非线性膨胀</td></tr>
+    <tr><td>每次编译需要 LLM 读取源文件 + 读取现有 wiki 页面</td><td>wiki 越大，每次编译需要"回忆"的上下文越多，token 成本递增</td></tr>
+    <tr><td>团队成员 80% 的时间在查询，20% 在写入</td><td>查询优化比编译优化对日常体验影响更大</td></tr>
+    <tr><td>知识有"热区"——20% 的页面被 80% 的查询命中</td><td>不需要同等对待所有页面</td></tr>
+    <tr><td>AI 编译不可复现</td><td>同一文档编译两次产出不同页面——这在团队场景下是严重问题</td></tr>
+  </table>
+
+  <h3>硬约束（不可妥协）</h3>
+
+  <ul>
+    <li><strong>LLM 上下文窗口有上限</strong>——当 wiki 超过几千页时，不可能每次编译都把全量页面放进上下文。必须做增量。</li>
+    <li><strong>Token 有成本</strong>——团队高频使用下，不能接受每次查询都消耗数千 token。需要缓存和分层。</li>
+    <li><strong>编译产物必须可审计</strong>——团队场景下，AI 编译错误会被所有人消费，必须有 diff 审核环节。</li>
+    <li><strong>MCP 和 UI 共享同一份数据</strong>——开发者和非开发者看到的是同一个知识库，不存在两套系统。</li>
+  </ul>
+
+  <h3>软约束（可以挑战）</h3>
+
+  <ul>
+    <li><strong>"编译必须在写入时完成"</strong>——可以改为异步编译、定时编译、或按需编译。</li>
+    <li><strong>"向量搜索是检索的核心"</strong>——对小型知识库（< 500 页），分层元数据扫描可能就够了。</li>
+    <li><strong>"Tauri 桌面应用"</strong>——团队使用场景下，内网 Web 部署可能比桌面应用更合适。</li>
+    <li><strong>"4 种页面类型"</strong>——缺少 skills/（操作知识）和 references/（来源摘要）分类，影响检索精度。</li>
+  </ul>
+</section>
+
+<!-- ==================== 03 暴露假设 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>暴露：你隐含了哪些假设</h2>
+  </div>
+
+  <p>以下是你描述中隐含的、但可能经不起推敲的假设：</p>
+
+  <table>
+    <tr><th>隐含假设</th><th>挑战</th></tr>
+    <tr>
+      <td><strong>"编译型"是唯一正确的知识管理范式</strong></td>
+      <td>GBrain 证明了"检索型"在大规模知识库（14.6 万页）下也能工作。编译型在团队场景下有一个致命风险：编译错误会被所有人消费。检索型（存原始分块，查询时实时综合）在容错性上更优。</td>
+    </tr>
+    <tr>
+      <td><strong>"知识库规模大 = 编译压力大"</strong></td>
+      <td>规模大对编译的压力和对检索的压力是不同的。编译压力可以通过增量编译 + Tier 控制解决；检索压力需要分层策略 + 缓存。这是两个独立问题，不能用同一个方案解决。</td>
+    </tr>
+    <tr>
+      <td><strong>"MCP 和 UI 是同一产品的两个入口"</strong></td>
+      <td>它们的使用模式完全不同。MCP 是"提问→AI 回答"，用户不直接看 wiki 页面。UI 是"浏览→搜索→阅读"，用户直接消费编译产物。这意味着编译产物的质量对 UI 用户比对 MCP 用户更重要。</td>
+    </tr>
+    <tr>
+      <td><strong>"知识图谱可视化是团队用户的刚需"</strong></td>
+      <td>管理者可能只需要搜索和对话能力，不需要看图谱。图谱对"理清思路"有用，但这不是每个人每天都需要的功能。确认一下：你团队中，真正会花时间看图谱的人有几个？</td>
+    </tr>
+    <tr>
+      <td><strong>"当前架构加个 UI 就能升级为团队产品"</strong></td>
+      <td>当前 Python CLI 架构是为单进程单用户设计的。团队使用需要并发写入、权限控制、变更通知。这不是"加个 UI"能解决的，是架构层面的改造。</td>
+    </tr>
+  </table>
+
+  <div class="callout warning">
+    <strong>最危险的假设</strong>
+    "编译型"在单人使用下很好用，因为你自己能判断编译质量。但团队场景下，如果 AI 编译出了一个错误页面（比如把"微信支付退款"和"支付宝退款"混为一谈），这个错误会被所有团队成员消费且无人发现。编译型知识库在团队场景下的<strong>容错机制</strong>是当前方案中完全缺失的。
+  </div>
+</section>
+
+<!-- ==================== 04 简化 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>简化：去掉不必要的复杂性</h2>
+  </div>
+
+  <p>结合 obsidian-wiki 和 GBrain 的研究，你的方案设计中有几处应该简化或重新考虑的地方：</p>
+
+  <h3>简化 1：不要同时做"编译型"和"检索型"两套完整系统</h3>
+
+  <p>你目前的方案本质上是混合的——既有编译（wiki 页面生成），又有向量检索。但两个都没做透。与其两边都平庸，不如<strong>明确哪一层是核心，哪一层是辅助</strong>。</p>
+
+  <div class="callout insight">
+    <strong>建议：编译为主，检索为辅</strong>
+    你的核心差异化就是"编译型知识库"——obsidian-wiki 证明了这条路的价值。向量检索和混合搜索是你的检索辅助层，不是你的核心卖点。投入 70% 精力在编译质量和可控性上，30% 在检索能力上。
+  </div>
+
+  <h3>简化 2：Phase 0（Claude Code 代理）可以跳过</h3>
+
+  <p>你当前的 Phase 0 是用 WebSocket 代理 Claude Code 对话。但在团队场景下，你不可能让每个团队成员都通过你的后端代理一个 Claude Code 进程。这个架构在单人使用时可行，在团队场景下完全不可扩展。</p>
+
+  <p>建议直接跳到 Mini Agent（你现有的 Phase 3），用 Anthropic SDK 直接调 API。省下的时间用在编译质量控制上。</p>
+
+  <h3>简化 3：Tauri 桌面版在团队场景下不是最优解</h3>
+
+  <p>你的 PLAN.md 同时规划了"Tauri 桌面版"和"Docker 内网部署"。对于团队使用，内网 Web 部署是自然选择——团队成员打开浏览器就能用，不需要每人装一个桌面应用。Tauri 桌面版只适合个人单机使用。</p>
+
+  <div class="callout">
+    <strong>简化建议</strong>
+    团队版本 = Next.js 内网部署（Docker）。个人版本 = 可选 Tauri 打包。但<strong>优先做团队版本</strong>，因为团队使用是你的核心场景。
+  </div>
+
+  <h3>简化 4：MVP 不需要 obsidian-wiki 或 GBrain 的全部能力</h3>
+
+  <p>obsidian-wiki 有 ~40 个技能文件，GBrain 有 100+ CLI 命令。你不需要一次做完所有这些。按"团队知识库"的核心场景，MVP 只需要：</p>
+
+  <table>
+    <tr><th>必须做（MVP）</th><th>可以做（v1.1）</th><th>不必做</th></tr>
+    <tr>
+      <td>
+        编译 diff 审核机制<br>
+        混合搜索（BM25 + 向量）<br>
+        增量编译（SHA-256）<br>
+        Tier 分级<br>
+        文档管理 UI<br>
+        知识图谱基础可视化<br>
+        MCP 搜索/查询工具<br>
+        AI 对话（Mini Agent）
+      </td>
+      <td>
+        skills/ 分类扩展<br>
+        溯源标记<br>
+        综合页面"最强反驳"<br>
+        图信号搜索加分<br>
+        查询缓存<br>
+        自动健康检查<br>
+        Staging 审核模式
+      </td>
+      <td>
+        Dream Cycle 自动维护<br>
+        代码智能（tree-sitter）<br>
+        多 LLM 提供商切换<br>
+        视频/音频摄入<br>
+        聊天历史挖掘<br>
+        OKF 格式导出
+      </td>
+    </tr>
+  </table>
+</section>
+
+<!-- ==================== 05 核心设计 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>核心设计：编译型知识库的团队化改造</h2>
+  </div>
+
+  <p>以下是我认为你应该重点设计的产品架构，解决你提出的所有问题。</p>
+
+  <h3>设计决策 1：编译透明化——从黑箱到可审计流水线</h3>
+
+  <p>这是你最核心的痛点。方案：</p>
+
+  <div class="flow" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 20px 0; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.8; white-space: pre;">
+<span style="color: var(--accent); font-weight: 600;">原始文档</span> → 分块 → LLM 提取知识 → <span style="color: var(--accent); font-weight: 600;">生成编译 Diff</span> → 人类审核 → 确认写入 → 刷新索引
+
+编译 Diff 示例：
+<span style="color: var(--green);">+ 新增: concepts/refund-flow.md</span>（从 refund-spec.pdf 提取）
+<span style="color: var(--green);">+ 新增: entities/payment-system.md</span>（从 refund-spec.pdf 提取）
+<span style="color: var(--blue);">~ 更新: concepts/payment-channel.md</span>
+  新增章节"微信支付 V3 变化"
+  来源: refund-spec.pdf 第 12-15 页
+<span style="color: var(--text-muted);">  跳过: entities/alipay-sandbox.md</span>（tier: peripheral，跳过）</div>
+
+  <p>核心机制：</p>
+  <ul>
+    <li><strong>编译预览（不是编译后直接写入）：</strong>每次编译产出 diff，在 UI 中展示增删改的页面内容，用户确认后才正式写入。这就是 obsidian-wiki 的 Staging 审核模式，但你有 UI 来承载。</li>
+    <li><strong>溯源面板：</strong>每个 wiki 页面的 UI 详情页显示"这条知识从哪个源文件提取、哪一段是 AI 推理的"。正文中用颜色标注 <code>^[extracted]</code>（绿色）、<code>^[inferred]</code>（琥珀色）、<code>^[ambiguous]</code>（红色）。</li>
+    <li><strong>编译日志（只追加）：</strong>每次编译记录"什么时间、谁触发、处理了哪些文件、产出/更新了哪些页面、跳过了哪些页面及原因"。</li>
+    <li><strong>置信度分数：</strong>每个页面显示置信度（来源数量 × 来源质量），让团队成员一眼看到哪些知识可靠、哪些需要人工复核。</li>
+  </ul>
+
+  <h3>设计决策 2：成本控制——编译和查询两条线独立控制</h3>
+
+  <p>Token 成本分两块，不能用同一个方案解决：</p>
+
+  <div class="compare-row">
+    <div class="compare-card">
+      <h4>编译成本控制</h4>
+      <p><strong>Tier 分级</strong>（来自 obsidian-wiki）：core 总是更新，supporting 有新信息才更新，peripheral 跳过。这直接减少每次编译需要打开和处理的页面数。</p>
+      <p><strong>SHA-256 增量</strong>：只编译内容真正变更的文件，mtime 变化但内容相同的跳过。</p>
+      <p><strong>批量编译</strong>：团队场景下，不要求每次保存都立即编译。允许"攒一批文档 → 一键批量编译"，减少重复的上下文加载。</p>
+    </div>
+    <div class="compare-card">
+      <h4>查询成本控制</h4>
+      <p><strong>分层检索</strong>（来自 obsidian-wiki）：元数据扫描 → 混合搜索 → 全文读取。低成本层先行。</p>
+      <p><strong>查询缓存</strong>（来自 GBrain）：相似问题复用搜索结果。</p>
+      <p><strong>Mini Agent 替代 Claude Code</strong>：系统提示从 10k+ token 降到 2-3k token，每次对话省 60%+。</p>
+      <p><strong>Tier 影响检索排序</strong>：core 页面优先返回，大多数查询不需要打开 supporting 和 peripheral 页面。</p>
+    </div>
+  </div>
+
+  <h3>设计决策 3：双通道服务——MCP 和 UI 共享编译产物</h3>
+
+  <p>开发者和非开发者消费同一个知识库，但方式不同：</p>
+
+  <div class="compare-row">
+    <div class="compare-card">
+      <h4>开发者通道（MCP）</h4>
+      <p>在 Claude Code / Cursor 中使用，AI 助手调用 MCP 工具：</p>
+      <ul>
+        <li><code>search_wiki</code> — 混合搜索</li>
+        <li><code>get_page</code> — 读取指定页面</li>
+        <li><code>list_pages</code> — 列出页面（按类型/标签/层级）</li>
+        <li><code>get_graph</code> — 获取页面关联关系</li>
+        <li><code>ingest</code> — 触发编译</li>
+        <li><code>health_check</code> — 知识库健康状态</li>
+      </ul>
+      <p>开发者<strong>看到的是 AI 综合后的回答</strong>，不直接看 wiki 页面。</p>
+    </div>
+    <div class="compare-card">
+      <h4>非开发者通道（UI）</h4>
+      <p>浏览器访问内网 Web 应用：</p>
+      <ul>
+        <li><strong>文档管理</strong> — 浏览、搜索、阅读 wiki 页面</li>
+        <li><strong>知识图谱</strong> — 力导向图可视化</li>
+        <li><strong>AI 对话</strong> — 自然语言查询知识库</li>
+        <li><strong>编译管理</strong> — 查看编译 diff、确认/拒绝编译</li>
+        <li><strong>健康面板</strong> — 断链/孤页/陈旧内容一览</li>
+      </ul>
+      <p>非开发者<strong>直接浏览编译好的 wiki 页面</strong>，也通过对话间接消费。</p>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <strong>关键设计原则</strong>
+    MCP 和 UI 消费的是<strong>同一份编译产物</strong>（wiki/ 目录下的 markdown 文件）。不存在"一套给 MCP 用的数据"和"一套给 UI 用的数据"。这确保了数据一致性，也让维护成本最低。
+  </div>
+
+  <h3>设计决策 4：知识图谱可视化——服务于人类理思路</h3>
+
+  <p>你的需求是"图谱可视化可供人类理清思路"。这意味着图谱不只是 AI 搜索的辅助工具，更是一个<strong>人类导航工具</strong>。设计要点：</p>
+
+  <ul>
+    <li><strong>全局视图 + 聚焦视图</strong>：全局看所有节点概貌，点击某节点后展开它的 1-2 跳邻域，让"相关概念"浮现出来。</li>
+    <li><strong>按类型着色</strong>：concept 蓝色、entity 绿色、source 灰色、synthesis 紫色、skill 橙色。一眼看出节点类型。</li>
+    <li><strong>按 Tier 调节大小</strong>：core 节点大、supporting 中等、peripheral 小。视觉上一眼看到知识"重心"在哪里。</li>
+    <li><strong>搜索联动</strong>：在图谱页面有搜索框，搜索后相关节点高亮，帮助用户定位"退款"相关知识分布在图谱的哪些区域。</li>
+    <li><strong>路径探索</strong>：选中两个节点后，显示它们之间的最短路径。帮助人类发现"这两个概念原来是通过那条链路关联的"。</li>
+  </ul>
+
+  <div class="callout teal">
+    <strong>图谱的边界</strong>
+    图谱可视化对 500 页以内的知识库效果最好。超过 500 页后，力导向图会变成一团意大利面。这时候应该用"搜索+聚焦"模式——先搜一个概念，再展开它的局部图谱，而不是展示全局。
+  </div>
+
+  <h3>设计决策 5：分类体系——在现有基础上扩展</h3>
+
+  <p>你当前 4 类型 + 建议扩展：</p>
+
+  <table>
+    <tr><th>类型</th><th>说明</th><th>状态</th></tr>
+    <tr><td><code>concept</code></td><td>概念、理论、原理</td><td><span class="badge badge-green">已有</span></td></tr>
+    <tr><td><code>entity</code></td><td>人物、组织、工具、项目</td><td><span class="badge badge-green">已有</span></td></tr>
+    <tr><td><code>source</code></td><td>原始来源（不可变）</td><td><span class="badge badge-green">已有</span></td></tr>
+    <tr><td><code>synthesis</code></td><td>跨来源综合分析</td><td><span class="badge badge-green">已有</span></td></tr>
+    <tr><td><code>skill</code></td><td>操作知识、流程指南、排障手册</td><td><span class="badge badge-amber">建议新增</span></td></tr>
+    <tr><td><code>reference</code></td><td>来源的忠实摘要（与 source 分离）</td><td><span class="badge badge-amber">建议新增</span></td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>为什么 source 和 reference 要分开</strong>
+    当前你的 <code>source</code> 同时指代"原始 PDF"和"AI 生成的来源摘要"。这导致检索时"原文说了什么"和"原文本身"混在一起。把原始文件放 <code>raw/</code>（不可变），AI 摘要放 <code>wiki/reference/</code>（编译产物），两者通过 manifest 关联但物理分离。
+  </div>
+</section>
+
+<!-- ==================== 06 架构 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>推荐的架构演进</h2>
+  </div>
+
+  <p>基于以上分析，我推荐的架构如下：</p>
+
+  <pre><code>
+┌─────────────────────────────────────────────────────┐
+│                    用户层                             │
+│                                                      │
+│  ┌──────────────┐    ┌──────────────┐               │
+│  │  浏览器 UI    │    │  MCP 工具    │               │
+│  │  (Next.js)   │    │  (stdio/HTTP)│               │
+│  └──────┬───────┘    └──────┬───────┘               │
+└─────────┼───────────────────┼────────────────────────┘
+          │                   │
+          ▼                   ▼
+┌─────────────────────────────────────────────────────┐
+│                   服务层 (Next.js API)               │
+│                                                      │
+│  ┌────────────┐ ┌──────────┐ ┌────────────────┐    │
+│  │ 搜索 API   │ │ 图谱 API │ │ Mini Agent API │    │
+│  │ (hybrid)   │ │ (graph)  │ │ (Anthropic SDK)│    │
+│  └─────┬──────┘ └────┬─────┘ └───────┬────────┘    │
+│        │              │               │              │
+│  ┌─────┴──────────────┴───────────────┴───────┐     │
+│  │           核心业务层 (TypeScript)            │     │
+│  │                                             │     │
+│  │  wiki-store.ts    — Markdown 文件读写       │     │
+│  │  vector-store.ts  — LanceDB 操作            │     │
+│  │  hybrid-search.ts — BM25 + 向量 + RRF      │     │
+│  │  graph-builder.ts — 图谱构建与查询           │     │
+│  │  compiler.ts      — 知识编译管线            │     │
+│  │  compiler-diff.ts — 编译 Diff 生成          │     │
+│  │  manifest.ts      — SHA-256 增量追踪        │     │
+│  └─────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────┐
+│                   数据层（纯文件）                    │
+│                                                      │
+│  wiki/              — Markdown 知识页面              │
+│  raw/               — 不可变原始文档                 │
+│  graph/graph.json   — 图谱数据                       │
+│  vectors/           — LanceDB 向量数据               │
+│  manifest.json      — 编译追踪清单                   │
+│  log.md             — 编译操作日志（只追加）          │
+└─────────────────────────────────────────────────────┘</code></pre>
+
+  <div class="callout insight">
+    <strong>纯文件存储 + 服务层 = 团队友好的最佳平衡</strong>
+    数据层保持纯文件（markdown + JSON + LanceDB），可被 Git 版本控制、可备份、可迁移。服务层（Next.js API）提供并发写入保护、权限控制和团队协作。这比 GBrain 的全数据库方案轻量得多，但比 obsidian-wiki 的纯 CLI 方案更适合团队。
+  </div>
+</section>
+
+<!-- ==================== 07 修订路线图 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>修订后的路线图建议</h2>
+  </div>
+
+  <p>相比你当前的 PLAN.md，我建议做以下调整：</p>
+
+  <table>
+    <tr><th>阶段</th><th>原计划</th><th>建议调整</th><th>原因</th></tr>
+    <tr>
+      <td><span class="badge badge-red">P0</span></td>
+      <td>Claude Code 代理转发</td>
+      <td><strong>跳过</strong>，直接做 Mini Agent</td>
+      <td>代理架构不可团队化，是死路</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-red">P0</span></td>
+      <td>评估体系</td>
+      <td><strong>保留并前置</strong></td>
+      <td>一切优化需要基线</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-red">P0</span></td>
+      <td>—</td>
+      <td><strong>新增：编译 Diff 审核机制</strong></td>
+      <td>你的核心痛点，当前完全缺失</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-amber">P1</span></td>
+      <td>Next.js 可视化</td>
+      <td>保留，但<strong>增加编译管理页面</strong>（第 5 个页面）</td>
+      <td>编译审核需要专门 UI</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-amber">P1</span></td>
+      <td>向量检索</td>
+      <td>保留，但<strong>增加分层检索和 Tier</strong></td>
+      <td>控制查询 token 成本</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-amber">P1</span></td>
+      <td>—</td>
+      <td><strong>新增：SHA-256 增量编译</strong></td>
+      <td>控制编译 token 成本</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">P2</span></td>
+      <td>Mini Agent</td>
+      <td>保留，<strong>前置到 P0/P1 并行做</strong></td>
+      <td>直接省掉 Phase 0 的时间</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">P2</span></td>
+      <td>Tauri + Docker</td>
+      <td><strong>只做 Docker 内网部署</strong></td>
+      <td>团队场景优先于桌面版</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">P2</span></td>
+      <td>—</td>
+      <td><strong>新增：分类扩展（skills/ + reference/）</strong></td>
+      <td>提升检索精准度</td>
+    </tr>
+  </table>
+
+  <h3>修订后的时间线</h3>
+
+  <table>
+    <tr><th>周</th><th>阶段</th><th>产出</th></tr>
+    <tr><td>1-2</td><td>基础 + Mini Agent</td><td>Next.js 骨架 + Mini Agent 对话 + 评估测试集</td></tr>
+    <tr><td>2-4</td><td>编译系统</td><td>编译管线 + Diff 审核 + SHA-256 增量 + Tier + manifest</td></tr>
+    <tr><td>3-6</td><td>可视化界面</td><td>文档管理 + 图谱可视化 + 搜索 + 编译管理（5 个页面）</td></tr>
+    <tr><td>4-6</td><td>检索能力</td><td>混合搜索 + 分层检索 + 图信号基础</td></tr>
+    <tr><td>6-8</td><td>MCP + 部署</td><td>MCP 工具注册 + Docker 内网部署</td></tr>
+    <tr><td>8-9</td><td>打磨</td><td>溯源标记 + 置信度显示 + 健康面板 + 分类扩展</td></tr>
+  </table>
+</section>
+
+<!-- ==================== 08 决策 ==================== -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2>决策：建议与下一步</h2>
+  </div>
+
+  <h3>核心产品定位</h3>
+
+  <div class="callout teal">
+    <strong>一句话定位</strong>
+    编译质量可控、成本可预测的团队级知识管理平台。<br>
+    <br>
+    与 obsidian-wiki 的区别：有 UI、有审核机制、面向团队。<br>
+    与 GBrain 的区别：编译型（不是检索型）、纯文件存储（不是数据库）、更轻量。<br>
+    与当前版本的区别：编译透明化、成本可控、支持多人。
+  </div>
+
+  <h3>三个核心差异化（不要在这些上面妥协）</h3>
+
+  <ol>
+    <li><strong>编译 Diff 审核</strong>——这是 obsidian-wiki 和 GBrain 都没有做好的环节。obsidian-wiki 编译后直接写入（无审核 UI），GBrain 不做编译。你有 UI 来承载审核流程，这是你的独特优势。</li>
+    <li><strong>知识图谱可视化</strong>——面向人类理清思路，不只是给 AI 做搜索辅助。两个竞品都没有做好这个方向。</li>
+    <li><strong>纯文件 + 服务层的轻量架构</strong>——数据可 Git 管理、可备份、可迁移，服务层提供团队协作能力。比 GBrain 的 Postgres 方案轻量得多，比 obsidian-wiki 的纯 CLI 方案实用得多。</li>
+  </ol>
+
+  <h3>你现在应该做的第一件事</h3>
+
+  <p>不是开始写代码，而是<strong>定义编译 Diff 的数据结构</strong>。这个数据结构决定了你的编译管线、审核 UI、manifest 追踪、以及最终用户看到什么。它是一切的核心。</p>
+
+  <pre><code>// 编译 Diff 数据结构草案
+interface CompilationDiff {
+  // 触发信息
+  trigger: {
+    type: 'manual' | 'batch' | 'auto';
+    user: string;
+    timestamp: string;
+  };
+
+  // 输入
+  sources: Array&lt;{
+    file: string;
+    contentHash: string;  // SHA-256
+    changeType: 'new' | 'modified';
+  }>;
+
+  // 产出
+  changes: Array&lt;{
+    action: 'create' | 'update' | 'skip';
+    page: string;         // wiki 页面路径
+    type: string;         // concept/entity/skill/...
+    tier: string;         // core/supporting/peripheral
+
+    // 如果是 create/update：
+    diff?: {
+      added: string[];     // 新增的内容段
+      removed: string[];   // 删除的内容段
+      modified: Array&lt;{
+        before: string;
+        after: string;
+      }>;
+    };
+
+    // 来源溯源
+    provenance: {
+      extracted: number;   // 0-1
+      inferred: number;    // 0-1
+      ambiguous: number;   // 0-1
+    };
+
+    // 如果跳过：
+    skipReason?: string;   // "tier: peripheral" / "no new info" / ...
+  }>;
+
+  // 状态
+  status: 'pending_review' | 'approved' | 'rejected';
+}</code></pre>
+
+  <h3>需要进一步确认的问题</h3>
+
+  <ol>
+    <li><strong>团队规模</strong>：你的团队有多少人？这决定了并发写入和权限模型的复杂度。5 人以下可以不做权限控制，5-20 人需要基础权限（谁能编译、谁能审核），20+ 需要完整 RBAC。</li>
+    <li><strong>知识来源</strong>：团队的知识主要从哪里来？文档/Confluence/代码仓库/聊天记录？这决定了摄入管线的优先级。</li>
+    <li><strong>图谱使用场景</strong>：你说的"理清思路"具体是什么场景？是新人 onboarding 时理解系统架构？还是做技术决策时看关联关系？还是日常浏览时探索知识？不同场景的图谱 UI 设计差异很大。</li>
+  </ol>
+
+  <div class="callout">
+    <strong>总结</strong>
+    你的产品应该站在 obsidian-wiki 的编译哲学和 GBrain 的工程实践之间——把"编译型知识库"做对（透明、可审计、成本可控），用轻量但成熟的工程实现（分层检索、Tier、增量编译、代码级图遍历），装进一个团队友好的 UI 里。不要在编译和检索之间摇摆不定，也不要在个人版和团队版之间同时做。<strong>先做团队的、编译型的、有审核的</strong>，这是你的核心差异化。
+  </div>
+</section>
+
+<footer class="page-footer">
+  Decision Clarity Analysis · LLM Wiki 3.0 Product Design · 2026-06-21
+</footer>
+
+</div>
+</body>
+</html>
