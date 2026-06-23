@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v2.6</title>
+  <title>产品需求文档 · 工作知识库 v2.7</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -52,7 +52,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v2.6</span>
+      <span class="app-header__subtitle">editorial · v2.7</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -65,11 +65,11 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.6</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.7</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.6 <span class="badge badge-changed">一应用两模式</span></div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.7 <span class="badge badge-changed">seekdb 评估</span></div></div>
           <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-24</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
@@ -310,6 +310,32 @@
           <tr><td>适用</td><td>团队协作</td><td>个人积累</td></tr>
         </table>
         <div class="prd-callout green"><strong>为什么一个应用两模式优于两个产品：</strong>① 用户下载一个 .exe 既能个人用也能团队用；② 个人积累的知识库可随时"升级"为团队共享（本地 dump → 上传服务端），反之团队知识库也能"下载到本地"离线用；③ 用户不用一开始就决定"我是个人还是团队用户"——先本地用着，需要协作时再连远程。这是比 gbrain（PGLite 单机和 Postgres 部署是两套独立流程）更顺滑的体验。</div>
+
+        <div class="prd-h3">v2.7 seekdb 选型评估（本次更新）<span class="badge badge-changed">EVAL</span></div>
+        <p>调研文章提及的第四个项目 <strong>seekdb</strong>（OceanBase 出品的 AI 原生数据库，2025.11 开源）可能比 pgvector 更适合做我们的数据库底座。它是一个<strong>完整的关系型数据库</strong>（不是 MySQL 扩展，是独立引擎，MySQL 语法兼容），原生内置向量/全文/AI 能力。v2.7 完整记录评估结论，Phase 1 末期做技术验证后决定是否迁移。详见 <a href="#s13">§13 seekdb 选型评估</a>。</p>
+        <table class="prd-table">
+          <tr><th>维度</th><th>PGLite+Postgres+pgvector（v2.6 选）</th><th>seekdb（评估中）</th></tr>
+          <tr><td>混合检索</td><td>拼装（tsvector+pgvector+手写RRF）</td><td><strong>原生一条 SQL</strong>（向量+全文+标量）</td></tr>
+          <tr><td>内置 AI 函数</td><td>❌ 应用层调 embedding API</td><td><strong>✅ SQL 内 AI_EMBED/AI_RERANK</strong></td></tr>
+          <tr><td>中文全文搜索</td><td>zhparser（需配置）</td><td><strong>ik 分词器（国产原生）</strong></td></tr>
+          <tr><td>并发写读</td><td>Postgres MVCC</td><td><strong>async index + 两级 HNSW</strong>（1523 QPS / P99 21.7ms）</td></tr>
+          <tr><td>COW 沙箱</td><td>❌ 无</td><td><strong>✅ FORK/MERGE</strong>（编译试验/编辑回退/批量导入预演）</td></tr>
+          <tr><td>两种模式（本地/团队）</td><td>PGLite 嵌入式 + Postgres C/S</td><td>seekdb embedded + seekdb server（同样支持）</td></tr>
+          <tr><td>关系型 + 事务</td><td>✅ Postgres</td><td>✅ OceanBase 引擎（Full ACID）</td></tr>
+          <tr><td><strong>TS/Node 生态</strong></td><td>✅ PGLite 官方 TS 绑定</td><td><strong>⚠️ 主要是 Python SDK，TS 待验证</strong></td></tr>
+          <tr><td><strong>Tauri 集成</strong></td><td>✅ PGLite 是 WASM，天然适配</td><td><strong>⚠️ seekdb 是 C 库，FFI 待验证</strong></td></tr>
+          <tr><td><strong>成熟度</strong></td><td>✅ 多年生产验证 + gbrain 背书</td><td><strong>⚠️ 2025.11 开源，半年，无大项目背书</strong></td></tr>
+        </table>
+        <div class="prd-callout red"><strong>结论：维持 pgvector 为 Phase 1 默认，seekdb 列为 Phase 1 末期技术验证（spike）对象。</strong>seekdb 在数据库能力上全面优于 pgvector（原生混合检索/内置 AI/COW 沙箱/中文），但 <strong>TS SDK 和 Tauri 集成是 dealbreaker</strong>——如果 seekdb 嵌入式模式不能在 Tauri（Rust+WebView）里跑，或没有好的 TS 绑定，优势再大也用不上。Phase 1 末期做 2-4 小时 spike 验证三项（Node 集成/Tauri FFI/Windows 稳定），全过则迁移，任一不过则维持 pgvector。</div>
+
+        <div class="prd-h3">四个参考项目的定位（v2.7 澄清）</div>
+        <table class="prd-table">
+          <tr><th>项目</th><th>是什么</th><th>对我们的参考价值</th></tr>
+          <tr><td><strong>GBrain</strong></td><td>Garry Tan 的个人战略知识库（投资人场景，10 万页）</td><td>⭐⭐⭐⭐⭐ <strong>工程蓝本</strong>：双引擎/schema/检索管线/事务/并发/权限。改造场景（投资人→技术团队）</td></tr>
+          <tr><td><strong>seekdb</strong></td><td>OceanBase 的 AI 原生数据库（2025.11 开源）</td><td>⭐⭐⭐⭐ <strong>潜在数据库底座</strong>：原生混合检索/内置 AI/COW 沙箱。待 Tauri/TS 验证</td></tr>
+          <tr><td>LLM Wiki</td><td>Karpathy 的思想文章（无代码）</td><td>⭐⭐ <strong>思想源头</strong>：知识工程 > RAG；Phase 5 编译思想</td></tr>
+          <tr><td>Obsidian-Wiki</td><td>477 行 Python + 9731 行 prompt（个人极客 CLI）</td><td>⭐ <strong>几乎无工程价值</strong>：无 GUI/无数据库/个人工具/编译优先。仅 Lint 机制可借</td></tr>
+        </table>
 
         <div class="prd-h3">与竞品的差异化</div>
         <table class="prd-table">
@@ -1254,6 +1280,68 @@ CREATE TABLE access_tokens (
           </tr>
         </table>
         <div class="prd-callout info"><strong>为什么分两步：</strong>团队知识库不是 Google Docs，"两人同改同一篇技术文档的同一句话"极罕见。Phase 1 用 last-write-wins 快速跑通（gbrain 就是这么做的，接受这个风险）；Phase 3 加 CAS 兜底——成本仅一个 version 列 + 一处 WHERE 比对，但能避免最伤人的"静默丢失"。真实高频场景是"改不同文档"（行级锁无冲突）和"读写并发"（MVCC 无冲突），这两个 Postgres 原生解决。</div>
+
+        <div class="prd-h3">seekdb 选型评估（v2.7 新增）<span class="badge badge-changed">EVAL</span></div>
+        <p>v2.4-v2.6 选定 PGLite + Postgres + pgvector。v2.7 调研发现 <strong>seekdb</strong>（OceanBase 出品，2025.11 开源，Apache 2.0）可能更优。本节完整记录评估，作为 Phase 1 末期技术验证（spike）的依据。</p>
+
+        <div class="prd-h4">seekdb 是什么（关键澄清）</div>
+        <table class="prd-table">
+          <tr><th>常见误解</th><th>实际</th></tr>
+          <tr><td>"seekdb 是向量数据库"</td><td>❌ 是<strong>完整关系型数据库</strong>（CREATE TABLE/INSERT/JOIN/事务全有），原生内置向量/全文/AI</td></tr>
+          <tr><td>"seekdb 是 MySQL 扩展"</td><td>❌ 是<strong>独立引擎</strong>（基于 OceanBase），只是<strong>语法兼容 MySQL</strong>（类似 MariaDB 之于 MySQL）</td></tr>
+          <tr><td>"seekdb 只能服务端"</td><td>❌ <strong>支持嵌入式 + C/S 两种模式</strong>（和我们"一个应用两模式"目标一致）</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>seekdb 的血缘：</strong>OceanBase（蚂蚁/阿里自研企业级分布式数据库，支付宝/淘宝核心系统在用）→ seekdb（OceanBase 的 AI 原生分支）。关系型能力扎实（OceanBase 的基本盘就是 ACID + 高并发），AI 能力是原生叠加的，不是拼装的。</div>
+
+        <div class="prd-h4">seekdb 相对 pgvector 的优势（数据库能力层）</div>
+        <table class="prd-table">
+          <tr><th>能力</th><th>pgvector（拼装）</th><th>seekdb（原生）</th><th>对我们的价值</th></tr>
+          <tr><td>混合检索</td><td>tsvector + pgvector + 手写 RRF 三段拼装</td><td><strong>一条 SQL</strong>（向量+全文+标量过滤）</td><td>省掉 §16 大量拼装代码，检索逻辑更简洁可维护</td></tr>
+          <tr><td>内置 AI 函数</td><td>❌ 应用层调 embedding API</td><td><strong>SQL 内 AI_EMBED / AI_RERANK</strong></td><td>嵌入/重排可在 SQL 内完成，减少应用层往返</td></tr>
+          <tr><td>中文全文搜索</td><td>zhparser（Postgres 扩展，需配置）</td><td><strong>ik 分词器（国产原生）</strong></td><td>中文检索质量可能更好，零配置</td></tr>
+          <tr><td>并发写读</td><td>Postgres MVCC（向量索引同步更新）</td><td><strong>async index pipeline + 两级 HNSW</strong></td><td>写完毫秒可搜（pgvector 有索引更新延迟），P99 更稳</td></tr>
+          <tr><td>COW 沙箱（独有）</td><td>❌ 无</td><td><strong>FORK/MERGE</strong>（秒级快照，不复制数据）</td><td>AI 编译试验/编辑回退/批量导入预演，pgvector 完全做不到</td></tr>
+        </table>
+        <div class="prd-diagram">-- seekdb 独有的 COW 沙箱（FORK/MERGE）—— pgvector 完全做不到
+FORK DATABASE kb_main TO kb_compile_sandbox;   -- 秒级快照，不复制数据
+USE kb_compile_sandbox;
+-- AI 在沙箱里编译试验，不满意也不污染主库
+MERGE TABLE kb_compile_sandbox.pages INTO kb_main.pages STRATEGY THEIRS;  -- 满意合并
+DROP DATABASE kb_compile_sandbox;              -- 不满意直接丢弃</div>
+
+        <div class="prd-h4">seekdb 的并发能力（团队场景验证）</div>
+        <p>seekdb 官方 README 第一条特性就是并发——这对我们团队场景是硬需求：</p>
+        <table class="prd-table">
+          <tr><th>团队场景需求</th><th>seekdb 能力</th><th>满足？</th></tr>
+          <tr><td>多人并发读（搜索/对话/图谱）</td><td>fine-grained read locks + delta/snapshot 双索引</td><td>✅</td></tr>
+          <tr><td>多人并发写不同文档</td><td>Full ACID + OceanBase 引擎</td><td>✅</td></tr>
+          <tr><td>写完立刻可搜（流式）</td><td>async index + 两级 HNSW，新向量毫秒可搜</td><td>✅ 比 pgvector 更强</td></tr>
+          <tr><td>事务原子性（导入多表）</td><td>Full ACID</td><td>✅</td></tr>
+          <tr><td>读写不互斥</td><td>1523 QPS / P99 21.7ms（官方 benchmark）</td><td>✅</td></tr>
+        </table>
+        <div class="prd-callout"><strong>关键澄清：嵌入式 ≠ 多人并发。</strong>seekdb（和 PGLite/SQLite 一样）的<strong>嵌入式模式是单进程</strong>，多人并发必须用 C/S 模式（起服务端）。文章原话"切换到远程服务模式"指的就是这个——和我们 v2.6"团队形态 = 起服务端"一致。嵌入式数据库天生单进程，seekdb/PGLite/SQLite 都一样。</div>
+
+        <div class="prd-h4">seekdb 的风险（不能忽视）</div>
+        <table class="prd-table">
+          <tr><th>风险</th><th>严重性</th><th>缓解</th></tr>
+          <tr><td><strong>TS/Node SDK 缺失</strong>（主要 Python）</td><td>🔴 dealbreaker</td><td>spike 验证有无 Node 绑定 / 能否用 MySQL 驱动连</td></tr>
+          <tr><td><strong>Tauri FFI 集成</strong>（seekdb 是 C 库，非 WASM）</td><td>🔴 dealbreaker</td><td>spike 验证 Tauri（Rust）能否调用 seekdb C 库</td></tr>
+          <tr><td>Windows 嵌入式稳定性</td><td>🟡 高</td><td>spike 在 Windows 实测</td></tr>
+          <tr><td>成熟度（2025.11 开源，半年）</td><td>🟡 中</td><td>OceanBase 母体成熟，seekdb 分支新但有靠山</td></tr>
+          <tr><td>无大项目背书（gbrain 用 pgvector）</td><td>🟢 低</td><td>seekdb 有 ex-brain 实战案例 + OceanBase 生产信誉</td></tr>
+        </table>
+
+        <div class="prd-h4">决策：维持 pgvector 为默认，seekdb 列为 Phase 1 末期 spike</div>
+        <div class="prd-callout red"><strong>v2.7 选型结论：</strong>seekdb 在<strong>数据库能力层全面优于 pgvector</strong>（原生混合检索/内置 AI/COW 沙箱/中文/并发），但 <strong>TS SDK 和 Tauri 集成是 dealbreaker</strong>——这两项不过，优势再大用不上。决策：<strong>Phase 1 仍用 PGLite+Postgres+pgvector</strong>（成熟、gbrain 验证、风险低）先把产品跑通；<strong>Phase 1 末期做 2-4 小时 seekdb spike</strong>，验证三项（Node 集成 / Tauri FFI / Windows 稳定）。三项全过 → Phase 2 前认真评估迁移；任一不过 → 维持 pgvector，seekdb 列为 Phase 5+ 备选。</div>
+
+        <div class="prd-h4">spike 验证清单（Phase 1 末期执行）</div>
+        <table class="prd-table">
+          <tr><th>#</th><th>验证项</th><th>方法</th><th>通过标准</th></tr>
+          <tr><td>1</td><td>seekdb embedded 能否在 Node.js 跑</td><td>写最小 demo，Node 连 seekdb 嵌入式</td><td>能 CRUD + 向量查询 = ✅</td></tr>
+          <tr><td>2</td><td>能否嵌入 Tauri（Rust 进程）</td><td>seekdb 是 C 库，验证 Tauri FFI 调用</td><td>能调用且稳定 = ✅</td></tr>
+          <tr><td>3</td><td>Windows 嵌入式稳定</td><td>Windows 跑 demo，导入 50 篇中文文档</td><td>不崩 + 检索正确 = ✅</td></tr>
+          <tr><td>4</td><td>混合检索 + 中文效果</td><td>对比 pgvector 拼装的检索质量</td><td>相当或更优 = ✅</td></tr>
+        </table>
       </section>
 
       <!-- ═══ 14. 双 AI 通道 ═══ -->
@@ -1600,7 +1688,7 @@ Phase 5 可选增强
         <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.3 PRD 已完成路线重排。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + <strong>上下文检索</strong> + 混合搜索），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V2.6</span>
+          <span>PRD · 工作知识库 · V2.7</span>
           <span>2026-06-24</span>
           <span>END OF DOCUMENT</span>
         </div>
