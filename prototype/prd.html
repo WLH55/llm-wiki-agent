@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v2.2</title>
+  <title>产品需求文档 · 工作知识库 v2.3</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -52,7 +52,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v2.2</span>
+      <span class="app-header__subtitle">editorial · v2.3</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -65,11 +65,11 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.2</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.3</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.2 <span class="badge badge-changed">引擎增强</span></div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.3 <span class="badge badge-changed">路线重排</span></div></div>
           <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-23</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
@@ -156,12 +156,40 @@
           <tr><td>2</td><td>导入内容验证</td><td><span class="badge badge-new">新增</span>垃圾内容检测 + 隐私过滤 + content_hash 幂等</td><td><a href="#s7">§07</a></td></tr>
           <tr><td>3</td><td>导入渠道区分</td><td><span class="badge badge-changed">文件→仅客户端</span>，URL→客户端 + CLI</td><td><a href="#s7">§07</a></td></tr>
           <tr><td>4</td><td>检索：意图分类</td><td><span class="badge badge-new">新增</span>零 LLM 意图分类（实体/时间/事件/通用）→ 动态权重</td><td><a href="#s16">§16</a></td></tr>
-          <tr><td>5</td><td>检索：后融合 Boost</td><td><span class="badge badge-new">新增</span>多阶段 Boost（标题匹配/显著性/时效/图谱信号/来源类型）</td><td><a href="#s16">§16</a></td></tr>
+          <tr><td>5</td><td>检索：后融合 Boost</td><td><span class="badge badge-new">新增</span>多阶段 Boost（标题匹配/显著性/时效/图谱信号/来源类型）。<strong>v2.3 拆两步</strong>：标题+来源 P3，其余 P5</td><td><a href="#s16">§16</a></td></tr>
           <tr><td>6</td><td>检索：重排序</td><td><span class="badge badge-new">可选</span> Cross-encoder 重排序（高精度场景）</td><td><a href="#s16">§16</a></td></tr>
           <tr><td>7</td><td>图谱：有类型边</td><td><span class="badge badge-changed">8+ 种语义边</span>（mentions / relates_to / discussed_in / works_at 等）</td><td><a href="#s9">§09</a> / <a href="#s12">§12</a></td></tr>
-          <tr><td>8</td><td>元数据增强</td><td><span class="badge badge-changed">扩充</span> content_hash / salience / effective_date / last_retrieved_at / generation</td><td><a href="#s12">§12</a></td></tr>
-          <tr><td>9</td><td>上下文检索</td><td><span class="badge badge-new">新增</span>嵌入时用文档级上下文包裹 chunk（不存储，仅嵌入时）</td><td><a href="#s16">§16</a></td></tr>
+          <tr><td>8</td><td>元数据增强</td><td><span class="badge badge-changed">扩充</span> content_hash / salience / effective_date / last_retrieved_at / generation。<strong>v2.3 分级</strong>：hash+gen 属 P1，其余 P5</td><td><a href="#s12">§12</a></td></tr>
+          <tr><td>9</td><td>上下文检索</td><td><span class="badge badge-new">新增</span>嵌入时用文档级上下文包裹 chunk（不存储，仅嵌入时）。<strong>v2.3 提前到 P1</strong>（避免重嵌入）</td><td><a href="#s16">§16</a></td></tr>
         </table>
+
+        <div class="prd-h3">v2.3 路线重排（本次更新）<span class="badge badge-changed">CHANGED</span></div>
+        <p>v2.2 引入了 9 项 GBrain 增强但 Phase 分配有依赖隐患。v2.3 基于逐项"收益 vs 复杂度 vs 依赖"评估，做 3 处调整，避免重嵌入陷阱和数据冷启动问题：</p>
+        <table class="prd-table">
+          <tr><th>#</th><th>调整点</th><th>v2.2 安排</th><th>v2.3 调整</th><th>原因</th></tr>
+          <tr>
+            <td>1</td>
+            <td>上下文检索</td>
+            <td>Phase 3</td>
+            <td><span class="badge badge-changed">→ Phase 1</span></td>
+            <td>代码量极小，但若 P1/2 不做、P3 才开启，<strong>已入库向量会全部过时</strong>（同文本有/无上下文语义不同），需全量重嵌入。必须和分块一起一次到位</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>后融合 Boost</td>
+            <td>Phase 3 一次全上</td>
+            <td><span class="badge badge-changed">拆两步</span>：P3 上无依赖项，P5 上数据依赖项</td>
+            <td>5 个 Boost 里 3 个需要前置数据（salience/时效/图谱 backlinks），P3 刚上线时数据为空 Boost 不生效。先上"标题+来源类型"两个零依赖项，数据积累后再启其余</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>元数据字段精简</td>
+            <td>4 个新字段全 P1</td>
+            <td><span class="badge badge-changed">分级</span>：P1 只必需 2 个，P5 按需 3 个</td>
+            <td>salience 需定期重算、last_retrieved_at 每次检索写回、effective_date 多数文档没有明确生效日——隐藏维护成本高。P1 只做 content_hash(幂等必需) + generation(写入时确定零成本)</td>
+          </tr>
+        </table>
+        <div class="prd-callout info"><strong>未动的 6 项增强</strong>保持 v2.2 原安排：5 层分块(P1)、内容验证(P1)、导入渠道(P1)、语义边(P2)、意图分类(P3)、代码语义分块(P4)、重排序(P5)。调整只涉及上面 3 项。</div>
 
         <div class="prd-h3">与竞品的差异化</div>
         <table class="prd-table">
@@ -745,8 +773,8 @@ embedded: true
 │   └── chunks.meta.json        ← chunk → 源文件映射 + content_hash
 └── .cache/                     ← 运行时缓存</div>
 
-        <div class="prd-h3">文档 Frontmatter 元数据（v2.2 增强）</div>
-        <p>每个文档的 frontmatter 增加了多个元数据字段，用于支撑幂等检测、显著性排序和时效性 Boost：</p>
+        <div class="prd-h3">文档 Frontmatter 元数据（v2.3 分级）</div>
+        <p>每个文档的 frontmatter 字段分两级落地：<strong>P1 必需</strong>（写入时确定或幂等必需，零维护成本）和 <strong>P5 按需</strong>（需要定期重算或数据积累，隐藏维护成本高）。</p>
         <div class="prd-diagram">---
 type: source                         # source | entity | concept | synthesis
 title: IAP 退款流程
@@ -755,13 +783,15 @@ updated: 2026-06-23T14:30:00Z
 tags: [IAP, 退款, 支付]
 summary: IAP 系统退款流程包括三个核心步骤...
 
-# ── v2.2 新增字段 ──
-content_hash: "sha256:a3f2c8..."     # 文件内容哈希，用于幂等检测
-salience: 0.82                       # 显著性评分（0-1），基于入度/查询频率/手动标注
-effective_date: 2026-06-01           # 知识生效日期（用于时效性 Boost）
-generation: 3                        # 知识代次（原始=1，综合=2，编译=3）
-last_retrieved_at: 2026-06-22T09:15  # 最近被检索命中的时间
-source_type: raw                     # 来源目录类型，用于来源类型 Boost
+# ── Phase 1 必需（零维护成本）──
+content_hash: "sha256:a3f2c8..."     # 文件内容哈希，幂等检测必需
+generation: 1                        # 知识代次（原始=1/综合=2/编译=3），写入时确定
+
+# ── Phase 5 按需启用（需数据积累或定期重算，v2.3 降级）──
+# salience: 0.82                     # 显著性评分，需定期重算（每次查询命中更新）
+# effective_date: 2026-06-01         # 生效日期，多数文档没有明确标注
+# last_retrieved_at: 2026-06-22      # 最近被检索时间，每次检索写回
+# source_type: raw                   # 来源目录类型（P3 用，Boost 来源加权时填）
 
 # ── 溯源字段 ──
 source_file: raw/IAP系统/refund-spec.pdf
@@ -771,21 +801,24 @@ embedded: true
 
 ## 摘要
 IAP 系统退款流程包括...</div>
+        <div class="prd-callout info"><strong>v2.3 元数据精简理由：</strong>v2.2 一次性引入 4 个新字段，但其中 3 个（salience / effective_date / last_retrieved_at）有<strong>隐藏维护成本</strong>——salience 要定期重算、last_retrieved_at 每次检索写回、effective_date 多数文档没有明确生效日。Phase 1 只做 content_hash（幂等必需）和 generation（写入时确定），其余 P5 数据积累到位后按需启用。避免 P1 引入还没用上的复杂度。</div>
 
-        <div class="prd-h3">Chunk 元数据（v2.2 增强）</div>
-        <p>每个 chunk 在 <code>index/chunks.meta.json</code> 中的记录结构：</p>
+        <div class="prd-h3">Chunk 元数据（v2.3 分级）</div>
+        <p>每个 chunk 在 <code>index/chunks.meta.json</code> 中的记录结构（同样分 P1 必需 / P5 按需）：</p>
         <div class="prd-diagram">{
   "chunk_id": "chk_001",
   "source_file": "raw/IAP系统/refund-spec.pdf",
-  "content_hash": "sha256:a3f2c8...",
+  "content_hash": "sha256:a3f2c8...",   // P1 必需：幂等检测
   "index": 0,
   "char_start": 0,
   "char_end": 1823,
   "token_count": 287,
-  "embedding_model": "text-embedding-3-small",
+  "embedding_model": "text-embedding-3-small",  // P1 必需：换模型时定位
   "embedding_dim": 1536,
   "section_path": "## 退款流程",
-  "generation": 1
+  "generation": 1                        // P1 必需
+  // "salience": 0.82,                  // P5 按需
+  // "last_retrieved_at": "..."         // P5 按需
 }</div>
 
         <div class="prd-h3">知识图谱数据结构（v2.2 增强）</div>
@@ -958,9 +991,9 @@ WIKI_KB_PATH=./knowledge/iap</div>
 
       <!-- ═══ 16. 检索引擎 ═══ -->
       <section class="prd-section" id="s16">
-        <div class="prd-section__num">16 — RETRIEVAL ENGINE <span class="badge badge-changed">v2.2 重大增强</span></div>
+        <div class="prd-section__num">16 — RETRIEVAL ENGINE <span class="badge badge-changed">v2.2 重大增强 · v2.3 路线重排</span></div>
         <h2 class="prd-section__title">检索引擎</h2>
-        <p>检索引擎是产品的核心能力层。v2.2 参考 GBrain 的检索管线，在原有 BM25 + 向量 + RRF 的基础上，增加了意图分类、后融合 Boost、可选重排序和上下文检索四个关键能力。</p>
+        <p>检索引擎是产品的核心能力层。v2.2 参考 GBrain 的检索管线，在原有 BM25 + 向量 + RRF 的基础上，增加了意图分类、后融合 Boost、可选重排序和上下文检索四个关键能力。<strong>v2.3 重新安排了落地顺序</strong>：上下文检索提前到 Phase 1（避免重嵌入），后融合 Boost 拆两步（数据依赖项延后）。</p>
 
         <div class="prd-h3">完整检索管线（v2.2）</div>
         <div class="prd-diagram">用户查询
@@ -985,22 +1018,28 @@ WIKI_KB_PATH=./knowledge/iap</div>
 │  · score = 1/(k+rank_bm25) + 1/(k+rank_vec)，k=60            │
 │  · 去重 + 按分数排序                                           │
 ├───────────────────────────────────────────────────────────────┤
-│  Stage 3: 后融合 Boost（v2.2 新增，多阶段加分）                 │
+│  Stage 3: 后融合 Boost（v2.2 新增，多阶段加分。v2.3 分两步落地）│
 │  · 标题匹配 Boost：查询词命中 chunk 所在文档标题 → ×1.25       │
+│    ── Phase 3 上线（零数据依赖）                              │
 │  · 显著性 Boost：chunk 所在节点的 salience 值                  │
 │    score × (1 + 0.05 × salience)                              │
+│    ── Phase 5 上线（需 salience 数据积累）                    │
 │  · 时效性 Boost：基于 effective_date 的半衰期衰减              │
 │    score × (1 + recency_factor)，半衰期 30 天                  │
+│    ── Phase 5 上线（需 effective_date 标注）                   │
 │  · 图谱信号 Boost：被引用次数多的文档获得额外加分               │
 │    score × (1 + 0.05 × log(1 + backlink_count))              │
+│    ── Phase 5 上线（需图谱 backlinks 数据）                   │
 │  · 来源类型 Boost：不同目录前缀有不同基础权重                   │
 │    wiki/synthesis > raw > wiki/compiled（可配置）              │
+│    ── Phase 3 上线（零数据依赖）                              │
 │  · 意图加权：根据 Stage 0 的意图分类动态调整                    │
 │    entity 意图 → BM25 权重上调                                 │
 │    temporal 意图 → 时效 Boost 加强                             │
 │    general 意图 → 向量权重上调                                 │
+│    ── Phase 3 上线                                            │
 ├───────────────────────────────────────────────────────────────┤
-│  Stage 4（可选）: Cross-encoder 重排序                         │
+│  Stage 4（可选）: Cross-encoder 重排序 ── Phase 5 上线        │
 │  · 对 top-K 候选（默认 K=20）调用 cross-encoder 模型           │
 │  · 重新计算 query-chunk 相关性分数                              │
 │  · 按新分数排序，取最终 top-K（默认 8）                        │
@@ -1033,8 +1072,9 @@ WIKI_KB_PATH=./knowledge/iap</div>
 
         <div class="prd-callout info"><strong>为什么后融合 Boost 重要：</strong>纯 RRF 融合只考虑了"在两路检索中的排名"，没有考虑文档本身的质量信号。后融合 Boost 将文档的标题匹配度、显著性、时效性、图谱引用等元信息注入排序，让"好的文档"排在前面。这是 GBrain 检索质量高于普通 RAG 的关键因素之一。</div>
 
-        <div class="prd-h3">上下文检索（v2.2 新增）</div>
+        <div class="prd-h3">上下文检索（v2.3 提前到 Phase 1）<span class="badge badge-changed">v2.3 重排</span></div>
         <p>在嵌入（embedding）阶段，为每个 chunk 拼接文档级上下文前缀，让向量编码时包含更多语义信息。这个上下文<strong>只在嵌入时使用，不存储</strong>——用户看到的 chunk 内容仍然是原文，但向量空间中的表示更丰富。</p>
+        <div class="prd-callout red"><strong>为什么 v2.3 把它从 Phase 3 提前到 Phase 1：</strong>上下文检索的代码量极小（只改 embedding 调用），但<strong>它影响已入库向量的语义</strong>。如果 Phase 1/2 不做、Phase 3 才开启，那么之前所有 chunks 的向量都"过时"了（同文本有/无上下文语义不同），必须<strong>全量重嵌入</strong>整个知识库。因此必须和分块、首次嵌入一起在 Phase 1 一次到位。</div>
         <div class="prd-diagram">嵌入时的上下文包裹格式：
 
   "本文档: {document_title}
@@ -1085,50 +1125,93 @@ WIKI_KB_PATH=./knowledge/iap</div>
 
       <!-- ═══ 17. 开发路线 ═══ -->
       <section class="prd-section" id="s17">
-        <div class="prd-section__num">17 — ROADMAP <span class="badge badge-changed">v2.2 更新</span></div>
+        <div class="prd-section__num">17 — ROADMAP <span class="badge badge-changed">v2.3 重排</span></div>
         <h2 class="prd-section__title">开发路线与验收标准</h2>
 
-        <div class="prd-callout red"><strong>v2.0 路线图调整：</strong>移除 Phase 0（Claude Code 后端代理），因为该架构在团队场景下不可扩展。AI 能力直接通过双通道（本地 CLI 代理 + Mini Agent）提供。编译相关功能降级为可选增强。</div>
+        <div class="prd-callout red"><strong>路线重排说明（v2.3）：</strong>基于 9 项增强的依赖评估，做 3 处调整：①<strong>上下文检索提前到 Phase 1</strong>（避免后续全量重嵌入）；②<strong>后融合 Boost 拆两步</strong>（无依赖项 P3，数据依赖项 P5）；③<strong>元数据分级</strong>（必需项 P1，按需项 P5）。详见 §01 v2.3 摘要表。</div>
 
         <table class="prd-table">
           <tr><th>阶段</th><th>时间</th><th>核心产出</th><th>验收标准</th></tr>
           <tr>
-            <td>Phase 1<br>基础骨架 + 检索</td>
+            <td>Phase 1<br>基础骨架 + 检索地基</td>
             <td>第 1-3 周</td>
-            <td>Next.js 骨架 + 知识库连接管理 + 文档导入 + <strong>5 层递归分块</strong> + <strong>内容验证管线</strong> + 混合搜索</td>
-            <td>导入文档后可搜索到，分块质量达标（300 词/块），content_hash 幂等生效</td>
+            <td>
+              Next.js 骨架 + 知识库连接管理 + 文档导入 +<br>
+              <strong>5 层递归分块 + CJK 计数</strong><br>
+              <strong>内容验证管线（content_hash 幂等 + 垃圾/隐私检测）</strong><br>
+              <strong>★上下文检索（v2.3 从 P3 提前）</strong>——嵌入时包裹文档上下文<br>
+              混合搜索（BM25 + 向量 + RRF）<br>
+              <strong>元数据精简版：content_hash + generation</strong>
+            </td>
+            <td>导入文档可搜索；分块 300 词/块；content_hash 幂等生效；嵌入向量含上下文（一次到位，避免日后重嵌入）</td>
           </tr>
           <tr>
             <td>Phase 2<br>AI 对话 + 图谱</td>
             <td>第 3-5 周</td>
-            <td>双 AI 通道 + AI 对话 + 知识图谱可视化 + <strong>语义边类型</strong></td>
-            <td>对话可回答问题并标注引用，图谱展示有类型边的文档关系</td>
+            <td>双 AI 通道 + AI 对话 + 知识图谱可视化 + <strong>8+ 种语义边类型</strong> + 沉淀机制（对话→wiki/synthesis/）</td>
+            <td>对话可回答问题并标注引用；图谱展示有类型边的文档关系；沉淀文档可被检索命中</td>
           </tr>
           <tr>
             <td>Phase 3<br>检索增强 + MCP</td>
             <td>第 5-7 周</td>
-            <td>MCP 工具 + <strong>意图分类</strong> + <strong>后融合 Boost</strong> + <strong>上下文检索</strong> + 文档编辑 + 图谱搜索联动</td>
-            <td>MCP 注册后可调用 search_wiki；意图分类准确率 > 80%；后融合 Boost 使 P@5 提升 > 10%</td>
+            <td>
+              MCP 工具（search_wiki + update_wiki）+ 文档编辑 + 图谱搜索联动 +<br>
+              <strong>意图分类（零 LLM）</strong><br>
+              <strong>后融合 Boost（第一步：仅标题匹配 + 来源类型）</strong>——这两个 Boost 零数据依赖，P3 立刻生效<br>
+              <em style="color: var(--ink-faint);">[待数据积累] 显著性/时效/图谱 Boost 暂不启用，留到 P5</em>
+            </td>
+            <td>MCP 注册后可调用 search_wiki；意图分类准确率 &gt; 80%；后融合 Boost（标题+来源）使 P@5 提升 &gt; 10%</td>
           </tr>
           <tr>
-            <td>Phase 4<br>打包部署</td>
+            <td>Phase 4<br>打包部署 + 代码分块</td>
             <td>第 7-9 周</td>
-            <td>Tauri 桌面打包 + Docker 内网部署 + 知识库快照/导出/迁移 + <strong>代码语义分块</strong></td>
-            <td>.exe 双击可用，Docker 一键部署，代码文件可按函数级分块</td>
+            <td>Tauri 桌面打包 + Docker 内网部署 + 知识库快照/导出/迁移 + <strong>代码语义分块（Tree-sitter，36 语言）</strong></td>
+            <td>.exe 双击可用；Docker 一键部署；代码文件可按函数级分块</td>
           </tr>
           <tr>
             <td>Phase 5<br>可选增强</td>
             <td>第 9+ 周</td>
-            <td>知识编译（可选）+ <strong>cross-encoder 重排序</strong> + 评估体系 + 溯源标记 + 健康检测</td>
-            <td>编译 diff 审核可用，重排序使 P@5 > 0.7</td>
+            <td>
+              知识编译（可选）+ <strong>Cross-encoder 重排序</strong> + 评估体系 + 溯源标记 + 健康检测 +<br>
+              <strong>完整元数据启用（salience / effective_date / last_retrieved_at）</strong> +<br>
+              <strong>后融合 Boost 第二步（显著性/时效/图谱信号）</strong>——数据积累后启用
+            </td>
+            <td>编译 diff 审核可用；重排序使 P@5 &gt; 0.7；完整 Boost 管线生效</td>
           </tr>
         </table>
 
+        <div class="prd-h3">依赖关系图（v2.3）</div>
+        <div class="prd-diagram">Phase 1 地基（一次到位，避免重嵌入）
+  ├── 5层分块+CJK ──────────────┐
+  ├── 内容验证(content_hash) ───┤
+  ├── ★上下文检索(v2.3提前) ────┤  ← 必须和分块同批做
+  ├── 混合搜索(BM25+向量+RRF) ──┤
+  └── 元数据精简(hash+generation)┘
+                 │
+                 ▼
+Phase 2 图谱+对话
+  └── 语义边(8+种) ← 依赖图谱提取器
+                 │
+                 ▼
+Phase 3 检索增强
+  ├── 意图分类(零LLM,独立)
+  └── 后融合Boost 第一步(标题+来源,零数据依赖)
+                 │
+        ┌────────┴────────┐
+        ▼                 ▼
+Phase 4 打包+代码分块    [数据积累中...]
+  └── Tree-sitter               │
+                                ▼
+Phase 5 可选增强
+  ├── 重排序(Cross-encoder)
+  ├── 后融合Boost 第二步 ← 需 salience/时效/backlinks 数据
+  └── 完整元数据(salience等) ← 需查询频率积累</div>
+
         <div class="prd-h3">当前状态</div>
-        <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.2 PRD 已完成引擎增强设计。下一步进入 Phase 1 开发阶段——优先搭建增强版检索引擎（5 层分块 + 内容验证 + 混合搜索 + 后融合 Boost），这是整个产品的地基。</div>
+        <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.3 PRD 已完成路线重排。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + <strong>上下文检索</strong> + 混合搜索），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V2.2</span>
+          <span>PRD · 工作知识库 · V2.3</span>
           <span>2026-06-23</span>
           <span>END OF DOCUMENT</span>
         </div>
