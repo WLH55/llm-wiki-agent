@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v2.4</title>
+  <title>产品需求文档 · 工作知识库 v2.5</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -52,7 +52,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v2.4</span>
+      <span class="app-header__subtitle">editorial · v2.5</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -65,12 +65,12 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.4</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.5</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.4 <span class="badge badge-changed">架构转向</span></div></div>
-          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-23</div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.5 <span class="badge badge-changed">并发+数据模型</span></div></div>
+          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-24</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
         </div>
@@ -249,6 +249,54 @@
         <div class="prd-callout red"><strong>转向决策依据（gbrain 源码实证）：</strong>深入 gbrain 源码发现——① 它的向量表 JOIN 关系表（pages/sources）在 HNSW 内层做 WHERE 下推，是多人并发 + source 权限隔离的必要条件；② 它的所有 boost（backlink/salience/recency）最终乘法在 JS 层，与单库/双库无关；③ 它的图遍历用 SQL 递归 CTE，LanceDB 的 DataFusion SQL 不支持。结论：单库 JOIN 的真正价值是"并发 + 权限 + 事务"，团队场景下这是硬约束。</div>
 
         <div class="prd-callout"><strong>付出的代价（已知并接受）：</strong>PGLite WASM 体积 ~30MB（Tauri 包从 ~10MB 增至 ~40MB）；冷启动 2-10s（WASM 初始化）；中文 FTS 需配置 zhparser；PGLite 在 Windows 的成熟度待验证。这些代价换取"团队实时并发 + 一套 SQL + 原生事务"，ROI 划算。</div>
+
+        <div class="prd-h3">v2.5 并发控制 + 数据模型澄清（本次更新）<span class="badge badge-changed">CHANGED</span></div>
+        <p>v2.4 确定了 PGLite+Postgres 架构，但两个关键工程细节没写清：① 团队并发写入时事务边界怎么画、冲突怎么处理；② pages 表的 body_md 字段到底存什么、和 raw 文件什么关系。v2.5 基于 gbrain 源码实证把这两点写死：</p>
+        <table class="prd-table">
+          <tr><th>#</th><th>议题</th><th>v2.4 状态</th><th>v2.5 澄清</th><th>所在章节</th></tr>
+          <tr>
+            <td>1</td>
+            <td>写入事务边界</td>
+            <td>未定义</td>
+            <td><span class="badge badge-new">明确</span>：embedding 在事务外（避免长锁），DB 写入在一个短事务内</td>
+            <td><a href="#s7">§07</a> / <a href="#s13">§13</a></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>同文档并发编辑冲突</td>
+            <td>未定义</td>
+            <td><span class="badge badge-changed">分两步</span>：P1 用 last-write-wins（抄 gbrain），P3 加乐观锁 CAS 兜底</td>
+            <td><a href="#s13">§13</a></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>body_md 字段语义</td>
+            <td>含糊</td>
+            <td><span class="badge badge-changed">澄清</span>：存解析清洗后的 markdown 正文，不是原始字节；可从 raw 重建</td>
+            <td><a href="#s12">§12</a></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>page 与文档的关系</td>
+            <td>含糊</td>
+            <td><span class="badge badge-new">明确</span>：page = 知识库写入/寻址最小单位 = 一篇文档；chunk = 检索最小单位</td>
+            <td><a href="#s12">§12</a></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>chunk_source 字段</td>
+            <td>无</td>
+            <td><span class="badge badge-new">新增</span>：区分 chunk 来源（body/timeline/code），便于来源过滤和溯源</td>
+            <td><a href="#s12">§12</a></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>实体作为独立 page</td>
+            <td>未明确</td>
+            <td><span class="badge badge-changed">明确</span>：实体（人/公司/概念）是独立 page（type 区分），非仅 mention；靠 links 表建关系</td>
+            <td><a href="#s12">§12</a></td>
+          </tr>
+        </table>
 
         <div class="prd-h3">与竞品的差异化</div>
         <table class="prd-table">
@@ -561,14 +609,16 @@
           <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 05</div><div class="prd-flow__step-text">状态栏提示"已重新嵌入（N chunks）"。失败则标记为"待嵌入"</div></div>
         </div>
 
-        <div class="prd-h3">导入流程（检索优先）</div>
+        <div class="prd-h3">导入流程（检索优先）<span class="badge badge-changed">v2.5 事务边界</span></div>
+        <p>v2.5 明确事务边界：<strong>STEP 01-04 在事务外</strong>（含慢 embedding 调用），<strong>DB 写入在一个短事务内</strong>。详见 <a href="#s13">§13 并发与冲突控制</a>。</p>
         <div class="prd-flow">
-          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 01</div><div class="prd-flow__step-text">拖拽文件或选择文件夹，经过内容验证管线（幂等/垃圾/隐私检测）</div></div>
-          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 02</div><div class="prd-flow__step-text">5 层递归分块（标题→段落→句子→子句→字符），代码文件用 Tree-sitter</div></div>
-          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 03</div><div class="prd-flow__step-text">上下文包裹：为每个 chunk 拼接文档级前缀（仅嵌入时使用）</div></div>
-          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 04</div><div class="prd-flow__step-text">每个 chunk 调用 embedding API 生成向量，存入 pgvector（HNSW）+ tsvector（GIN）</div></div>
-          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 05</div><div class="prd-flow__step-text">提取语义边类型（mentions/relates_to 等），更新知识图谱</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 01 · 事务外</div><div class="prd-flow__step-text">拖拽文件或选择文件夹，经过内容验证管线（幂等/垃圾/隐私检测）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 02 · 事务外</div><div class="prd-flow__step-text">5 层递归分块（标题→段落→句子→子句→字符），代码文件用 Tree-sitter</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 03 · 事务外</div><div class="prd-flow__step-text">上下文包裹：为每个 chunk 拼接文档级前缀（仅嵌入时使用）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 04 · 事务外</div><div class="prd-flow__step-text">每个 chunk 调用 embedding API 生成向量（慢网络调用，必须在事务外）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 05 · ★事务内</div><div class="prd-flow__step-text">BEGIN → 写 pages/content_chunks/links（含向量+tsvector+图谱边）→ COMMIT。短事务，毫秒级</div></div>
         </div>
+        <div class="prd-callout info"><strong>v2.5 事务约定：</strong>STEP 01-04 是事务外准备阶段（解析、分块、embedding），STEP 05 是事务内原子写入（一次 BEGIN...COMMIT 包住所有 DB 操作）。这样既保证"导入要么全成要么全失败"，又不会因 embedding 慢而长时间持锁。</div>
       </section>
 
       <!-- ═══ 08. AI 对话 ═══ -->
@@ -852,15 +902,19 @@ embedded: true
   stats         JSONB                    -- 缓存的统计（文档数/chunk数）
 );</div>
 
-        <div class="prd-h4">pages 表（文档，含原始和沉淀）</div>
+        <div class="prd-h4">pages 表（文档 = 知识库写入/寻址最小单位）<span class="badge badge-changed">v2.5</span></div>
+        <p><strong>page = 一篇文档</strong>，是知识库的写入/读取/寻址最小单位（slug 唯一寻址）。原始文档、沉淀综合、笔记、实体（人/公司/概念）<strong>都是 page</strong>，靠 type 区分。注意：page 不是"检索最小单位"——检索按 chunk 匹配（见下表）。</p>
         <div class="prd-diagram">CREATE TABLE pages (
   id              SERIAL PRIMARY KEY,
-  slug            TEXT NOT NULL,                -- 如 'iap/refund-flow'
+  slug            TEXT NOT NULL,                -- 如 'iap/refund-flow'、'people/zhang-san'
   source_id       TEXT NOT NULL REFERENCES sources(id),
-  type            TEXT NOT NULL,                -- source | synthesis | note | compiled
+  type            TEXT NOT NULL,                -- source|synthesis|note|compiled|person|company|concept
+                                                -- （实体也是独立 page，靠 type 区分，非仅 mention）
   title           TEXT NOT NULL,
-  body_md         TEXT,                         -- 渲染用 markdown 正文
-  summary         TEXT,                         -- frontmatter.summary
+  body_md         TEXT,                         -- ★ 解析清洗后的 markdown 正文（非原始字节！）
+                                                --   raw/ 存原始文件(PDF/DOCX原样)，body_md 存可检索可渲染的 markdown
+                                                --   body_md 可从 raw 重建，raw 不可从 body_md 重建
+  summary         TEXT,                         -- frontmatter.summary（图谱节点摘要用）
   tags            TEXT[] DEFAULT '{}',
   content_hash    TEXT,                         -- SHA-256，幂等检测（P1 必需）
   generation      INT DEFAULT 1,                -- 知识代次：原始=1 综合=2 编译=3
@@ -869,6 +923,7 @@ embedded: true
   effective_date  DATE,                         -- P5：时效 Boost
   salience        REAL DEFAULT 0,               -- P5：显著性 Boost
   owner_id        TEXT,                         -- 归属用户（团队权限）
+  version         BIGINT DEFAULT 1,             -- P3：乐观锁 CAS（防 lost-update）
   deleted_at      TIMESTAMPTZ,                  -- 软删（visibility 过滤）
   created_at      TIMESTAMPTZ DEFAULT now(),
   updated_at      TIMESTAMPTZ DEFAULT now(),
@@ -877,17 +932,22 @@ embedded: true
 CREATE INDEX idx_pages_search ON pages USING GIN(search_vector);
 CREATE INDEX idx_pages_source ON pages(source_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_pages_effdate ON pages ((COALESCE(effective_date, updated_at)));</div>
+        <div class="prd-callout info"><strong>v2.5 澄清 body_md 语义：</strong>不要把 body_md 当成 raw 文件的副本——它存的是<strong>解析清洗后的 markdown 正文</strong>（PDF 提取文本、Word 转 markdown、URL 抓取清洗后的结果）。raw/ 保留原始字节（保真存档、可重新解析），body_md 是可检索可渲染的统一格式。两者关系：body_md 可从 raw + 解析器重建，raw 不可从 body_md 重建。这正是 §12 存储分层"raw 是源头、DB 是镜像"的体现。</div>
 
-        <div class="prd-h4">content_chunks 表（分块 + 向量，pgvector）</div>
+        <div class="prd-h4">content_chunks 表（分块 + 向量 = 检索最小单位）<span class="badge badge-changed">v2.5</span></div>
+        <p><strong>chunk = 检索/匹配的最小单位</strong>。一个 page 在写入时同步切成多个 chunk（1:N），向量（embedding）存在 chunk 级而非 page 级。检索返回 chunk（附所属 page 元数据），AI 对话默认注入 chunk 片段。</p>
         <div class="prd-diagram">CREATE TABLE content_chunks (
   id              SERIAL PRIMARY KEY,
   page_id         INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
   chunk_index     INT NOT NULL,
   body            TEXT NOT NULL,                -- 原始 chunk 文本（用户看到）
+  chunk_source    TEXT DEFAULT 'body',          -- v2.5 新增：body | timeline | code
+                                                --   区分 chunk 来自正文/时间线/代码块，便于来源过滤和溯源
   char_start      INT, char_end INT,
   token_count     INT,
   section_path    TEXT,                         -- 如 '## 退款流程'
   embedding       vector(1536),                 -- pgvector 向量（嵌入时含上下文包裹）
+                                                --   ★ 向量在 chunk 级，pages 表无 embedding 列
   search_vector   TSVECTOR,                     -- chunk 级 FTS
   content_hash    TEXT,                         -- 幂等
   embedding_model TEXT,                         -- 用哪个模型嵌入的
@@ -898,6 +958,39 @@ CREATE INDEX idx_chunks_embedding
 CREATE INDEX idx_chunks_search
   ON content_chunks USING GIN(search_vector);
 CREATE INDEX idx_chunks_page ON content_chunks(page_id);</div>
+
+        <div class="prd-h3">page / chunk / 文档 / 实体 四者关系（v2.5 澄清）</div>
+        <div class="prd-diagram">知识库 (source_id = 'iap')
+│
+└── PAGE = 写入/寻址最小单位 = 一篇文档
+    │   slug: iap/refund-flow
+    │   body_md: "# IAP退款流程\n退款必须在7天内..."  (解析后的 markdown)
+    │   raw/: iap/refund-spec.pdf  (原始字节，源头)
+    │
+    └── 写入时同步切分 1:N
+        │
+        ├── CHUNK = 检索/匹配最小单位
+        │   chunk_index: 0  chunk_source: 'body'
+        │   body: "退款必须在7天内发起"
+        │   embedding: vector(1536)  ← 向量在 chunk 级
+        │
+        ├── CHUNK
+        │   chunk_index: 1  chunk_source: 'body'
+        │   body: "系统校验订单状态..."
+        │   embedding: vector(1536)
+        │
+        └── ... (更多 chunks)
+
+  检索返回 → chunk（附 page 的 slug/title/type 元数据）
+  AI 注入  → chunk 片段（截断 ~600 字符）；agent 可 get_page 拉整页
+  图谱关系 → links 表（实体 page ↔ 引用 page）</div>
+        <table class="prd-table">
+          <tr><th>概念</th><th>是什么</th><th>最小单位角色</th></tr>
+          <tr><td><strong>page</strong></td><td>一篇文档（markdown 正文 + 元数据）</td><td><strong>写入/寻址最小单位</strong>（slug 唯一）</td></tr>
+          <tr><td><strong>chunk</strong></td><td>page 切分后的片段，带向量</td><td><strong>检索/匹配最小单位</strong>（向量在 chunk 级）</td></tr>
+          <tr><td>文档</td><td>= page 本身（一文档一 page）</td><td>同 page</td></tr>
+          <tr><td>实体</td><td>人/公司/概念，是独立 page（type 区分）</td><td>同 page，靠 links 表建关系</td></tr>
+        </table>
 
         <div class="prd-h4">links 表（图谱边，有类型）</div>
         <div class="prd-diagram">CREATE TABLE links (
@@ -1090,6 +1183,52 @@ CREATE TABLE access_tokens (
           <tr><td>visibility 过滤</td><td>deleted_at（软删）/ sources.archived（归档）三层状态过滤，与权限正交</td></tr>
         </table>
         <div class="prd-callout"><strong>为什么不用 RBAC：</strong>知识库场景下，权限边界基本是"哪个知识库/部门"，不是"哪条记录"。source 分区 + token 绑定足以覆盖 90% 场景，且与向量检索的 WHERE 下推天然契合（一列搞定）。RBAC 的 roles/permissions 表是过度设计。</div>
+
+        <div class="prd-h3">并发与冲突控制（v2.5 新增）<span class="badge badge-changed">NEW</span></div>
+        <p>团队形态下多人同时读写同一知识库，分三种场景，机制各异（参考 gbrain 源码实证）：</p>
+        <table class="prd-table">
+          <tr><th>场景</th><th>机制</th><th>冲突风险</th></tr>
+          <tr><td>多人同时<strong>读</strong>（搜索/对话/看图谱）</td><td>Postgres MVCC（多版本并发控制）</td><td>✅ 无冲突，读不阻塞写、写不阻塞读</td></tr>
+          <tr><td>多人同时<strong>写不同文档</strong></td><td>Postgres 行级锁</td><td>✅ 无冲突（改不同行互不影响）</td></tr>
+          <tr><td>多人同时<strong>写同一文档</strong></td><td>见下方冲突策略</td><td>⚠️ 需处理 lost-update</td></tr>
+        </table>
+
+        <div class="prd-h4">写入事务边界（必须遵守的工程约定）</div>
+        <p>一次文档写入（导入/编辑/沉淀）涉及多张表（pages/chunks/links），必须保证原子性。参考 gbrain 踩坑后的最佳实践——<strong>embedding 在事务外，DB 写入在一个短事务内</strong>：</p>
+        <div class="prd-diagram">事务外（无锁，可慢）─────────────────────────
+  ├── 解析 markdown / 内容验证 / 算 content_hash
+  ├── 读旧 page（getPage）
+  └── embedBatch()  ← 调 embedding API，可能几秒（慢！必须放事务外）
+        │
+        ▼
+事务内（engine.transaction，BEGIN...COMMIT，毫秒级短事务）
+  ├── putPage()        INSERT...ON CONFLICT DO UPDATE（原子 upsert）
+  ├── addTag() × N
+  ├── upsertChunks()   写 content_chunks（含向量）
+  └── addLink() × N    写图谱边
+        │
+        ▼
+事务后（fail-soft，失败不回滚主流程）
+  └── 更新 aliases / 缓存</div>
+        <div class="prd-callout red"><strong>为什么 embedding 必须在事务外：</strong>embedding 是网络调用，可能耗时几秒。如果放事务内，会长时间持有行锁，阻塞其他写入。gbrain 源码注释明确："Embed BEFORE the transaction (external API call)"——这是踩过坑的修正。事务只包纯 DB 写入（毫秒级），锁持有时间极短。</div>
+
+        <div class="prd-h4">同文档并发编辑冲突策略（分两步）</div>
+        <table class="prd-table">
+          <tr><th>阶段</th><th>策略</th><th>机制</th><th>用户体验</th></tr>
+          <tr>
+            <td><span class="badge badge-changed">Phase 1</span></td>
+            <td>last-write-wins（抄 gbrain）</td>
+            <td><code>ON CONFLICT DO UPDATE</code> 无条件覆盖</td>
+            <td>后写覆盖前写，前者存进 page_versions 可手动 revert</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-changed">Phase 3</span></td>
+            <td>乐观锁 CAS（兜底）</td>
+            <td>pages.version 列 + 写入带 expected_version + <code>WHERE version=?</code> 比对</td>
+            <td>冲突时报"文档已被他人修改，请刷新"</td>
+          </tr>
+        </table>
+        <div class="prd-callout info"><strong>为什么分两步：</strong>团队知识库不是 Google Docs，"两人同改同一篇技术文档的同一句话"极罕见。Phase 1 用 last-write-wins 快速跑通（gbrain 就是这么做的，接受这个风险）；Phase 3 加 CAS 兜底——成本仅一个 version 列 + 一处 WHERE 比对，但能避免最伤人的"静默丢失"。真实高频场景是"改不同文档"（行级锁无冲突）和"读写并发"（MVCC 无冲突），这两个 Postgres 原生解决。</div>
       </section>
 
       <!-- ═══ 14. 双 AI 通道 ═══ -->
@@ -1436,8 +1575,8 @@ Phase 5 可选增强
         <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.3 PRD 已完成路线重排。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + <strong>上下文检索</strong> + 混合搜索），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V2.4</span>
-          <span>2026-06-23</span>
+          <span>PRD · 工作知识库 · V2.5</span>
+          <span>2026-06-24</span>
           <span>END OF DOCUMENT</span>
         </div>
 
