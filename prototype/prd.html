@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v2.3</title>
+  <title>产品需求文档 · 工作知识库 v2.4</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -52,7 +52,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v2.3</span>
+      <span class="app-header__subtitle">editorial · v2.4</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -65,11 +65,11 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.3</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.4</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.3 <span class="badge badge-changed">路线重排</span></div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.4 <span class="badge badge-changed">架构转向</span></div></div>
           <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-23</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
@@ -142,7 +142,7 @@
           <tr><td>2</td><td>wiki/ 目录语义</td><td><span class="badge badge-changed">所有沉淀知识</span>（synthesis + notes + compiled）</td><td><a href="#s12">§12</a></td></tr>
           <tr><td>3</td><td>AI 对话沉淀机制</td><td><span class="badge badge-new">新增</span>对话回答可一键沉淀到 wiki/synthesis/</td><td><a href="#s8">§08</a></td></tr>
           <tr><td>4</td><td>知识图谱节点详情</td><td><span class="badge badge-changed">补全</span>字段、数据来源、抽屉布局</td><td><a href="#s9">§09</a></td></tr>
-          <tr><td>5</td><td>BM25 实现方案</td><td><span class="badge badge-new">SQLite FTS5</span>（纯文件，与 LanceDB 配套）</td><td><a href="#s13">§13</a> / <a href="#s16">§16</a></td></tr>
+          <tr><td>5</td><td>BM25 实现方案</td><td><span class="badge badge-changed">v2.4 改为</span> Postgres tsvector + GIN（原 v2.1 选 SQLite FTS5，团队并发需求下改同库方案）</td><td><a href="#s13">§13</a> / <a href="#s16">§16</a></td></tr>
           <tr><td>6</td><td>嵌入模型</td><td><span class="badge badge-changed">双模式</span>：在线 OpenAI/智谱，本地 bge-m3(Ollama)</td><td><a href="#s13">§13</a></td></tr>
           <tr><td>7</td><td>MCP 工具</td><td><span class="badge badge-removed">精简</span>仅 2 个：search_wiki + update_wiki</td><td><a href="#s15">§15</a></td></tr>
           <tr><td>8-11</td><td>manifest / 导出 / 文档类型 / 目录结构</td><td>扩充 manifest、明确导出语义、分级文档类型、补全目录结构</td><td>各章节</td></tr>
@@ -191,13 +191,72 @@
         </table>
         <div class="prd-callout info"><strong>未动的 6 项增强</strong>保持 v2.2 原安排：5 层分块(P1)、内容验证(P1)、导入渠道(P1)、语义边(P2)、意图分类(P3)、代码语义分块(P4)、重排序(P5)。调整只涉及上面 3 项。</div>
 
+        <div class="prd-h3">v2.4 架构转向（本次更新）<span class="badge badge-changed">MAJOR</span></div>
+        <p>v2.3 之前选 LanceDB + SQLite FTS5 双库方案，前提假设是"桌面单机、无并发"。深入调研 gbrain 源码 + 确认"<strong>团队实时多人并发访问同一知识库</strong>"是核心需求后，该假设不成立。v2.4 转向 <strong>PGLite（个人）+ Postgres（团队）双引擎架构</strong>，跟随 gbrain 的成熟范式：</p>
+        <table class="prd-table">
+          <tr><th>#</th><th>议题</th><th>v2.3 旧方案</th><th>v2.4 新方案</th><th>转向理由</th></tr>
+          <tr>
+            <td>1</td>
+            <td>向量数据库</td>
+            <td>LanceDB</td>
+            <td><span class="badge badge-changed">pgvector</span></td>
+            <td>团队并发要求 MVCC + 行级锁 + 跨表事务，LanceDB 不支持跨库事务、SQLite 多人写会锁冲突</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>全文检索</td>
+            <td>SQLite FTS5</td>
+            <td><span class="badge badge-changed">Postgres tsvector + GIN</span></td>
+            <td>与向量同库，可 JOIN；中文加 zhparser 解决</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>个人形态</td>
+            <td>纯文件（.lance + .sqlite）</td>
+            <td><span class="badge badge-changed">PGLite</span>（嵌入式 Postgres WASM）</td>
+            <td>零配置，与团队形态<strong>同一套 SQL 同一套 schema</strong>，零代码分叉</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>团队形态</td>
+            <td>未明确</td>
+            <td><span class="badge badge-new">外部 Postgres + 服务端</span> + thin 客户端</td>
+            <td>多客户端并发、实时共享、source 级权限</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>事务一致性</td>
+            <td>需 outbox 模式补偿</td>
+            <td><span class="badge badge-new">原生 ACID</span></td>
+            <td>导入/编辑 = 一个事务，原子性天然保证</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>代码组织</td>
+            <td>双库拼接（LanceDB + SQLite）</td>
+            <td><span class="badge badge-new">BrainEngine 接口</span>，一套 SQL 两引擎</td>
+            <td>避免检索层 SQL 分叉（FTS5 vs ts_rank 差异是根本性的）</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>图谱遍历</td>
+            <td>JS BFS + edges 表</td>
+            <td><span class="badge badge-changed">SQL 递归 CTE</span></td>
+            <td>WITH RECURSIVE + 数组环检测，多跳路径原生支持</td>
+          </tr>
+        </table>
+
+        <div class="prd-callout red"><strong>转向决策依据（gbrain 源码实证）：</strong>深入 gbrain 源码发现——① 它的向量表 JOIN 关系表（pages/sources）在 HNSW 内层做 WHERE 下推，是多人并发 + source 权限隔离的必要条件；② 它的所有 boost（backlink/salience/recency）最终乘法在 JS 层，与单库/双库无关；③ 它的图遍历用 SQL 递归 CTE，LanceDB 的 DataFusion SQL 不支持。结论：单库 JOIN 的真正价值是"并发 + 权限 + 事务"，团队场景下这是硬约束。</div>
+
+        <div class="prd-callout"><strong>付出的代价（已知并接受）：</strong>PGLite WASM 体积 ~30MB（Tauri 包从 ~10MB 增至 ~40MB）；冷启动 2-10s（WASM 初始化）；中文 FTS 需配置 zhparser；PGLite 在 Windows 的成熟度待验证。这些代价换取"团队实时并发 + 一套 SQL + 原生事务"，ROI 划算。</div>
+
         <div class="prd-h3">与竞品的差异化</div>
         <table class="prd-table">
           <tr><th>维度</th><th>Notion / Confluence</th><th>Obsidian / Logseq</th><th>GBrain</th><th>工作知识库（本产品）</th></tr>
           <tr><td>产品形态</td><td>SaaS Web 应用</td><td>个人笔记工具</td><td>Postgres 知识引擎</td><td><strong>知识库管理桌面客户端</strong></td></tr>
           <tr><td>检索方式</td><td>全文搜索</td><td>关键词 + 图谱导航</td><td>混合搜索 + 重排 + 图信号</td><td><strong>混合检索 + 意图分类 + 后融合 Boost + AI 推理</strong></td></tr>
           <tr><td>知识问答</td><td>无</td><td>插件支持</td><td>gbrain think</td><td><strong>双 AI 通道原生对话</strong></td></tr>
-          <tr><td>数据存储</td><td>云端</td><td>本地 Markdown</td><td>Postgres + pgvector</td><td><strong>本地文件 + LanceDB（可插拔）</strong></td></tr>
+          <tr><td>数据存储</td><td>云端</td><td>本地 Markdown</td><td>Postgres + pgvector</td><td><strong>PGLite（个人）/ Postgres（团队）+ pgvector</strong></td></tr>
           <tr><td>图谱可视化</td><td>无</td><td>基础图谱</td><td>Admin 面板</td><td><strong>面向人类的知识图谱 + 语义边类型</strong></td></tr>
           <tr><td>分块策略</td><td>无（全文索引）</td><td>按文件</td><td>5 层递归 + 代码语义</td><td><strong>5 层递归 + CJK + 代码语义（吸收 GBrain）</strong></td></tr>
         </table>
@@ -301,13 +360,13 @@
   └── "本文档: {title}\n本章: {section}\n---\n{chunk_text}"
   │
   ▼
-⑤ 嵌入向量（embedding API，非 LLM）→ 存入 LanceDB
+⑤ 嵌入向量（embedding API，非 LLM）→ 存入 pgvector（HNSW 索引）
   │
   ▼
 ⑥ 图谱提取（确定性代码）
   ├── 提取 [[wikilink]] 引用 + 实体识别
   ├── 识别语义边类型（mentions / relates_to / discussed_in 等）
-  └── 更新 graph.json
+  └── 更新 links 表（图谱边）
   │
   ▼
 ⑦ 完成 — 文档立即可搜索、可被 AI 对话引用
@@ -356,7 +415,7 @@
                 ┌────────────────────────────────────┐
                 │                                    │
 原始文档        │  验证 → 分块 → 上下文包裹 →         │       查 询 流 程
-(raw/)  ────────┤  嵌入向量 → 存入 LanceDB +          │  ──────────────→
+(raw/)  ────────┤  嵌入向量 → 存入 pgvector +        │  ──────────────→
                 │  提取图谱边（含语义边类型）          │        │
                 └────────────────────────────────────┘        │
                                                               ▼
@@ -387,22 +446,23 @@
 
       <!-- ═══ 06. 知识库连接 ═══ -->
       <section class="prd-section" id="s6">
-        <div class="prd-section__num">06 — CONNECTION</div>
+        <div class="prd-section__num">06 — CONNECTION <span class="badge badge-changed">v2.4 双引擎</span></div>
         <h2 class="prd-section__title">模块一：知识库连接</h2>
-        <p>知识库连接是客户端的入口模块。类似 Navicat 的"连接管理"，用户在这里管理所有知识库连接——挂载本地目录、连接内网部署的知识库、切换当前活跃知识库。</p>
+        <p>知识库连接是客户端的入口模块。类似 Navicat 的"连接管理"。v2.4 后，连接分两种：<strong>本地连接</strong>（PGLite 嵌入式，个人形态）和<strong>远程连接</strong>（连团队 Postgres 服务端）。两者背后是同一套 schema 同一套 SQL，只是连接方式不同。</p>
         <div class="prd-h3">功能规格</div>
         <table class="prd-table">
           <tr><th>功能</th><th>描述</th></tr>
-          <tr><td>当前连接</td><td>显示当前活跃的知识库，包括名称、路径、统计信息（页面数、向量数、最后更新时间）</td></tr>
-          <tr><td>已注册连接列表</td><td>显示所有已注册的知识库连接，区分本地目录和远程连接</td></tr>
-          <tr><td>添加本地知识库</td><td>选择本地目录作为知识库，自动检测 manifest.json，若无则引导创建新知识库</td></tr>
-          <tr><td>连接远程知识库</td><td>输入内网地址（如 http://192.168.1.5:3000），连接团队共享的 Docker 部署知识库</td></tr>
-          <tr><td>切换知识库</td><td>点击已注册连接切换当前活跃知识库，所有模块自动切换到新数据</td></tr>
-          <tr><td>快照</td><td>打包当前知识库为 .zip 文件（含全部数据），完整备份，目标端开箱即用</td></tr>
-          <tr><td>导出</td><td>仅导出源数据（manifest + raw + wiki），不含衍生数据。目标端首次打开时自动重建索引</td></tr>
-          <tr><td>导入</td><td>从 .zip 快照或导出包恢复知识库。若包内无衍生数据，导入后自动触发索引重建</td></tr>
+          <tr><td>当前连接</td><td>显示当前活跃的知识库：名称、引擎类型（PGLite/Postgres）、source_id、统计信息（页面数、chunk 数、最后更新）</td></tr>
+          <tr><td>已注册连接列表</td><td>区分本地连接（PGLite 数据目录）和远程连接（Postgres 服务端 URL + token）</td></tr>
+          <tr><td>添加本地知识库</td><td>选择本地目录，启动 PGLite 引擎挂载数据目录。自动检测 manifest.json，无则引导创建（init schema.sql）</td></tr>
+          <tr><td>连接远程知识库</td><td>输入服务端 URL（如 http://192.168.1.5:3000）+ access_token，thin 连接到团队 Postgres。token 绑定可见 source 范围</td></tr>
+          <tr><td>切换知识库</td><td>切换当前活跃连接，所有模块自动切到新数据。本地↔远程可自由切换</td></tr>
+          <tr><td>快照（本地）</td><td>打包本地 PGLite 数据目录 + raw/ 为 .zip，完整备份，目标端开箱即用</td></tr>
+          <tr><td>导出</td><td>导出 raw/ + 数据库 dump（pg_dump）。目标端 restore 后即可用，向量/chunks 随 dump 一起迁移</td></tr>
+          <tr><td>导入</td><td>从 .zip 恢复：解压 raw/ + pg_restore 数据库。也可仅导入 raw/ 触发全量重建</td></tr>
+          <tr><td>本地 → 团队上传</td><td>把本地知识库 dump 上传到团队 Postgres 服务端，转为团队共享 source</td></tr>
         </table>
-        <div class="prd-callout info"><strong>数据分层：</strong><strong>源数据</strong>（必须迁移）：manifest.json + raw/ + wiki/。<strong>衍生数据</strong>（可删可重建）：vectors/ + index/ + graph/。</div>
+        <div class="prd-callout info"><strong>v2.4 连接语义：</strong>本地连接 = PGLite 进程内引擎（个人，单用户）；远程连接 = Postgres 客户端-服务器（团队，多用户并发）。<strong>同一套 SQL</strong>，UI 层无感知差异。个人版积累的知识库可随时 dump 上传到团队服务端共享。</div>
       </section>
 
       <!-- ═══ 07. 文档管理 ═══ -->
@@ -506,7 +566,7 @@
           <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 01</div><div class="prd-flow__step-text">拖拽文件或选择文件夹，经过内容验证管线（幂等/垃圾/隐私检测）</div></div>
           <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 02</div><div class="prd-flow__step-text">5 层递归分块（标题→段落→句子→子句→字符），代码文件用 Tree-sitter</div></div>
           <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 03</div><div class="prd-flow__step-text">上下文包裹：为每个 chunk 拼接文档级前缀（仅嵌入时使用）</div></div>
-          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 04</div><div class="prd-flow__step-text">每个 chunk 调用 embedding API 生成向量，存入 LanceDB + FTS5</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 04</div><div class="prd-flow__step-text">每个 chunk 调用 embedding API 生成向量，存入 pgvector（HNSW）+ tsvector（GIN）</div></div>
           <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 05</div><div class="prd-flow__step-text">提取语义边类型（mentions/relates_to 等），更新知识图谱</div></div>
         </div>
       </section>
@@ -530,7 +590,7 @@
   ▼
 ② 检索阶段（确定性代码，不调用 LLM）
   ├── BM25 关键词检索 → top-30 chunks
-  ├── 向量语义检索（LanceDB）→ top-30 chunks
+  ├── 向量语义检索（pgvector HNSW）→ top-30 chunks
   ├── RRF 融合排序
   ├── 后融合 Boost（v2.2）：标题匹配/显著性/时效/图谱信号
   └── (可选) Cross-encoder 重排序 → 取 top-K（默认 8）
@@ -675,9 +735,9 @@ embedded: true
         <div class="prd-h3">节点详情字段与数据来源</div>
         <table class="prd-table">
           <tr><th>展示项</th><th>数据来源</th><th>怎么拿</th></tr>
-          <tr><td>名称 (label)</td><td>graph.json 的 node.label</td><td>直接读</td></tr>
-          <tr><td>类型 badge</td><td>graph.json 的 node.type</td><td>直接读，决定 badge 颜色</td></tr>
-          <tr><td>所在文件</td><td>graph.json 的 node.source_file</td><td>直接读，点击可跳转文档</td></tr>
+          <tr><td>名称 (label)</td><td>pages.title</td><td>SELECT title FROM pages</td></tr>
+          <tr><td>类型 badge</td><td>pages.type</td><td>直接读，决定 badge 颜色</td></tr>
+          <tr><td>所在文件</td><td>pages.source_file</td><td>直接读，点击可跳转文档</td></tr>
           <tr><td>入度 / 出度</td><td>遍历 edges 计算</td><td>按 source/target 过滤</td></tr>
           <tr><td>出边列表（含边类型）</td><td>edges 中 source===本节点</td><td>过滤 edges，显示边类型标签</td></tr>
           <tr><td>入边列表（含边类型）</td><td>edges 中 target===本节点</td><td>同上</td></tr>
@@ -704,7 +764,7 @@ embedded: true
         <table class="prd-table">
           <tr><th>功能</th><th>描述</th></tr>
           <tr><td>模式 banner</td><td>顶部横幅标注"纯检索模式"，提供跳转对话的链接</td></tr>
-          <tr><td>搜索模式</td><td>混合（BM25 + 向量 RRF + Boost）/ 关键词（BM25）/ 向量（LanceDB 语义）</td></tr>
+          <tr><td>搜索模式</td><td>混合（BM25 + 向量 RRF + Boost）/ 关键词（ts_rank）/ 向量（pgvector 语义）</td></tr>
           <tr><td>范围筛选</td><td>按来源过滤：原始文档（raw/）/ 沉淀知识（wiki/）/ 全部</td></tr>
           <tr><td>结果卡片</td><td>编号 + 标题 + 来源 badge + 摘要（关键词高亮）+ 文件路径 + 相关度</td></tr>
           <tr><td>Cmd+K</td><td>任意页面可通过 ⌘K 快速跳转到搜索</td></tr>
@@ -744,196 +804,292 @@ embedded: true
 
       <!-- ═══ 12. 数据模型 ═══ -->
       <section class="prd-section" id="s12">
-        <div class="prd-section__num">12 — DATA MODEL <span class="badge badge-changed">v2.2 增强</span></div>
+        <div class="prd-section__num">12 — DATA MODEL <span class="badge badge-changed">v2.4 重写</span></div>
         <h2 class="prd-section__title">数据模型</h2>
 
-        <div class="prd-h3">知识库数据包目录结构</div>
-        <div class="prd-diagram">my-knowledge-base/              ← 一个知识库 = 一个自包含数据包
-│
-│  ── 源数据（必须迁移，人类编辑内容）─────────────
-├── manifest.json               ← 身份证 + 引擎配置 + 统计 + 完整性哈希
-├── raw/                        ← 原始文档（可读可写可删）
-│   ├── IAP系统/
-│   │   ├── refund-spec.pdf
-│   │   └── payment-api.md
-│   ├── 广告投放/
-│   └── 钉钉自动化/
-├── wiki/                       ← 沉淀知识
-│   ├── synthesis/              ← AI 对话沉淀
-│   ├── notes/                  ← 用户手写笔记
-│   └── compiled/               ← （Phase 5 可选）AI 编译产物
-│
-│  ── 衍生数据（可删可重建，代码生成）─────────────
-├── graph/
-│   └── graph.json              ← 节点 + 有类型边（v2.2 增强）
-├── vectors/
-│   └── chunks.lance            ← LanceDB 向量数据
-├── index/
-│   ├── bm25.sqlite             ← SQLite FTS5 全文索引
-│   └── chunks.meta.json        ← chunk → 源文件映射 + content_hash
-└── .cache/                     ← 运行时缓存</div>
+        <p>v2.4 架构转向后，数据模型从"目录结构 + frontmatter"升级为"<strong>数据库 schema 为权威，文件系统为快照</strong>"。所有结构化数据（文档、chunks、向量、图谱边、来源）都存数据库，磁盘文件只是可重建的 raw 原文 + 可读快照。</p>
 
-        <div class="prd-h3">文档 Frontmatter 元数据（v2.3 分级）</div>
-        <p>每个文档的 frontmatter 字段分两级落地：<strong>P1 必需</strong>（写入时确定或幂等必需，零维护成本）和 <strong>P5 按需</strong>（需要定期重算或数据积累，隐藏维护成本高）。</p>
-        <div class="prd-diagram">---
-type: source                         # source | entity | concept | synthesis
-title: IAP 退款流程
-created: 2026-01-15T10:00:00Z
-updated: 2026-06-23T14:30:00Z
-tags: [IAP, 退款, 支付]
-summary: IAP 系统退款流程包括三个核心步骤...
-
-# ── Phase 1 必需（零维护成本）──
-content_hash: "sha256:a3f2c8..."     # 文件内容哈希，幂等检测必需
-generation: 1                        # 知识代次（原始=1/综合=2/编译=3），写入时确定
-
-# ── Phase 5 按需启用（需数据积累或定期重算，v2.3 降级）──
-# salience: 0.82                     # 显著性评分，需定期重算（每次查询命中更新）
-# effective_date: 2026-06-01         # 生效日期，多数文档没有明确标注
-# last_retrieved_at: 2026-06-22      # 最近被检索时间，每次检索写回
-# source_type: raw                   # 来源目录类型（P3 用，Boost 来源加权时填）
-
-# ── 溯源字段 ──
-source_file: raw/IAP系统/refund-spec.pdf
-chunks: 12
-embedded: true
----
-
-## 摘要
-IAP 系统退款流程包括...</div>
-        <div class="prd-callout info"><strong>v2.3 元数据精简理由：</strong>v2.2 一次性引入 4 个新字段，但其中 3 个（salience / effective_date / last_retrieved_at）有<strong>隐藏维护成本</strong>——salience 要定期重算、last_retrieved_at 每次检索写回、effective_date 多数文档没有明确生效日。Phase 1 只做 content_hash（幂等必需）和 generation（写入时确定），其余 P5 数据积累到位后按需启用。避免 P1 引入还没用上的复杂度。</div>
-
-        <div class="prd-h3">Chunk 元数据（v2.3 分级）</div>
-        <p>每个 chunk 在 <code>index/chunks.meta.json</code> 中的记录结构（同样分 P1 必需 / P5 按需）：</p>
-        <div class="prd-diagram">{
-  "chunk_id": "chk_001",
-  "source_file": "raw/IAP系统/refund-spec.pdf",
-  "content_hash": "sha256:a3f2c8...",   // P1 必需：幂等检测
-  "index": 0,
-  "char_start": 0,
-  "char_end": 1823,
-  "token_count": 287,
-  "embedding_model": "text-embedding-3-small",  // P1 必需：换模型时定位
-  "embedding_dim": 1536,
-  "section_path": "## 退款流程",
-  "generation": 1                        // P1 必需
-  // "salience": 0.82,                  // P5 按需
-  // "last_retrieved_at": "..."         // P5 按需
-}</div>
-
-        <div class="prd-h3">知识图谱数据结构（v2.2 增强）</div>
+        <div class="prd-h3">存储分层：数据库 vs 文件系统</div>
         <table class="prd-table">
-          <tr><th>实体</th><th>字段</th><th>说明</th></tr>
-          <tr><td>Node</td><td>id, label, type, source_file, salience, metadata</td><td>type: source | entity | concept | synthesis。salience 用于图谱信号 Boost</td></tr>
-          <tr><td>Edge</td><td>source, target, type, weight</td><td>type: mentions | relates_to | discussed_in | references | extracted_from | works_at | authored | synthesizes。weight 表示关系强度</td></tr>
+          <tr><th>层</th><th>存什么</th><th>形态</th><th>可重建？</th></tr>
+          <tr>
+            <td><strong>数据库（权威 source of truth）</strong></td>
+            <td>pages / content_chunks（含向量+tsvector） / links / sources / ingest_log / users / access_tokens</td>
+            <td>PGLite（个人，一个目录）/ Postgres（团队，一个库）</td>
+            <td>部分（chunks/向量可从 raw 重建，pages/links 也可重建）</td>
+          </tr>
+          <tr>
+            <td>raw/ 文件</td>
+            <td>原始文档源文件（md/pdf/txt...）</td>
+            <td>磁盘目录</td>
+            <td>❌ 不可重建（人类创作内容）</td>
+          </tr>
+          <tr>
+            <td>manifest.json</td>
+            <td>身份证 + 引擎配置 + 统计</td>
+            <td>磁盘文件</td>
+            <td>可从数据库统计重建</td>
+          </tr>
+          <tr>
+            <td>wiki/ 文件</td>
+            <td>沉淀知识（synthesis/notes）的 markdown 快照</td>
+            <td>磁盘目录</td>
+            <td>可从 pages 表导出</td>
+          </tr>
+        </table>
+        <div class="prd-callout info"><strong>v2.4 核心变化：</strong>数据库成为 source of truth。raw/ 文件是不可重建的源数据（必须备份），其余全部可从 raw + 数据库重建。这和 gbrain 的"brain repo（git markdown）是源头，Postgres 是检索镜像"哲学一致——只是我们的 raw 对应它的 brain repo，我们的数据库对应它的 Postgres。</div>
+
+        <div class="prd-h3">核心表 Schema（v2.4）</div>
+        <p>以下表结构同时跑在 PGLite 和 Postgres 上（同一套 DDL），是 BrainEngine 接口的契约基础。参考 gbrain schema 精简而来。</p>
+
+        <div class="prd-h4">sources 表（数据源 / 权限分区）</div>
+        <div class="prd-diagram">CREATE TABLE sources (
+  id            TEXT PRIMARY KEY,        -- 如 'iap' / 'ads' / 'dingtalk'
+  name          TEXT NOT NULL,
+  kind          TEXT DEFAULT 'team',     -- team | personal | shared
+  archived      BOOLEAN DEFAULT FALSE,   -- 归档隔离（visibility 过滤）
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  stats         JSONB                    -- 缓存的统计（文档数/chunk数）
+);</div>
+
+        <div class="prd-h4">pages 表（文档，含原始和沉淀）</div>
+        <div class="prd-diagram">CREATE TABLE pages (
+  id              SERIAL PRIMARY KEY,
+  slug            TEXT NOT NULL,                -- 如 'iap/refund-flow'
+  source_id       TEXT NOT NULL REFERENCES sources(id),
+  type            TEXT NOT NULL,                -- source | synthesis | note | compiled
+  title           TEXT NOT NULL,
+  body_md         TEXT,                         -- 渲染用 markdown 正文
+  summary         TEXT,                         -- frontmatter.summary
+  tags            TEXT[] DEFAULT '{}',
+  content_hash    TEXT,                         -- SHA-256，幂等检测（P1 必需）
+  generation      INT DEFAULT 1,                -- 知识代次：原始=1 综合=2 编译=3
+  source_file     TEXT,                         -- raw/ 路径（source 类型）或 wiki/ 路径
+  search_vector   TSVECTOR,                     -- Postgres FTS（触发器维护）
+  effective_date  DATE,                         -- P5：时效 Boost
+  salience        REAL DEFAULT 0,               -- P5：显著性 Boost
+  owner_id        TEXT,                         -- 归属用户（团队权限）
+  deleted_at      TIMESTAMPTZ,                  -- 软删（visibility 过滤）
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  updated_at      TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (source_id, slug)                      -- slug 在 source 内唯一
+);
+CREATE INDEX idx_pages_search ON pages USING GIN(search_vector);
+CREATE INDEX idx_pages_source ON pages(source_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_pages_effdate ON pages ((COALESCE(effective_date, updated_at)));</div>
+
+        <div class="prd-h4">content_chunks 表（分块 + 向量，pgvector）</div>
+        <div class="prd-diagram">CREATE TABLE content_chunks (
+  id              SERIAL PRIMARY KEY,
+  page_id         INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+  chunk_index     INT NOT NULL,
+  body            TEXT NOT NULL,                -- 原始 chunk 文本（用户看到）
+  char_start      INT, char_end INT,
+  token_count     INT,
+  section_path    TEXT,                         -- 如 '## 退款流程'
+  embedding       vector(1536),                 -- pgvector 向量（嵌入时含上下文包裹）
+  search_vector   TSVECTOR,                     -- chunk 级 FTS
+  content_hash    TEXT,                         -- 幂等
+  embedding_model TEXT,                         -- 用哪个模型嵌入的
+  UNIQUE (page_id, chunk_index)
+);
+CREATE INDEX idx_chunks_embedding
+  ON content_chunks USING hnsw (embedding vector_cosine_ops);  -- 余弦 HNSW
+CREATE INDEX idx_chunks_search
+  ON content_chunks USING GIN(search_vector);
+CREATE INDEX idx_chunks_page ON content_chunks(page_id);</div>
+
+        <div class="prd-h4">links 表（图谱边，有类型）</div>
+        <div class="prd-diagram">CREATE TABLE links (
+  id              SERIAL PRIMARY KEY,
+  from_page_id    INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+  to_page_id      INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+  link_type       TEXT NOT NULL,    -- mentions|relates_to|discussed_in|references|
+                                    -- extracted_from|works_at|authored|synthesizes
+  link_source     TEXT,             -- 提取来源：wikilink | regex | frontmatter
+  weight          REAL DEFAULT 1.0,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  UNIQUE NULLS NOT DISTINCT (from_page_id, to_page_id, link_type, link_source)
+);
+CREATE INDEX idx_links_from ON links(from_page_id);
+CREATE INDEX idx_links_to   ON links(to_page_id);   -- 反向遍历算 backlink</div>
+
+        <div class="prd-h4">users / access_tokens 表（团队权限，P3 起）</div>
+        <div class="prd-diagram">-- 团队形态才启用，个人形态可空
+CREATE TABLE users (
+  id        TEXT PRIMARY KEY,
+  name      TEXT NOT NULL,
+  email     TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE access_tokens (
+  id          SERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,            -- 机器/客户端名
+  token_hash  TEXT NOT NULL,
+  source_id   TEXT REFERENCES sources(id),     -- 写范围（绑定一个 source）
+  federated_read TEXT[] DEFAULT '{}',           -- 跨源只读范围
+  owner_id    TEXT REFERENCES users(id),
+  scopes      TEXT[] DEFAULT '{}',
+  created_at  TIMESTAMPTZ DEFAULT now()
+);</div>
+
+        <div class="prd-h3">关键索引与检索加速（v2.4）</div>
+        <table class="prd-table">
+          <tr><th>索引</th><th>类型</th><th>加速什么</th></tr>
+          <tr><td>idx_chunks_embedding</td><td>HNSW (vector_cosine_ops)</td><td>向量 ANN 检索（余弦）</td></tr>
+          <tr><td>idx_chunks_search / idx_pages_search</td><td>GIN (tsvector)</td><td>全文检索（ts_rank）</td></tr>
+          <tr><td>idx_links_from / idx_links_to</td><td>B-tree</td><td>图谱正/反向遍历、backlink 计数</td></tr>
+          <tr><td>idx_pages_effdate</td><td>表达式索引 (COALESCE)</td><td>时效 Boost 的日期过滤</td></tr>
+          <tr><td>idx_pages_source (partial)</td><td>Partial B-tree</td><td>source 权限隔离的 WHERE 下推</td></tr>
         </table>
 
-        <div class="prd-h3">manifest.json（数据包元信息，v2.2 增强）</div>
+        <div class="prd-h3">manifest.json（数据包元信息，v2.4 更新）</div>
         <div class="prd-diagram">{
   "id": "kb-iap-2026",
   "name": "IAP 支付知识库",
-  "version": "2.2.0",
+  "version": "2.4.0",
   "created": "2026-01-15",
   "engine": {
-    "vector_db": "lancedb",
+    "db": {
+      "personal": "pglite",          // 个人形态
+      "team": "postgres+pgvector"    // 团队形态
+    },
     "embedding": {
       "provider": "openai",
       "model": "text-embedding-3-small",
-      "dimension": 1536,
-      "base_url": null
+      "dimension": 1536
     },
     "chunking": {
       "strategy": "recursive-5level",
-      "target_words": 300,
-      "overlap_words": 50,
-      "max_words": 450,
-      "cjk_counting": true,
+      "target_words": 300, "overlap_words": 50,
+      "max_words": 450, "cjk_counting": true,
       "code_parser": "tree-sitter"
     },
     "retrieval": {
       "intent_classification": true,
       "post_fusion_boost": true,
       "reranker": "optional",
-      "reranker_model": null,
       "contextual_retrieval": true
     }
   },
   "stats": {
-    "raw_files": 42,
-    "wiki_synthesis": 8,
-    "wiki_notes": 5,
-    "wiki_compiled": 2,
-    "total_chunks": 386,
-    "graph_nodes": 28,
-    "graph_edges": 42
-  },
-  "integrity": {
-    "raw_hash": "sha256:...",
-    "wiki_hash": "sha256:..."
+    "raw_files": 42, "pages": 55,
+    "total_chunks": 386, "graph_edges": 42
   }
 }</div>
-        <div class="prd-callout info"><strong>v2.2 manifest 新增字段：</strong><code>chunking.strategy</code> 从简单的 max_chars/overlap 升级为完整的分块策略描述。<code>retrieval</code> 块记录检索引擎配置（意图分类、后融合 Boost、重排序、上下文检索），确保不同客户端打开同一知识库时使用一致的检索行为。</div>
+        <div class="prd-callout info"><strong>v2.4 manifest 变化：</strong>去掉 <code>vector_db: lancedb</code>，改为 <code>db: {personal, team}</code> 双引擎声明。去掉 integrity 双 hash（数据库自己保证一致性）。stats 简化（pages 统一计数，不再分 raw/wiki）。</div>
       </section>
 
       <!-- ═══ 13. 技术架构 ═══ -->
       <section class="prd-section" id="s13">
-        <div class="prd-section__num">13 — TECH STACK <span class="badge badge-changed">v2.2 增强</span></div>
+        <div class="prd-section__num">13 — TECH STACK <span class="badge badge-changed">v2.4 重写</span></div>
         <h2 class="prd-section__title">技术架构</h2>
+
         <div class="prd-h3">已确认技术决策</div>
         <table class="prd-table">
           <tr><th>决策项</th><th>选择</th><th>理由</th></tr>
           <tr><td>前端框架</td><td>React / Next.js (App Router)</td><td>全栈框架，API Routes 即后端</td></tr>
           <tr><td>后端语言</td><td>TypeScript (Next.js API Routes)</td><td>前后端统一</td></tr>
-          <tr><td>向量数据库</td><td>LanceDB</td><td>纯文件存储，零服务进程</td></tr>
-          <tr><td>全文检索（BM25）</td><td>SQLite FTS5</td><td>纯文件、零进程，与 LanceDB 配套</td></tr>
-          <tr><td>桌面打包</td><td>Tauri</td><td>体积小（~10MB）</td></tr>
+          <tr><td>数据库（个人形态）<span class="badge badge-changed">v2.4</span></td><td><strong>PGLite</strong>（Postgres 17 WASM，嵌入式）</td><td>零配置，与团队形态<strong>同一套 SQL</strong>，无需装数据库服务</td></tr>
+          <tr><td>数据库（团队形态）<span class="badge badge-changed">v2.4</span></td><td><strong>PostgreSQL + pgvector</strong></td><td>MVCC 多人并发、行级锁、跨表事务、递归 CTE 图遍历</td></tr>
+          <tr><td>向量检索 <span class="badge badge-changed">v2.4</span></td><td><strong>pgvector</strong>（HNSW + 余弦）</td><td>与关系数据同库，可 JOIN；向量表 WHERE 下推保召回率</td></tr>
+          <tr><td>全文检索（BM25）<span class="badge badge-changed">v2.4</span></td><td><strong>Postgres tsvector + GIN + ts_rank</strong></td><td>与向量同库；中文配 zhparser 分词</td></tr>
+          <tr><td>桌面打包</td><td>Tauri</td><td>体积小（~10MB）+ PGLite WASM(~30MB) ≈ 40MB</td></tr>
           <tr><td>图谱可视化</td><td>D3.js</td><td>力导向图，支持大规模节点交互</td></tr>
           <tr><td>流式通信</td><td>SSE</td><td>AI 对话流式输出</td></tr>
           <tr><td>AI 集成</td><td>双通道：本地 CLI 代理 + Mini Agent</td><td>灵活适配</td></tr>
-          <tr><td>分块引擎 <span class="badge badge-changed">v2.2</span></td><td>5 层递归分块 + Tree-sitter 代码语义分块</td><td>标题→段落→句子→子句→字符，CJK 单独计数。代码文件按 AST 节点边界切分</td></tr>
+          <tr><td>分块引擎</td><td>5 层递归分块 + Tree-sitter 代码语义分块</td><td>标题→段落→句子→子句→字符，CJK 单独计数</td></tr>
           <tr><td>嵌入模型</td><td>双模式：在线 + 本地</td><td>在线 text-embedding-3-small / 智谱，本地 bge-m3 via Ollama</td></tr>
-          <tr><td>重排序 <span class="badge badge-new">v2.2</span></td><td>可选 Cross-encoder</td><td>高精度场景启用，默认关闭以控制延迟</td></tr>
+          <tr><td>重排序</td><td>可选 Cross-encoder</td><td>高精度场景启用，默认关闭</td></tr>
         </table>
 
-        <div class="prd-h3">系统架构</div>
-        <div class="prd-diagram">┌─────────────────────────────────────────────────────────┐
-│                  Tauri 桌面应用壳                         │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │              Next.js 应用                          │  │
-│  │  ┌──────────┐ ┌──────────┐ ┌────────────────┐    │  │
-│  │  │ 前端 UI   │ │ API 层   │ │ CLI 代理层      │    │  │
-│  │  │ (React)  │ │ (Routes) │ │ (child_process) │    │  │
-│  │  └────┬─────┘ └────┬─────┘ └───────┬────────┘    │  │
-│  │  ┌────┴─────────────┴───────────────┴──────────┐  │  │
-│  │  │           核心业务层 (TypeScript)             │  │  │
-│  │  │                                              │  │  │
-│  │  │  wiki-store.ts      — Markdown 文件读写       │  │  │
-│  │  │  vector-store.ts    — LanceDB 向量操作        │  │  │
-│  │  │  bm25-store.ts      — SQLite FTS5 全文索引    │  │  │
-│  │  │  hybrid-search.ts   — 意图分类+BM25+向量+RRF  │  │  │
-│  │  │                       +后融合Boost+重排序     │  │  │
-│  │  │  chunker.ts         — 5层递归分块+代码语义    │  │  │
-│  │  │  content-validator.ts — 幂等/垃圾/隐私检测    │  │  │
-│  │  │  graph-builder.ts   — 图谱提取(含语义边类型)  │  │  │
-│  │  │  cli-proxy.ts       — 本地 CLI 工具代理       │  │  │
-│  │  │  mini-agent.ts      — 内置 Mini Agent         │  │  │
-│  │  │  mcp-server.ts      — MCP 工具服务            │  │  │
-│  │  └──────────────────────────────────────────────┘  │  │
-│  └───────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────────────────────┐
-│              知识库数据包（纯文件）                        │
-│  raw/ + wiki/ + graph/ + vectors/ + index/ + manifest   │
-└─────────────────────────────────────────────────────────┘</div>
+        <div class="prd-callout red"><strong>v2.4 选型转折说明：</strong>v2.3 及之前选 LanceDB + SQLite FTS5 双库，前提是"桌面单机无并发"。确认"团队实时多人并发"是核心需求后，该假设不成立——SQLite 多人写会锁冲突、LanceDB 不支持跨库事务。转向 pgvector 单库方案：个人用 PGLite（零配置嵌入式）、团队用外部 Postgres，<strong>一套 SQL 一套 schema</strong>，避免检索层代码分叉。代价是包体积 +30MB、冷启动慢 2-10s，换取团队并发 + 原生事务 + 单库 JOIN。</div>
+
+        <div class="prd-h3">双引擎架构：BrainEngine 接口（v2.4 核心）</div>
+        <p>参考 gbrain 的 <code>BrainEngine</code> 设计，定义一套存储操作契约，PGLite 和 Postgres 两个实现都满足。CLI、UI、MCP 层只依赖接口，不感知底层引擎：</p>
+        <div class="prd-diagram">┌─────────────────────────────────────────────────────────────┐
+│  应用层（CLI / Next.js UI / MCP server）                      │
+│  只依赖 BrainEngine 接口，不感知底层是 PGLite 还是 Postgres     │
+└────────────────────────┬────────────────────────────────────┘
+                         │  ~40 个操作（ingest/search/edit/traverse/...）
+        ┌────────────────┴────────────────┐
+        ▼                                 ▼
+┌───────────────────┐            ┌────────────────────┐
+│  PgliteEngine     │            │  PostgresEngine    │
+│  （个人形态）      │            │  （团队形态）        │
+│                   │            │                    │
+│  · 进程内 WASM    │            │  · 外部 PG 服务    │
+│  · 零配置         │            │  · MVCC 多人并发   │
+│  · 单机单进程     │            │  · Docker/Supabase │
+│  · 同一套 SQL     │            │  · 同一套 SQL      │
+└───────────────────┘            └────────────────────┘
+        │                                 │
+        ▼                                 ▼
+┌───────────────────────────────────────────────────────────────┐
+│  同一份 schema.sql（pages/content_chunks/links/sources/...）   │
+│  + 同一套检索 SQL（HNSW + tsvector + WITH RECURSIVE）          │
+└───────────────────────────────────────────────────────────────┘</div>
+        <div class="prd-callout info"><strong>为什么这套设计关键：</strong>个人形态和团队形态<strong>共享同一份 SQL 和 schema</strong>，只是连接方式不同（嵌入式 vs 客户端-服务器）。这意味着检索引擎、图谱遍历、boost 计算<strong>只写一遍</strong>。用户从个人版切到团队版，只需"换连接字符串"，零代码改动、零数据迁移（dump &amp; restore）。</div>
+
+        <div class="prd-h3">系统架构（双形态）</div>
+        <div class="prd-diagram">【形态 A：个人】本地一体
+┌─────────────────────────────────────────────┐
+│  Tauri 桌面应用（~40MB，含 PGLite WASM）       │
+│  ┌────────────────────────────────────────┐ │
+│  │  Next.js（UI + API Routes + 业务层）     │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │  BrainEngine → PgliteEngine      │  │ │
+│  │  │  （进程内，单用户，无网络）        │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  └────────────────────────────────────────┘ │
+│                  │                           │
+│         ┌────────┴────────┐                  │
+│         ▼                 ▼                  │
+│   raw/ 文件（源）    PGLite 数据目录          │
+│                     （pages/chunks/links）    │
+└─────────────────────────────────────────────┘
+
+【形态 B：团队】服务端 + thin 客户端
+┌─────────────────────────────────────────────┐
+│  内网服务器（Docker）                          │
+│  ┌────────────────────────────────────────┐ │
+│  │  Next.js 服务端（API + 业务层）          │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │  BrainEngine → PostgresEngine    │  │ │
+│  │  │  + 鉴权（access_tokens）          │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  └─────────────────────┬──────────────────┘ │
+│                        │                     │
+│              ┌─────────┴──────────┐          │
+│              ▼                    ▼          │
+│        PostgreSQL           raw/ 共享存储     │
+│        + pgvector          （NFS / 卷）      │
+└─────────────────────────────────────────────┘
+            ▲           ▲           ▲
+            │ HTTP/SSE  │ HTTP/SSE  │ MCP
+   ┌────────┴───┐  ┌────┴─────┐  ┌──┴─────────┐
+   │ 客户端 A    │  │ 客户端 B  │  │ IDE/MCP    │
+   │ thin 桌面  │  │ thin Web │  │ (Cursor等) │
+   └────────────┘  └──────────┘  └────────────┘</div>
 
         <div class="prd-h3">部署形态</div>
         <table class="prd-table">
-          <tr><th>形态</th><th>适用场景</th><th>技术方案</th></tr>
-          <tr><td>桌面应用</td><td>个人 / 小团队</td><td>Tauri 打包 .exe / .dmg</td></tr>
-          <tr><td>内网部署</td><td>大团队共享</td><td>Docker Compose</td></tr>
+          <tr><th>形态</th><th>适用场景</th><th>技术方案</th><th>数据库</th></tr>
+          <tr><td>桌面应用（个人）</td><td>个人 / 小团队异步交换</td><td>Tauri 打包 .exe/.dmg，内嵌 PGLite</td><td>PGLite（嵌入式）</td></tr>
+          <tr><td>内网部署（团队）<span class="badge badge-changed">v2.4</span></td><td><strong>团队实时多人并发</strong></td><td>Docker Compose 跑服务端 + Postgres，客户端 thin 连</td><td>PostgreSQL + pgvector</td></tr>
         </table>
+
+        <div class="prd-h3">权限模型（v2.4 新增，团队形态）</div>
+        <p>个人形态无需权限。团队形态采用 <strong>source 分区 + token 凭证</strong>模型（参考 gbrain，加 user 归属）：</p>
+        <table class="prd-table">
+          <tr><th>机制</th><th>说明</th></tr>
+          <tr><td>source 分区</td><td>每个知识库/部门一个 source_id，pages/chunks 都带 source_id。这是权限隔离的物理基础</td></tr>
+          <tr><td>token 绑定 source</td><td>每个客户端发 access_token，绑定 <code>source_id</code>（写范围）+ <code>federated_read[]</code>（跨源只读范围）</td></tr>
+          <tr><td>WHERE 下推</td><td>所有检索 SQL 都带 <code>AND source_id = ANY($可见集)</code>，权限过滤下推进 HNSW/FTS，保召回率</td></tr>
+          <tr><td>user 归属</td><td>pages.owner_id 记录作者，支持"谁写的"。比 gbrain 多一层（gbrain 是个人 PKM 不需要）</td></tr>
+          <tr><td>visibility 过滤</td><td>deleted_at（软删）/ sources.archived（归档）三层状态过滤，与权限正交</td></tr>
+        </table>
+        <div class="prd-callout"><strong>为什么不用 RBAC：</strong>知识库场景下，权限边界基本是"哪个知识库/部门"，不是"哪条记录"。source 分区 + token 绑定足以覆盖 90% 场景，且与向量检索的 WHERE 下推天然契合（一列搞定）。RBAC 的 roles/permissions 表是过度设计。</div>
       </section>
 
       <!-- ═══ 14. 双 AI 通道 ═══ -->
@@ -991,11 +1147,11 @@ WIKI_KB_PATH=./knowledge/iap</div>
 
       <!-- ═══ 16. 检索引擎 ═══ -->
       <section class="prd-section" id="s16">
-        <div class="prd-section__num">16 — RETRIEVAL ENGINE <span class="badge badge-changed">v2.2 重大增强 · v2.3 路线重排</span></div>
+        <div class="prd-section__num">16 — RETRIEVAL ENGINE <span class="badge badge-changed">v2.4 SQL 化</span></div>
         <h2 class="prd-section__title">检索引擎</h2>
-        <p>检索引擎是产品的核心能力层。v2.2 参考 GBrain 的检索管线，在原有 BM25 + 向量 + RRF 的基础上，增加了意图分类、后融合 Boost、可选重排序和上下文检索四个关键能力。<strong>v2.3 重新安排了落地顺序</strong>：上下文检索提前到 Phase 1（避免重嵌入），后融合 Boost 拆两步（数据依赖项延后）。</p>
+        <p>检索引擎是产品的核心能力层。v2.2 参考 GBrain 的检索管线，增加了意图分类、后融合 Boost、可选重排序和上下文检索。<strong>v2.4 架构转向后，全部检索 SQL 化</strong>——向量、全文、图谱、boost 都在一个 Postgres（PGLite）里用 SQL 完成，不再有跨库拼接。</p>
 
-        <div class="prd-h3">完整检索管线（v2.2）</div>
+        <div class="prd-h3">完整检索管线（v2.4）</div>
         <div class="prd-diagram">用户查询
   │
   ▼
@@ -1009,9 +1165,11 @@ WIKI_KB_PATH=./knowledge/iap</div>
 │    - general（通用查询）：不属于以上三类                        │
 │  · 意图影响后续 Stage 的权重配置                               │
 ├───────────────────────────────────────────────────────────────┤
-│  Stage 1: 双路召回                                            │
-│  · BM25 关键词检索（SQLite FTS5）→ top-30 chunks              │
-│  · 向量语义检索（LanceDB HNSW）→ top-30 chunks                │
+│  Stage 1: 双路召回（v2.4 全部 SQL 化，WHERE 下推保召回）        │
+│  · 关键词检索：tsvector + GIN + ts_rank → top-30 chunks        │
+│  · 向量检索：content_chunks JOIN pages/sources                  │
+│    HNSW + 余弦（<=>），source/权限/软删 WHERE 下推进候选集       │
+│    → top-30 chunks                                             │
 ├───────────────────────────────────────────────────────────────┤
 │  Stage 2: RRF 融合排序                                        │
 │  · Reciprocal Rank Fusion 融合两路结果                         │
@@ -1049,6 +1207,73 @@ WIKI_KB_PATH=./knowledge/iap</div>
 │  · AI 对话模块：注入 top-K 结果作为上下文，调用 AI 推理         │
 │  · 全局搜索模块：直接返回结果（不调 AI）                       │
 └───────────────────────────────────────────────────────────────┘</div>
+
+        <div class="prd-h3">向量表 JOIN 关系表（v2.4 核心能力）</div>
+        <p>v2.4 单库方案的最大优势：向量检索时直接 JOIN 关系表，把<strong>权限/source/软删/归档</strong>等过滤下推进 HNSW 候选集，避免"取一堆看不见的候选再过滤"导致召回率掉。参考 gbrain searchVector 的两阶段 CTE 模式：</p>
+        <div class="prd-diagram">-- Stage 1 向量路：HNSW 候选集 + 关系过滤下推
+WITH hnsw_candidates AS (
+  SELECT p.slug, p.title, p.type, p.source_id,
+         cc.id AS chunk_id, cc.body,
+         1 - (cc.embedding <=> $1::vector) AS raw_score   -- 余弦相似度
+  FROM content_chunks cc
+  JOIN pages p   ON p.id = cc.page_id                     -- 向量表 JOIN 关系表
+  JOIN sources s ON s.id = p.source_id
+  WHERE cc.embedding IS NOT NULL
+    AND p.source_id = ANY($visible_sources)               -- 权限/source 下推
+    AND p.deleted_at IS NULL                              -- 软删过滤下推
+    AND NOT s.archived                                    -- 归档过滤下推
+    AND p.type = ANY($types)                              -- 类型过滤下推
+  ORDER BY cc.embedding <=> $1::vector                    -- 纯距离排序，保住 HNSW
+  LIMIT 30
+),
+scored AS (
+  SELECT *, raw_score * source_factor(slug) AS score      -- source-tier boost
+  FROM hnsw_candidates
+),
+best_per_page AS (                                        -- 每页取最高分 chunk
+  SELECT DISTINCT ON (source_id, slug) *
+  FROM scored ORDER BY source_id, slug, score DESC
+)
+SELECT * FROM best_per_page ORDER BY score DESC LIMIT $top_k;</div>
+
+        <div class="prd-callout green"><strong>为什么这个 JOIN 重要：</strong>团队场景下，某客户端只该看自己 source 的 10% 数据。如果先向量取 top-100 再过滤，可能 90 个是别人的、过滤后只剩 10 个有效候选，召回率从 ~100% 掉到 ~10%。WHERE 下推让 HNSW 只在合格行上扫描，召回率不掉。这是单库方案相对双库的真正护城河。</div>
+
+        <div class="prd-h3">图谱遍历用 SQL 递归 CTE（v2.4）</div>
+        <p>多跳最短路径、邻域展开用 Postgres 的 <code>WITH RECURSIVE</code>，无需 JS BFS。同一套 SQL 跑在 PGLite 和 Postgres 上：</p>
+        <div class="prd-diagram">-- 从 seed 页出发的 N 跳邻域（带最短路径）
+WITH RECURSIVE walk AS (
+  SELECT id, slug, source_id, 0::int AS depth,
+         ARRAY[id] AS visited, ARRAY[slug] AS path
+  FROM pages WHERE slug = ANY($seeds) AND deleted_at IS NULL
+  UNION ALL
+  SELECT p2.id, p2.slug, p2.source_id, w.depth + 1,
+         w.visited || p2.id, w.path || p2.slug
+  FROM walk w
+  JOIN links l ON (l.from_page_id = w.id OR l.to_page_id = w.id)
+  JOIN pages p2 ON p2.id = CASE WHEN l.from_page_id = w.id
+                                THEN l.to_page_id ELSE l.from_page_id END
+  WHERE w.depth < $max_depth
+    AND NOT (p2.id = ANY(w.visited))      -- 数组做环检测
+    AND p2.deleted_at IS NULL
+)
+SELECT slug, MIN(depth) AS hop,
+       array_agg(DISTINCT link_type) AS via_types
+FROM walk WHERE depth > 0
+GROUP BY slug ORDER BY hop ASC;</div>
+
+        <div class="prd-h3">后融合 Boost：SQL 取信号 + JS 乘分</div>
+        <p>backlink/salience/recency 的<strong>信号用 SQL 聚合查询</strong>（GROUP BY/COUNT/JOIN），<strong>boost 乘法在 JS 层</strong>（与 gbrain 一致）。这是软依赖，与单库/双库无关：</p>
+        <div class="prd-diagram">// 1. SQL 取 backlink 计数
+SELECT to_page_id, COUNT(DISTINCT from_page_id) AS backlinks
+FROM links WHERE to_page_id = ANY($page_ids)
+  AND link_source IS DISTINCT FROM 'mentions'
+GROUP BY to_page_id;
+
+// 2. JS 乘 boost
+for (const r of results) {
+  const count = backlinks[r.page_id] ?? 0;
+  r.score *= 1 + 0.05 * Math.log(1 + count);
+}</div>
 
         <div class="prd-h3">意图分类规则（v2.2 新增）</div>
         <p>零 LLM 调用的轻量意图分类器，通过关键词匹配和正则模式实现：</p>
@@ -1211,7 +1436,7 @@ Phase 5 可选增强
         <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.3 PRD 已完成路线重排。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + <strong>上下文检索</strong> + 混合搜索），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V2.3</span>
+          <span>PRD · 工作知识库 · V2.4</span>
           <span>2026-06-23</span>
           <span>END OF DOCUMENT</span>
         </div>
