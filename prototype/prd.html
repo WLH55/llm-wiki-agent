@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v2.5</title>
+  <title>产品需求文档 · 工作知识库 v2.6</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -52,7 +52,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v2.5</span>
+      <span class="app-header__subtitle">editorial · v2.6</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -65,11 +65,11 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.5</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.6</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.5 <span class="badge badge-changed">并发+数据模型</span></div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.6 <span class="badge badge-changed">一应用两模式</span></div></div>
           <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-24</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
@@ -250,7 +250,7 @@
 
         <div class="prd-callout"><strong>付出的代价（已知并接受）：</strong>PGLite WASM 体积 ~30MB（Tauri 包从 ~10MB 增至 ~40MB）；冷启动 2-10s（WASM 初始化）；中文 FTS 需配置 zhparser；PGLite 在 Windows 的成熟度待验证。这些代价换取"团队实时并发 + 一套 SQL + 原生事务"，ROI 划算。</div>
 
-        <div class="prd-h3">v2.5 并发控制 + 数据模型澄清（本次更新）<span class="badge badge-changed">CHANGED</span></div>
+        <div class="prd-h3">v2.5 并发控制 + 数据模型澄清</div>
         <p>v2.4 确定了 PGLite+Postgres 架构，但两个关键工程细节没写清：① 团队并发写入时事务边界怎么画、冲突怎么处理；② pages 表的 body_md 字段到底存什么、和 raw 文件什么关系。v2.5 基于 gbrain 源码实证把这两点写死：</p>
         <table class="prd-table">
           <tr><th>#</th><th>议题</th><th>v2.4 状态</th><th>v2.5 澄清</th><th>所在章节</th></tr>
@@ -297,6 +297,19 @@
             <td><a href="#s12">§12</a></td>
           </tr>
         </table>
+
+        <div class="prd-h3">v2.6 一个应用两种模式（本次更新）<span class="badge badge-changed">CHANGED</span></div>
+        <p>v2.4/v2.5 把"个人形态"和"团队形态"描述成两个独立部署。v2.6 澄清：<strong>这是同一个 Tauri 应用的两种使用模式</strong>，不是两个产品。用户在"知识库连接"页面二选一——连远程服务端（团队）或启用本地 PGLite（个人）。一套代码、一个安装包、无缝切换。</p>
+        <table class="prd-table">
+          <tr><th>维度</th><th>模式 A：远程连接（团队）</th><th>模式 B：本地连接（个人）</th></tr>
+          <tr><td>数据来源</td><td>内网服务端的 Postgres</td><td>本地 PGLite（进程内嵌入式）</td></tr>
+          <tr><td>客户端胖瘦</td><td><strong>thin</strong>（只有 UI，业务逻辑在服务端）</td><td>胖（UI + 业务逻辑 + PGLite 都在客户端进程内）</td></tr>
+          <tr><td>本地数据库</td><td>不启用（PGLite 打包但不运行）</td><td>启用（PGLite WASM）</td></tr>
+          <tr><td>并发</td><td>多人 MVCC + 行级锁</td><td>单人</td></tr>
+          <tr><td>权限</td><td>source 分区 + token</td><td>无需</td></tr>
+          <tr><td>适用</td><td>团队协作</td><td>个人积累</td></tr>
+        </table>
+        <div class="prd-callout green"><strong>为什么一个应用两模式优于两个产品：</strong>① 用户下载一个 .exe 既能个人用也能团队用；② 个人积累的知识库可随时"升级"为团队共享（本地 dump → 上传服务端），反之团队知识库也能"下载到本地"离线用；③ 用户不用一开始就决定"我是个人还是团队用户"——先本地用着，需要协作时再连远程。这是比 gbrain（PGLite 单机和 Postgres 部署是两套独立流程）更顺滑的体验。</div>
 
         <div class="prd-h3">与竞品的差异化</div>
         <table class="prd-table">
@@ -494,9 +507,14 @@
 
       <!-- ═══ 06. 知识库连接 ═══ -->
       <section class="prd-section" id="s6">
-        <div class="prd-section__num">06 — CONNECTION <span class="badge badge-changed">v2.4 双引擎</span></div>
+        <div class="prd-section__num">06 — CONNECTION <span class="badge badge-changed">v2.6 一应用两模式</span></div>
         <h2 class="prd-section__title">模块一：知识库连接</h2>
-        <p>知识库连接是客户端的入口模块。类似 Navicat 的"连接管理"。v2.4 后，连接分两种：<strong>本地连接</strong>（PGLite 嵌入式，个人形态）和<strong>远程连接</strong>（连团队 Postgres 服务端）。两者背后是同一套 schema 同一套 SQL，只是连接方式不同。</p>
+        <p>知识库连接是客户端的入口模块，类似 Navicat 的"连接管理"。<strong>这是同一个应用的两个配置选项，不是两个产品</strong>（v2.6 澄清）：</p>
+        <ul>
+          <li><strong>本地连接</strong>（个人模式）：启用进程内 PGLite，数据存本地目录。无需服务端，单人使用。</li>
+          <li><strong>远程连接</strong>（团队模式）：填服务端 URL + access_token，thin 连内网 Postgres。多人并发协作。</li>
+        </ul>
+        <p>用户在连接页面二选一，应用据此装载 <code>PgliteEngine</code> 或 <code>RemoteEngine</code>。两种模式背后是同一套 schema 同一套 SQL，UI 和业务逻辑无感知。详见 <a href="#s13">§13 双引擎架构</a>。</p>
         <div class="prd-h3">功能规格</div>
         <table class="prd-table">
           <tr><th>功能</th><th>描述</th></tr>
@@ -1098,79 +1116,86 @@ CREATE TABLE access_tokens (
 
         <div class="prd-callout red"><strong>v2.4 选型转折说明：</strong>v2.3 及之前选 LanceDB + SQLite FTS5 双库，前提是"桌面单机无并发"。确认"团队实时多人并发"是核心需求后，该假设不成立——SQLite 多人写会锁冲突、LanceDB 不支持跨库事务。转向 pgvector 单库方案：个人用 PGLite（零配置嵌入式）、团队用外部 Postgres，<strong>一套 SQL 一套 schema</strong>，避免检索层代码分叉。代价是包体积 +30MB、冷启动慢 2-10s，换取团队并发 + 原生事务 + 单库 JOIN。</div>
 
-        <div class="prd-h3">双引擎架构：BrainEngine 接口（v2.4 核心）</div>
-        <p>参考 gbrain 的 <code>BrainEngine</code> 设计，定义一套存储操作契约，PGLite 和 Postgres 两个实现都满足。CLI、UI、MCP 层只依赖接口，不感知底层引擎：</p>
+        <div class="prd-h3">双引擎架构：一个应用两种模式（v2.6 澄清）<span class="badge badge-changed">v2.6</span></div>
+        <p><strong>这是同一个 Tauri 应用的两种使用模式，不是两个产品。</strong>参考 gbrain 的 <code>BrainEngine</code> 设计，定义一套存储操作契约。用户在"知识库连接"页面二选一，应用根据选择装载不同的引擎适配器。UI 和业务逻辑层完全不感知差异：</p>
         <div class="prd-diagram">┌─────────────────────────────────────────────────────────────┐
-│  应用层（CLI / Next.js UI / MCP server）                      │
-│  只依赖 BrainEngine 接口，不感知底层是 PGLite 还是 Postgres     │
-└────────────────────────┬────────────────────────────────────┘
+│  同一个 Tauri 应用（一个 .exe / .dmg）                          │
+│                                                                │
+│  应用层（Next.js UI / MCP server）                              │
+│  只依赖 BrainEngine 接口，不感知本地还是远程                      │
+└────────────────────────┬─────────────────────────────────────┘
                          │  ~40 个操作（ingest/search/edit/traverse/...）
         ┌────────────────┴────────────────┐
-        ▼                                 ▼
-┌───────────────────┐            ┌────────────────────┐
-│  PgliteEngine     │            │  PostgresEngine    │
-│  （个人形态）      │            │  （团队形态）        │
-│                   │            │                    │
-│  · 进程内 WASM    │            │  · 外部 PG 服务    │
-│  · 零配置         │            │  · MVCC 多人并发   │
-│  · 单机单进程     │            │  · Docker/Supabase │
-│  · 同一套 SQL     │            │  · 同一套 SQL      │
-└───────────────────┘            └────────────────────┘
-        │                                 │
-        ▼                                 ▼
-┌───────────────────────────────────────────────────────────────┐
-│  同一份 schema.sql（pages/content_chunks/links/sources/...）   │
-│  + 同一套检索 SQL（HNSW + tsvector + WITH RECURSIVE）          │
-└───────────────────────────────────────────────────────────────┘</div>
-        <div class="prd-callout info"><strong>为什么这套设计关键：</strong>个人形态和团队形态<strong>共享同一份 SQL 和 schema</strong>，只是连接方式不同（嵌入式 vs 客户端-服务器）。这意味着检索引擎、图谱遍历、boost 计算<strong>只写一遍</strong>。用户从个人版切到团队版，只需"换连接字符串"，零代码改动、零数据迁移（dump &amp; restore）。</div>
+        ▼  模式 B：本地连接（个人）          ▼  模式 A：远程连接（团队）
+┌───────────────────┐            ┌────────────────────────┐
+│  PgliteEngine     │            │  RemoteEngine          │
+│  （进程内）         │            │  （HTTP 客户端）         │
+│                   │            │                        │
+│  · 启用 PGLite    │            │  · 不启用本地数据库      │
+│    WASM           │            │  · 每个操作翻译成 HTTP    │
+│  · SQL 直连        │            │    请求发往服务端         │
+│  · 零配置          │            │  · 携带 access_token     │
+│  · 单人            │            │  · thin（无业务逻辑）     │
+└────────┬──────────┘            └───────────┬────────────┘
+         │                                   │ HTTP/SSE
+         ▼                                   ▼
+┌──────────────────┐            ┌─────────────────────────────┐
+│  本地数据目录      │            │  内网服务端                    │
+│  (PGLite files)  │            │  PostgresEngine + Postgres   │
+│                  │            │  + pgvector + 鉴权            │
+│  同一份 schema    │            │                              │
+└──────────────────┘            │  同一份 schema（与本地一致）   │
+                                └─────────────────────────────┘</div>
+        <div class="prd-callout info"><strong>v2.6 关键澄清：</strong>PGLite WASM 始终打包在应用里（~30MB 磁盘占用），但<strong>只有本地模式才初始化它</strong>——远程模式下 PGLite 不加载、不占运行时内存，应用表现为纯 thin 客户端。这样<strong>一个安装包支持两种模式</strong>，用户不用装两个应用，也支持随时切换。</div>
+        <div class="prd-callout green"><strong>为什么这套设计关键：</strong>① UI 和业务逻辑只写一遍，两种模式复用；② schema 和检索 SQL 只写一遍（PGLite/Postgres 同方言）；③ 用户从个人切到团队，只需"换个连接"，零数据迁移（本地 dump → 服务端 restore）；④ 个人积累可随时"升级"为团队共享。</div>
 
-        <div class="prd-h3">系统架构（双形态）</div>
-        <div class="prd-diagram">【形态 A：个人】本地一体
+        <div class="prd-h3">两种模式的连接路径（v2.6）</div>
+        <div class="prd-diagram">【模式 B：本地连接（个人）】客户端进程内一体
 ┌─────────────────────────────────────────────┐
 │  Tauri 桌面应用（~40MB，含 PGLite WASM）       │
 │  ┌────────────────────────────────────────┐ │
-│  │  Next.js（UI + API Routes + 业务层）     │ │
+│  │  UI + 业务逻辑（BrainEngine）            │ │
 │  │  ┌──────────────────────────────────┐  │ │
-│  │  │  BrainEngine → PgliteEngine      │  │ │
-│  │  │  （进程内，单用户，无网络）        │  │ │
+│  │  │  → PgliteEngine（进程内 SQL）     │  │ │
 │  │  └──────────────────────────────────┘  │ │
 │  └────────────────────────────────────────┘ │
-│                  │                           │
-│         ┌────────┴────────┐                  │
-│         ▼                 ▼                  │
+│         │                                    │
+│         ▼                                    │
 │   raw/ 文件（源）    PGLite 数据目录          │
-│                     （pages/chunks/links）    │
 └─────────────────────────────────────────────┘
 
-【形态 B：团队】服务端 + thin 客户端
+【模式 A：远程连接（团队）】客户端 thin + 服务端
 ┌─────────────────────────────────────────────┐
-│  内网服务器（Docker）                          │
+│  内网服务器（Docker Compose）                  │
 │  ┌────────────────────────────────────────┐ │
-│  │  Next.js 服务端（API + 业务层）          │ │
+│  │  Next.js 服务端（API + 业务逻辑）        │ │
 │  │  ┌──────────────────────────────────┐  │ │
-│  │  │  BrainEngine → PostgresEngine    │  │ │
-│  │  │  + 鉴权（access_tokens）          │  │ │
+│  │  │  → PostgresEngine + 鉴权          │  │ │
 │  │  └──────────────────────────────────┘  │ │
 │  └─────────────────────┬──────────────────┘ │
-│                        │                     │
 │              ┌─────────┴──────────┐          │
 │              ▼                    ▼          │
 │        PostgreSQL           raw/ 共享存储     │
-│        + pgvector          （NFS / 卷）      │
+│        + pgvector                           │
 └─────────────────────────────────────────────┘
             ▲           ▲           ▲
             │ HTTP/SSE  │ HTTP/SSE  │ MCP
    ┌────────┴───┐  ┌────┴─────┐  ┌──┴─────────┐
-   │ 客户端 A    │  │ 客户端 B  │  │ IDE/MCP    │
-   │ thin 桌面  │  │ thin Web │  │ (Cursor等) │
-   └────────────┘  └──────────┘  └────────────┘</div>
+   │ 同一个App  │  │ 同一个App │  │ IDE/MCP    │
+   │ 远程模式   │  │ 远程模式  │  │ (Cursor等) │
+   │ (thin)    │  │ (thin)   │  │            │
+   └────────────┘  └──────────┘  └────────────┘
+   注：这些客户端和上面"本地模式"是同一个安装包，
+       只是用户在连接页面选了"远程连接"</div>
 
         <div class="prd-h3">部署形态</div>
         <table class="prd-table">
-          <tr><th>形态</th><th>适用场景</th><th>技术方案</th><th>数据库</th></tr>
-          <tr><td>桌面应用（个人）</td><td>个人 / 小团队异步交换</td><td>Tauri 打包 .exe/.dmg，内嵌 PGLite</td><td>PGLite（嵌入式）</td></tr>
-          <tr><td>内网部署（团队）<span class="badge badge-changed">v2.4</span></td><td><strong>团队实时多人并发</strong></td><td>Docker Compose 跑服务端 + Postgres，客户端 thin 连</td><td>PostgreSQL + pgvector</td></tr>
+          <tr><th>形态</th><th>适用场景</th><th>技术方案</th><th>客户端模式</th></tr>
+          <tr><td>桌面应用 · 本地模式</td><td>个人积累</td><td>Tauri .exe/.dmg，启用内嵌 PGLite，无需服务端</td><td>模式 B（PgliteEngine）</td></tr>
+          <tr><td>桌面应用 · 远程模式<span class="badge badge-changed">v2.6</span></td><td><strong>团队实时多人并发</strong></td><td>同一个 Tauri 应用，配置远程连接；内网服务器跑 Docker Compose（Next.js 服务端 + Postgres）</td><td>模式 A（RemoteEngine）</td></tr>
+          <tr><td>IDE / MCP<span class="badge badge-changed">v2.6</span></td><td>开发者在 Cursor/Claude Code 中查知识库</td><td>MCP over HTTP，指向内网服务端 URL + token</td><td>—（无 UI）</td></tr>
         </table>
+        <div class="prd-callout"><strong>v2.6 产品路径：</strong>个人用户下载应用 → 本地模式单人用 → 知识积累后想协作 → 内网起服务端 → 应用切换远程模式 → 团队共享。<strong>全程不换应用</strong>，只换连接方式。</div>
 
         <div class="prd-h3">权限模型（v2.4 新增，团队形态）</div>
         <p>个人形态无需权限。团队形态采用 <strong>source 分区 + token 凭证</strong>模型（参考 gbrain，加 user 归属）：</p>
@@ -1575,7 +1600,7 @@ Phase 5 可选增强
         <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.3 PRD 已完成路线重排。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + <strong>上下文检索</strong> + 混合搜索），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V2.5</span>
+          <span>PRD · 工作知识库 · V2.6</span>
           <span>2026-06-24</span>
           <span>END OF DOCUMENT</span>
         </div>
