@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v2.7</title>
+  <title>产品需求文档 · 工作知识库 v2.8</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -52,7 +52,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v2.7</span>
+      <span class="app-header__subtitle">editorial · v2.8</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -65,11 +65,11 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.7</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.8</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.7 <span class="badge badge-changed">seekdb 评估</span></div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.8 <span class="badge badge-changed">OKF 互操作</span></div></div>
           <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-24</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
@@ -328,6 +328,15 @@
         </table>
         <div class="prd-callout red"><strong>结论：维持 pgvector 为 Phase 1 默认，seekdb 列为 Phase 1 末期技术验证（spike）对象。</strong>seekdb 在数据库能力上全面优于 pgvector（原生混合检索/内置 AI/COW 沙箱/中文），但 <strong>TS SDK 和 Tauri 集成是 dealbreaker</strong>——如果 seekdb 嵌入式模式不能在 Tauri（Rust+WebView）里跑，或没有好的 TS 绑定，优势再大也用不上。Phase 1 末期做 2-4 小时 spike 验证三项（Node 集成/Tauri FFI/Windows 稳定），全过则迁移，任一不过则维持 pgvector。</div>
 
+        <div class="prd-h3">v2.8 OKF 互操作层（本次更新）<span class="badge badge-new">NEW</span></div>
+        <p>调研 Google Cloud 发布的 <strong>Open Knowledge Format（OKF）v0.1</strong>（2026-06-12 开源规范），发现它把 Karpathy 的 LLM Wiki 模式标准化成了"知识文档该长什么样"的开放规范。核心思想：<strong>"缺的不是又一个知识服务，而是一个格式（format, not platform）"</strong>。v2.8 采纳 OKF 作为我们的<strong>导出/导入互操作格式</strong>——不改数据库架构，只让知识库 bundle 可被任何 OKF 工具消费。</p>
+        <table class="prd-table">
+          <tr><th>层</th><th>用途</th><th>格式</th><th>v2.8 决策</th></tr>
+          <tr><td><strong>存储层（运行时）</strong></td><td>高性能检索/并发/事务</td><td>DB schema（pages/chunks/links 表）</td><td>不变（Postgres/seekdb）</td></tr>
+          <tr><td><strong>互操作层（导出/导入）</strong><span class="badge badge-new">v2.8</span></td><td>跨工具可移植</td><td>OKF bundle（markdown + frontmatter）</td><td><strong>声明兼容 OKF v0.1</strong></td></tr>
+        </table>
+        <div class="prd-callout green"><strong>v2.8 核心价值：</strong>我们的数据模型（page=文档+frontmatter+slug+图谱互连）<strong>天然符合 OKF 规范</strong>——type/title/tags 字段、markdown 正文、slug 寻址都是 OKF 超集。导出时只需把 pages 表导成 OKF bundle，零翻译成本。声明 OKF 兼容 = 知识库能被任何 OKF 消费者（Google 工具/其他 agent/未来工具）读取，不被锁定在自有格式里。详见 <a href="#s12">§12 OKF 互操作层</a>。</div>
+
         <div class="prd-h3">四个参考项目的定位（v2.7 澄清）</div>
         <table class="prd-table">
           <tr><th>项目</th><th>是什么</th><th>对我们的参考价值</th></tr>
@@ -550,11 +559,12 @@
           <tr><td>连接远程知识库</td><td>输入服务端 URL（如 http://192.168.1.5:3000）+ access_token，thin 连接到团队 Postgres。token 绑定可见 source 范围</td></tr>
           <tr><td>切换知识库</td><td>切换当前活跃连接，所有模块自动切到新数据。本地↔远程可自由切换</td></tr>
           <tr><td>快照（本地）</td><td>打包本地 PGLite 数据目录 + raw/ 为 .zip，完整备份，目标端开箱即用</td></tr>
-          <tr><td>导出</td><td>导出 raw/ + 数据库 dump（pg_dump）。目标端 restore 后即可用，向量/chunks 随 dump 一起迁移</td></tr>
-          <tr><td>导入</td><td>从 .zip 恢复：解压 raw/ + pg_restore 数据库。也可仅导入 raw/ 触发全量重建</td></tr>
+          <tr><td>导出<span class="badge badge-new">v2.8</span></td><td>两种格式：① <strong>完整快照</strong>（raw/ + 数据库 dump，目标端 restore 即用）；② <strong>OKF bundle</strong>（pages→markdown + frontmatter，兼容 Open Knowledge Format v0.1，跨工具可移植，详见 <a href="#s12">§12</a>）</td></tr>
+          <tr><td>导入</td><td>从 .zip 恢复：支持完整快照（pg_restore）和 OKF bundle（解析 markdown 入库）两种格式。也可仅导入 raw/ 触发全量重建</td></tr>
           <tr><td>本地 → 团队上传</td><td>把本地知识库 dump 上传到团队 Postgres 服务端，转为团队共享 source</td></tr>
         </table>
-        <div class="prd-callout info"><strong>v2.4 连接语义：</strong>本地连接 = PGLite 进程内引擎（个人，单用户）；远程连接 = Postgres 客户端-服务器（团队，多用户并发）。<strong>同一套 SQL</strong>，UI 层无感知差异。个人版积累的知识库可随时 dump 上传到团队服务端共享。</div>
+        <div class="prd-callout info"><strong>v2.6 连接语义：</strong>本地连接 = PGLite 进程内引擎（个人，单用户）；远程连接 = Postgres 客户端-服务器（团队，多用户并发）。<strong>同一套 SQL</strong>，UI 层无感知差异。个人版积累的知识库可随时 dump 上传到团队服务端共享。</div>
+        <div class="prd-callout green"><strong>v2.8 OKF 互操作：</strong>导出支持 OKF bundle 格式——把 pages 表导成 markdown + frontmatter（type/title/description/resource/tags/timestamp），links 表导成 [[wikilink]] 正文链接。声明兼容 <strong>Open Knowledge Format v0.1</strong>，意味着我们导出的知识库能被任何 OKF 消费者（Google 工具/其他 agent/未来工具）读取，不被锁定在自有格式。运行时仍是 DB，OKF 仅用于导出/导入时刻。详见 <a href="#s12">§12 OKF 互操作层</a>。</div>
       </section>
 
       <!-- ═══ 07. 文档管理 ═══ -->
@@ -1115,6 +1125,77 @@ CREATE TABLE access_tokens (
   }
 }</div>
         <div class="prd-callout info"><strong>v2.4 manifest 变化：</strong>去掉 <code>vector_db: lancedb</code>，改为 <code>db: {personal, team}</code> 双引擎声明。去掉 integrity 双 hash（数据库自己保证一致性）。stats 简化（pages 统一计数，不再分 raw/wiki）。</div>
+
+        <div class="prd-h3">OKF 互操作层（v2.8 新增）<span class="badge badge-new">NEW</span></div>
+        <p>知识库的存储分两层：<strong>运行时用 DB（高性能检索/并发/事务），导出/导入时用 OKF 格式（跨工具可移植）</strong>。OKF（Open Knowledge Format）是 Google Cloud 2026-06 发布的开放规范，把 Karpathy LLM Wiki 模式标准化。v2.8 采纳 OKF 作为互操作格式——不改 DB schema，只让导出的 bundle 可被任何 OKF 工具消费。</p>
+
+        <div class="prd-h4">两层架构（关键区分）</div>
+        <div class="prd-diagram">┌─────────────────────────────────────────────┐
+│  互操作层（导出/导入时）── v2.8 声明兼容 OKF v0.1  │
+│                                                │
+│  导出：pages 表 → markdown 文件 + frontmatter    │
+│       links 表 → markdown 链接（[[wikilink]]）   │
+│  导入：OKF bundle → pages/links 表              │
+│                                                │
+│  格式：每个 concept = 一个 .md 文件               │
+│       文件路径 = concept 身份（对应 pages.slug）   │
+│       只强制 type 字段，其余可选                  │
+└──────────────────┬──────────────────────────┘
+                   │ 导出 = DB → OKF 文件
+                   │ 导入 = OKF 文件 → DB
+                   ▼
+┌─────────────────────────────────────────────┐
+│  存储层（运行时）── 不变                        │
+│                                                │
+│  Postgres/seekdb + schema                      │
+│  pages/content_chunks/links/sources 表          │
+│  高性能检索 + 并发 + 事务                        │
+└─────────────────────────────────────────────┘</div>
+
+        <div class="prd-h4">OKF 格式规范（极简，一页纸）</div>
+        <div class="prd-diagram">一个 OKF bundle = 一个目录，里面是 markdown 文件
+每个文件 = 一个 concept（表/数据集/指标/runbook/任何东西）
+文件路径 = concept 身份（identity）
+
+my-knowledge-base/                  ← 一个 OKF bundle
+├── iap/
+│   ├── refund-flow.md              ← slug: iap/refund-flow
+│   └── payment-api.md
+├── people/
+│   └── zhang-san.md                ← slug: people/zhang-san
+├── index.md                        ← 可选：层级导航（渐进披露）
+└── log.md                          ← 可选：bundle 级变更历史
+
+# 每个文件结构（只 type 必填，其余全可选）
+---
+type: source                        # ★ 唯一必填（其余可选）
+title: IAP 退款流程
+description: ...
+resource: ...
+tags: [IAP, 退款]
+timestamp: 2026-06-24
+---
+（markdown 正文，concept 间用普通链接 [[...]] 互连）</div>
+
+        <div class="prd-h4">pages 表字段 → OKF frontmatter 映射</div>
+        <p>我们的 pages 表字段是 OKF 的超集，导出时映射到 OKF 标准字段即可，零翻译成本：</p>
+        <table class="prd-table">
+          <tr><th>pages 表字段</th><th>OKF frontmatter 字段</th><th>说明</th></tr>
+          <tr><td>type</td><td><strong>type</strong>（必填）</td><td>直接映射（source/synthesis/person/...）</td></tr>
+          <tr><td>title</td><td><strong>title</strong></td><td>直接映射</td></tr>
+          <tr><td>summary</td><td><strong>description</strong></td><td>重命名（OKF 用 description）</td></tr>
+          <tr><td>source_file</td><td><strong>resource</strong></td><td>重命名（OKF 用 resource 指向原始资源）</td></tr>
+          <tr><td>tags</td><td><strong>tags</strong></td><td>直接映射（数组）</td></tr>
+          <tr><td>updated_at</td><td><strong>timestamp</strong></td><td>重命名</td></tr>
+          <tr><td>body_md</td><td>（正文）</td><td>frontmatter 之后的 markdown body</td></tr>
+          <tr><td>slug</td><td>（文件路径）</td><td>slug = 文件相对路径（iap/refund-flow → iap/refund-flow.md）</td></tr>
+          <tr><td>links 表</td><td>（markdown 链接）</td><td>导出为 [[wikilink]] 形式的正文链接</td></tr>
+          <tr><td><em>其余字段</em></td><td><em>OKF 不认的留自定义命名空间</em></td><td>如 x-owner-id、x-generation（OKF 允许扩展字段）</td></tr>
+        </table>
+
+        <div class="prd-callout green"><strong>为什么 OKF 兼容是低成本高回报：</strong>① 不改 DB schema，只加一个导出/导入适配器；② 我们的数据模型天然是 OKF 超集（type/title/tags/slug/body 都有），映射零成本；③ 声明 OKF 兼容 = 知识库能被任何 OKF 消费者读取，不被锁定；④ 符合我们"数据包可插拔、可迁移"的核心定位——OKF 给了这个定位开放标准背书。</div>
+
+        <div class="prd-callout red"><strong>不要把 OKF 当运行时存储格式：</strong>OKF 是纯文件格式，没有索引/并发/事务。如果运行时也用 OKF（纯 markdown 文件），就回到了 obsidian-wiki 那条路——失去 DB 的检索/并发/事务优势。OKF 只用于<strong>导出/导入的互操作时刻</strong>，运行时永远是 DB。</div>
       </section>
 
       <!-- ═══ 13. 技术架构 ═══ -->
@@ -1688,7 +1769,7 @@ Phase 5 可选增强
         <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.3 PRD 已完成路线重排。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + <strong>上下文检索</strong> + 混合搜索），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V2.7</span>
+          <span>PRD · 工作知识库 · V2.8</span>
           <span>2026-06-24</span>
           <span>END OF DOCUMENT</span>
         </div>
