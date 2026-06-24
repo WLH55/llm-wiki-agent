@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v2.8</title>
+  <title>产品需求文档 · 工作知识库 v2.9</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -52,7 +52,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v2.8</span>
+      <span class="app-header__subtitle">editorial · v2.9</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -65,12 +65,12 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.8</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V2.9</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.8 <span class="badge badge-changed">OKF 互操作</span></div></div>
-          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-24</div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v2.9 <span class="badge badge-new">Schema Pack</span></div></div>
+          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-25</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
         </div>
@@ -337,10 +337,27 @@
         </table>
         <div class="prd-callout green"><strong>v2.8 核心价值：</strong>我们的数据模型（page=文档+frontmatter+slug+图谱互连）<strong>天然符合 OKF 规范</strong>——type/title/tags 字段、markdown 正文、slug 寻址都是 OKF 超集。导出时只需把 pages 表导成 OKF bundle，零翻译成本。声明 OKF 兼容 = 知识库能被任何 OKF 消费者（Google 工具/其他 agent/未来工具）读取，不被锁定在自有格式里。详见 <a href="#s12">§12 OKF 互操作层</a>。</div>
 
+        <div class="prd-h3">v2.9 Schema Pack 借鉴（本次更新）<span class="badge badge-new">NEW</span></div>
+        <p>深入阅读 GBrain 源码（<code>src/core/schema-pack/</code> 32 个模块）后发现其 <strong>schema pack</strong> 机制是把"知识库有哪些类型/目录/链接关系"从代码常量外置成<strong>可分发、可继承、可热切换的声明式清单</strong>（YAML/JSON）。v2.9 评估这套设计对"工作知识库"的可借鉴价值，并做<strong>取舍决策</strong>——哪些直接抄、哪些简化、哪些不抄。</p>
+        <div class="prd-callout red"><strong>关键澄清（易误解点）：</strong>schema pack <strong>不是</strong> Notion/钉钉那种"用户可自定义目录树/导航层级"的功能。它不维护目录树，只做<strong>扁平的"路径前缀 → 页面类型"映射</strong>，类型再驱动行为（能否抽取、能否被路由、用什么链接动词）。<strong>目录 = 导航（容器）；schema = 语义类型系统（分类 + 行为规则）</strong>，是两套独立机制。若用户需求只是"自定义目录层级"，那是简单的 parent_id 自引用树，不需要 schema pack 这套重量级机制。</div>
+        <table class="prd-table">
+          <tr><th>GBrain schema pack 能力</th><th>是什么</th><th>v2.9 决策</th><th>理由</th></tr>
+          <tr><td><strong>schema 外置为声明式清单</strong></td><td>类型/前缀/链接动词从代码常量 → YAML</td><td><strong>✅ 借鉴（P2）</strong></td><td>不同知识库（IAP/广告/钉钉同步）类型集不同，外置后 agent 能"读懂"库结构、库之间可继承</td></tr>
+          <tr><td><strong>内容哈希折进缓存键</strong></td><td>pack sha8 折入 knobsHash，schema 变 → 缓存自动隔离</td><td><strong>✅ 借鉴（P1，必须）</strong></td><td>我们的搜索/向量缓存若 schema 可变，必须把 schema 指纹折进 cache key，否则 schema 变后读到旧结果</td></tr>
+          <tr><td><strong>canonical JSON 确定性哈希</strong></td><td>递归排序 key 后算 SHA-256</td><td><strong>✅ 借鉴</strong></td><td>OKF 导出指纹/去重的基础工具，低成本</td></tr>
+          <tr><td><strong>primitive / aliases 正交分离</strong></td><td>默认行为继承 vs 查询可见性扩展，两个独立轴</td><td><strong>🟡 简化借鉴</strong></td><td>类型默认值继承可抄；alias 闭包图暂不做（我们类型少，无 adversary-profile 这类可见性泄漏场景）</td></tr>
+          <tr><td><strong>extends + borrow_from 继承</strong></td><td>基础包 + 领域包分层继承</td><td><strong>🟡 后期</strong></td><td>OKF 互操作有用，但单团队场景类型固定，Phase 1 先单包硬编码，P4/P5 再支持继承</td></tr>
+          <tr><td><strong>7 层解析链 + 信任边界</strong></td><td>per-call→env→per-source→db→yml→config→默认</td><td><strong>🟡 仅借鉴信任边界</strong></td><td>7 层太重；只保留"远程调用不可覆盖 schema"这条安全约束</td></tr>
+          <tr><td><strong>声明式迁移 mapping_rules</strong></td><td>retype/page_to_link/page_to_alias 批量迁移</td><td><strong>❌ 不抄</strong></td><td>v1 schema 未定，无迁移负担；等真有大改时再说</td></tr>
+          <tr><td><strong>detect/suggest 自动反推 schema</strong></td><td>从实际目录形状聚类反推 pack</td><td><strong>❌ 不抄</strong></td><td>10 万页规模才需要；我们是导入即建库，目录由导入流程决定</td></tr>
+          <tr><td><strong>calibration_domains / pack 分发注册表</strong></td><td>校准域 + 公共 pack 仓库发布</td><td><strong>❌ 不抄</strong></td><td>超出产品定位（不做知识库 marketplace）</td></tr>
+        </table>
+        <div class="prd-callout green"><strong>v2.9 核心结论：</strong>① schema 外置 + 缓存隔离是<strong>必须做</strong>的工程基础（P1 就要落 cache key 折叠）；② 类型默认值继承、canonical hash 是<strong>低成本高回报</strong>的借鉴；③ 继承链/解析链/迁移规则按需推迟；④ <strong>明确产品边界</strong>——我们做的是"知识库管理客户端"，schema 是<strong>库的内部配置</strong>，不是面向终端用户的"自定义目录"功能。详见 <a href="#s12">§12 Schema Pack 借鉴设计</a>。</div>
+
         <div class="prd-h3">四个参考项目的定位（v2.7 澄清）</div>
         <table class="prd-table">
           <tr><th>项目</th><th>是什么</th><th>对我们的参考价值</th></tr>
-          <tr><td><strong>GBrain</strong></td><td>Garry Tan 的个人战略知识库（投资人场景，10 万页）</td><td>⭐⭐⭐⭐⭐ <strong>工程蓝本</strong>：双引擎/schema/检索管线/事务/并发/权限。改造场景（投资人→技术团队）</td></tr>
+          <tr><td><strong>GBrain</strong></td><td>Garry Tan 的个人战略知识库（投资人场景，10 万页）</td><td>⭐⭐⭐⭐⭐ <strong>工程蓝本</strong>：双引擎/检索管线/事务/并发/权限。<strong>schema pack 机制</strong>（类型/前缀/链接动词外置为声明式清单，v2.9 借鉴）。改造场景（投资人→技术团队）</td></tr>
           <tr><td><strong>seekdb</strong></td><td>OceanBase 的 AI 原生数据库（2025.11 开源）</td><td>⭐⭐⭐⭐ <strong>潜在数据库底座</strong>：原生混合检索/内置 AI/COW 沙箱。待 Tauri/TS 验证</td></tr>
           <tr><td>LLM Wiki</td><td>Karpathy 的思想文章（无代码）</td><td>⭐⭐ <strong>思想源头</strong>：知识工程 > RAG；Phase 5 编译思想</td></tr>
           <tr><td>Obsidian-Wiki</td><td>477 行 Python + 9731 行 prompt（个人极客 CLI）</td><td>⭐ <strong>几乎无工程价值</strong>：无 GUI/无数据库/个人工具/编译优先。仅 Lint 机制可借</td></tr>
@@ -1196,6 +1213,88 @@ timestamp: 2026-06-24
         <div class="prd-callout green"><strong>为什么 OKF 兼容是低成本高回报：</strong>① 不改 DB schema，只加一个导出/导入适配器；② 我们的数据模型天然是 OKF 超集（type/title/tags/slug/body 都有），映射零成本；③ 声明 OKF 兼容 = 知识库能被任何 OKF 消费者读取，不被锁定；④ 符合我们"数据包可插拔、可迁移"的核心定位——OKF 给了这个定位开放标准背书。</div>
 
         <div class="prd-callout red"><strong>不要把 OKF 当运行时存储格式：</strong>OKF 是纯文件格式，没有索引/并发/事务。如果运行时也用 OKF（纯 markdown 文件），就回到了 obsidian-wiki 那条路——失去 DB 的检索/并发/事务优势。OKF 只用于<strong>导出/导入的互操作时刻</strong>，运行时永远是 DB。</div>
+
+        <div class="prd-h3">Schema Pack 借鉴设计（v2.9 新增）<span class="badge badge-new">NEW</span></div>
+        <p>借鉴 GBrain schema pack 的核心思想，但<strong>大幅精简</strong>——它 32 个模块 + 11 个 CLI 动词 + 7 层解析链是面向"10 万页 + 公共 pack 分发"的；我们是单团队知识库管理客户端，只需其中工程价值最高的两块：<strong>① schema 外置为声明式配置；② 内容哈希折进缓存键</strong>。</p>
+
+        <div class="prd-h4">它是什么 vs 不是什么（先消误解）</div>
+        <table class="prd-table">
+          <tr><th>概念</th><th>是什么</th><th>不是什么</th></tr>
+          <tr><td><strong>schema pack</strong></td><td>语义类型系统：<strong>路径前缀 → 页面类型 → 行为规则</strong>（能否抽取事实/能否被路由/用什么链接动词）</td><td>❌ Notion 式目录树/导航层级。不维护 parent-child 容器关系，只做扁平前缀匹配</td></tr>
+          <tr><td><strong>类比</strong></td><td>数据库的 DDL（定义表结构/字段/关系/索引策略）</td><td>❌ 文件管理器的文件夹划分</td></tr>
+          <tr><td><strong>我们的用途</strong></td><td>知识库的<strong>内部配置文件</strong>，导入时决定 type 推断、影响检索缓存隔离</td><td>❌ 面向终端用户的"自定义目录"功能</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>决策边界：</strong>如果用户需求只是"我能建嵌套文件夹整理文档"——那是 parent_id 自引用树 + 侧边栏渲染，<strong>不需要 schema pack</strong>。schema pack 解决的是"不同知识库有不同的类型语义，且类型要驱动检索/AI 行为"。两者可共存但别混为一谈。</div>
+
+        <div class="prd-h4">精简版 schema 配置（manifest 片段）</div>
+        <p>借鉴 gbrain 的 manifest 结构，砍掉 calibration_domains / mapping_rules / borrow_from 等重型能力，只保留对我们有用的核心字段。这份配置随知识库数据包一起存（manifest.json 的一个子段），不是独立可分发的 pack：</p>
+        <div class="prd-diagram">// manifest.json 的 schema 子段（v2.9）
+"schema": {
+  "version": "0.1",                  // 本配置格式版本，折进缓存键
+  "page_types": [
+    {
+      "name": "source",              // 页面类型（对应 pages.type）
+      "path_prefixes": ["iap/", "ads/"],   // 路径前缀 → 类型推断
+      "extractable": true,           // 是否参与事实/摘要抽取
+      "default_link_verbs": ["references", "discussed_in"]
+    },
+    {
+      "name": "person",
+      "path_prefixes": ["people/"],
+      "extractable": false,
+      "expert_routing": true         // 能否被"找负责人"类查询命中
+    },
+    {
+      "name": "concept",
+      "path_prefixes": ["concepts/"],
+      "extractable": true,
+      "default_link_verbs": ["relates_to", "synthesizes"]
+    }
+  ],
+  "link_verbs": [                    // 全局可用链接动词（links.link_type 取值域）
+    "mentions", "references", "discussed_in", "relates_to", "works_at", "authored"
+  ]
+}
+
+// 内容指纹：canonicalJSONStringify(schema) 的 SHA-8
+// → 折进搜索缓存键（见下方缓存隔离设计）</div>
+
+        <div class="prd-h4">缓存隔离：schema 指纹折进 cache key（P1 必需）</div>
+        <p>这是 GBrain 教训里最值钱的一条：<strong>schema 一变，旧 schema 下生成的搜索/向量结果就不再正确</strong>。若缓存只按查询内容命中，schema 改动后会读到陈旧结果。解法是把 schema 的内容指纹折进缓存键，从结构上让跨 schema 污染不可能。</p>
+        <div class="prd-diagram">// 搜索缓存键构成（P1）
+cacheKey = sha8(
+  query,                    // 查询文本
+  sourceId,                 // 权限分区
+  retrievalKnobsHash,       // 检索参数（top_k/阈值/权重）
+  schemaFingerprint         // ★ v2.9 新增：schema 配置的 canonical-SHA8
+)
+
+// schema 配置任何字段变动 → schemaFingerprint 变 → cacheKey 全量变化
+// → 旧缓存自然失效（够不着），新查询重新计算
+// 无需手动失效逻辑，结构上保证一致</div>
+        <div class="prd-callout green"><strong>为何 P1 就要做：</strong>缓存隔离必须在引入搜索缓存的第一天就落地。如果 P1 先用裸 query 做缓存键，P2/P3 加 schema 时所有历史缓存都会"看似命中实则陈旧"，排查极痛苦。一次性把 schemaFingerprint 折进去，后续 schema 演进零迁移成本。</div>
+
+        <div class="prd-h4">类型默认值继承（简化版 primitive）</div>
+        <p>GBrain 用 5 个闭合枚举原语（entity/media/temporal/annotation/concept）驱动默认行为。我们类型少，不必引入完整原语体系，但<strong>类型 → 默认行为</strong>的映射值得固化成配置而非 if-else 散落代码：</p>
+        <table class="prd-table">
+          <tr><th>类型</th><th>默认可抽取</th><th>默认可路由</th><th>默认链接动词</th><th>说明</th></tr>
+          <tr><td>source</td><td>✅</td><td>❌</td><td>references / discussed_in</td><td>原始文档，抽取价值最高</td></tr>
+          <tr><td>synthesis</td><td>✅</td><td>❌</td><td>synthesizes / relates_to</td><td>AI 综合沉淀</td></tr>
+          <tr><td>person</td><td>❌</td><td>✅</td><td>works_at / authored</td><td>实体，"找负责人"路由</td></tr>
+          <tr><td>concept</td><td>✅</td><td>❌</td><td>relates_to</td><td>概念定义页</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>正交分离原则（借鉴 E8）：</strong>GBrain 刻意把"默认行为继承"和"查询可见性扩展(alias 闭包)"拆成两个独立轴——前者跟 primitive，后者必须显式声明。<strong>原因</strong>：若让同 primitive 自动共享可见性，adversary-profile（敌人档案）会因和 person 共享 entity 原语而泄漏到"找专家"查询。我们暂不做 alias 闭包图，但要记住这个教训：<strong>行为可继承，可见性必须显式</strong>，未来加任何"类型归类"功能都遵循此原则。</div>
+
+        <div class="prd-h4">明确推迟的能力（v2.9 记录，后期再议）</div>
+        <table class="prd-table">
+          <tr><th>能力</th><th>GBrain 场景</th><th>为何我们推迟</th><th>触发条件</th></tr>
+          <tr><td>extends 继承链</td><td>基础包 + 领域包分层</td><td>单团队类型固定，无需继承</td><td>多业务线、类型集差异大时</td></tr>
+          <tr><td>7 层解析链</td><td>per-call/env/per-source 多源覆盖</td><td>我们单库单 schema，用不上</td><td>支持多知识库联邦查询时</td></tr>
+          <tr><td>声明式迁移 mapping_rules</td><td>10 万页批量 retype</td><td>v1 schema 未定，无迁移负担</td><td>schema 大版本升级时</td></tr>
+          <tr><td>detect/suggest 反推 schema</td><td>从存量目录聚类</td><td>我们导入即建库，目录由流程定</td><td>支持任意目录导入时</td></tr>
+          <tr><td>远程调用禁覆盖 schema</td><td>信任边界安全约束</td><td>——</td><td><strong>P3 MCP 接入时必须落</strong>：远程 agent 不得通过参数改 schema 绕过类型约束</td></tr>
+        </table>
+        <div class="prd-callout red"><strong>P3 的硬约束（提前记下）：</strong>MCP 工具接入后，<code>schema</code> 类参数只能由本地可信客户端设置，远程调用（ctx.remote === true）传入的 schema 覆盖一律拒绝。这是 GBrain tier-1 信任边界的核心——防止远程 agent 偷换 schema 规避类型/权限约束。Phase 3 实现 MCP 时这条必须落地。</div>
       </section>
 
       <!-- ═══ 13. 技术架构 ═══ -->
@@ -1769,8 +1868,8 @@ Phase 5 可选增强
         <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。v2.3 PRD 已完成路线重排。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + <strong>上下文检索</strong> + 混合搜索），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V2.8</span>
-          <span>2026-06-24</span>
+          <span>PRD · 工作知识库 · V2.9</span>
+          <span>2026-06-25</span>
           <span>END OF DOCUMENT</span>
         </div>
 
