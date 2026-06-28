@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>产品需求文档 · 工作知识库 v4.0</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
+    .prd-header { margin-bottom: 56px; padding-bottom: 32px; border-bottom: 2px solid var(--ink); }
+    .prd-header__meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .prd-header__field-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-faint); margin-bottom: 4px; }
+    .prd-header__field-value { font-size: 13px; color: var(--ink); }
+    .prd-section { margin-top: 56px; }
+    .prd-section__num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.12em; margin-bottom: 4px; }
+    .prd-section__title { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--ink); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .prd-h3 { font-family: var(--font-serif); font-size: 17px; font-weight: 700; color: var(--ink); margin: 32px 0 12px; }
+    .prd-h4 { font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--ink-muted); margin: 20px 0 8px; }
+    .prd-body p { font-size: 14px; line-height: 1.85; color: var(--ink); margin-bottom: 14px; }
+    .prd-body ul, .prd-body ol { padding-left: 24px; margin-bottom: 14px; }
+    .prd-body li { font-size: 14px; line-height: 1.85; color: var(--ink); margin-bottom: 4px; }
+    .prd-table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+    .prd-table th { text-align: left; padding: 10px 12px; background: var(--bg-soft); border-bottom: 2px solid var(--border); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
+    .prd-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; line-height: 1.6; }
+    .prd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin: 16px 0; }
+    .prd-card + .prd-card { margin-top: 12px; }
+    .prd-card__title { font-family: var(--font-serif); font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+    .prd-diagram { background: var(--bg-soft); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 32px; margin: 16px 0 24px; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--ink-muted); overflow-x: auto; white-space: pre; }
+    .prd-callout { border-left: 3px solid var(--accent); padding: 12px 20px; margin: 16px 0; background: var(--accent-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; line-height: 1.7; color: var(--accent-ink); }
+    .prd-callout.info { border-left-color: #1E40AF; background: #EFF6FF; color: #1E40AF; }
+    .prd-callout.green { border-left-color: #166534; background: #F0FDF4; color: #166534; }
+    .prd-callout.red { border-left-color: #991B1B; background: #FEF2F2; color: #991B1B; }
+    .prd-flow { display: flex; gap: 12px; margin: 16px 0 24px; flex-wrap: wrap; }
+    .prd-flow__step { flex: 1; min-width: 140px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; position: relative; }
+    .prd-flow__step-num { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 6px; }
+    .prd-flow__step-text { font-size: 12px; line-height: 1.6; color: var(--ink); }
+    .prd-flow__step + .prd-flow__step::before { content: '→'; position: absolute; left: -16px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); font-size: 14px; }
+    .prd-toc { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 28px; margin-bottom: 32px; }
+    .prd-toc__title { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-faint); margin-bottom: 12px; }
+    .prd-toc a { display: block; padding: 4px 0; font-size: 13px; color: var(--ink-muted); text-decoration: none; transition: color 150ms; }
+    .prd-toc a:hover { color: var(--accent); }
+    .prd-toc a .toc-num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-right: 8px; }
+    .prd-toc__group { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 16px 0 4px; }
+    .badge { display: inline-block; font-family: var(--font-mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+    .badge-new { background: #F0FDF4; color: #166534; }
+    .badge-changed { background: #FEF3C7; color: #B45309; }
+    .badge-removed { background: #FEF2F2; color: #991B1B; }
+    .phase-tag { display: inline-block; font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+    .phase-p1 { background: #DBEAFE; color: #1E40AF; }
+    .phase-p2 { background: #F0FDF4; color: #166534; }
+    .phase-p3 { background: #FEF3C7; color: #B45309; }
+    .phase-p4 { background: #F3E8FF; color: #6B21A8; }
+    .phase-p5 { background: #F0EDE7; color: #57534E; }
+    .phase-p6 { background: #FCE7F3; color: #9D174D; }
+    @media print { .app-sidebar, .app-header { display: none; } .app { grid-template-columns: 1fr; grid-template-rows: auto; } .prd-layout { padding: 32px; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__title">工 作 知 识 库</span>
+      <span class="app-header__subtitle">editorial · v4.0</span>
+    </div>
+    <div class="app-header__actions">
+      <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
+      <div class="settings-wrap"><button class="icon-btn" id="settings-btn" title="设置">⚙</button></div>
+    </div>
+  </header>
+  <aside class="app-sidebar" id="sidebar"></aside>
+  <main class="app-main prd-body" style="padding: 0;">
+    <div class="prd-layout">
+
+      <!-- ── 文档头 ── -->
+      <div class="prd-header">
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V4.0</div>
+        <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
+        <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
+        <div class="prd-header__meta">
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v4.0</div></div>
+          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-28</div></div>
+          <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
+          <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
+        </div>
+        <div class="prd-callout"><strong>v4.0 相对 v3.0 的变化：</strong>在 v3.0 检索地基之上，补充企业级能力（多租户 / 多知识库 / 多模型 / 会话管理），新增数据源连接、可观测性、IM 通知三个模块，<strong>文档解析升级为 Rust sidecar</strong>，<strong>MCP 工具集从 2 个扩充到 8 个</strong>。技术参考腾讯开源 WeKnora 的工程实现，但坚持桌面客户端的产品定位。</div>
+      </div>
+
+      <!-- ── 目录 ── -->
+      <nav class="prd-toc">
+        <div class="prd-toc__title">TABLE OF CONTENTS</div>
+        <div class="prd-toc__group">产品基础</div>
+        <a href="#s1"><span class="toc-num">01</span>产品定位与核心类比</a>
+        <a href="#s2"><span class="toc-num">02</span>目标用户与使用场景</a>
+        <a href="#s3"><span class="toc-num">03</span>核心设计原则</a>
+        <a href="#s4"><span class="toc-num">04</span>架构决策：检索优先</a>
+        <a href="#s5"><span class="toc-num">05</span>功能架构总览</a>
+        <div class="prd-toc__group">核心模块</div>
+        <a href="#s6"><span class="toc-num">06</span>模块一：知识库连接（多知识库）</a>
+        <a href="#s7"><span class="toc-num">07</span>模块二：文档管理（解析升级 + 异步任务）</a>
+        <a href="#s8"><span class="toc-num">08</span>模块三：AI 对话（会话管理 + 多模型）</a>
+        <a href="#s9"><span class="toc-num">09</span>模块四：知识图谱</a>
+        <a href="#s10"><span class="toc-num">10</span>模块五：全局搜索</a>
+        <div class="prd-toc__group">企业能力 <span class="badge badge-new">NEW</span></div>
+        <a href="#s11"><span class="toc-num">11</span>模块六：数据源连接</a>
+        <a href="#s12"><span class="toc-num">12</span>模块七：可观测性</a>
+        <a href="#s13"><span class="toc-num">13</span>模块八：IM 通知与集成</a>
+        <a href="#s14"><span class="toc-num">14</span>多租户与权限模型</a>
+        <div class="prd-toc__group">技术规格</div>
+        <a href="#s15"><span class="toc-num">15</span>全局交互规范</a>
+        <a href="#s16"><span class="toc-num">16</span>数据模型</a>
+        <a href="#s17"><span class="toc-num">17</span>技术架构</a>
+        <a href="#s18"><span class="toc-num">18</span>双 AI 通道</a>
+        <a href="#s19"><span class="toc-num">19</span>MCP 工具集成（8 个工具）</a>
+        <a href="#s20"><span class="toc-num">20</span>检索引擎</a>
+        <a href="#s21"><span class="toc-num">21</span>开发路线与验收标准</a>
+      </nav>
+
+      <!-- ═══ 01. 产品定位 ═══ -->
+      <section class="prd-section" id="s1">
+        <div class="prd-section__num">01 — POSITIONING</div>
+        <h2 class="prd-section__title">产品定位与核心类比</h2>
+
+        <div class="prd-h3">一句话定位</div>
+        <p>工作知识库是一款<strong>知识库管理桌面客户端</strong>。知识库本身是一个可插拔、可备份、可迁移的数据包（类似 MySQL 数据库），桌面客户端负责连接、浏览、搜索和管理这个数据包（类似 Navicat / DBeaver）。</p>
+        <div class="prd-callout"><strong>一句话定位：</strong>知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的团队知识库。</div>
+
+        <div class="prd-h3">核心类比</div>
+        <table class="prd-table">
+          <tr><th>数据库世界</th><th>工作知识库</th><th>说明</th></tr>
+          <tr><td>MySQL 数据库</td><td>知识库数据包</td><td>自包含目录：markdown + 向量 + 图谱 + manifest</td></tr>
+          <tr><td>Navicat / DBeaver</td><td>本桌面客户端</td><td>连接、浏览、搜索、管理知识库</td></tr>
+          <tr><td>localhost / 远程服务器</td><td>本地目录 / 内网部署</td><td>连接本地知识库或团队内网共享知识库</td></tr>
+          <tr><td>SQL 查询</td><td>混合搜索 + AI 对话</td><td>精确检索和智能问答两种消费模式</td></tr>
+          <tr><td>数据库备份/导出</td><td>知识库快照/导出/迁移</td><td>数据包级别的可移植性</td></tr>
+        </table>
+
+        <div class="prd-h3">核心价值主张</div>
+        <ul>
+          <li><strong>数据包可插拔</strong>：知识库是一个自包含目录，可挂载/卸载/快照/导出/迁移。和数据库一样独立于客户端存在。</li>
+          <li><strong>检索优先</strong>：向量搜索 + BM25 混合检索 + AI 实时推理。不依赖 AI 编译，直接返回正确答案。</li>
+          <li><strong>多知识库 + 多租户</strong>：一个客户端管理多个知识库数据包；团队模式下支持 source 分区 + token 权限隔离。</li>
+          <li><strong>多模型可插拔</strong>：嵌入、重排、对话模型均可配置切换（在线 / 本地 / 多供应商）。</li>
+          <li><strong>双 AI 通道</strong>：可代理本地 CLI 工具（Claude Code、Gemini CLI），也可配置 API Key 使用内置 Mini Agent。</li>
+          <li><strong>双用户群体</strong>：开发者通过 MCP 工具在 IDE 中消费知识库，非开发者通过桌面 UI 浏览和对话。同一份数据，两种入口。</li>
+          <li><strong>桌面原生体验</strong>：Tauri 打包为轻量桌面应用（~40MB），双击即开，内网也可 Docker 部署。</li>
+          <li><strong>一个应用两种模式</strong>：本地连接（PGLite，个人模式）和远程连接（Postgres，团队模式）是同一个安装包，用户在连接页面二选一。</li>
+        </ul>
+      </section>
+
+      <!-- ═══ 02. 目标用户 ═══ -->
+      <section class="prd-section" id="s2">
+        <div class="prd-section__num">02 — USERS</div>
+        <h2 class="prd-section__title">目标用户与使用场景</h2>
+
+        <div class="prd-h3">用户画像</div>
+        <div class="prd-card">
+          <div class="prd-card__title">画像 A：开发者 / 知识贡献者</div>
+          <p>日常在 IDE 中写代码、查文档、解决技术问题。通过 MCP 工具在 Claude Code / Cursor 中直接查询知识库，也偶尔打开桌面客户端浏览图谱或进行深度对话。会向知识库贡献新技术文档和排障经验。</p>
+          <table class="prd-table">
+            <tr><th>主要入口</th><td>MCP 工具（IDE 中） → 桌面客户端（图谱浏览 / 深度对话）</td></tr>
+            <tr><th>典型场景</th><td>写退款功能时让 AI 查知识库 → 得到带引用的回答 → 把排障经验写回知识库</td></tr>
+            <tr><th>关键需求</th><td>MCP 集成稳定、搜索准确、写入知识库流程简单</td></tr>
+          </table>
+        </div>
+        <div class="prd-card">
+          <div class="prd-card__title">画像 B：技术管理者 / 非技术团队成员</div>
+          <p>需要了解团队知识积累的全貌。通过桌面客户端 UI 浏览文档、搜索知识、使用 AI 对话问答、查看知识图谱了解知识关联关系。不使用 IDE 和 MCP 工具。</p>
+          <table class="prd-table">
+            <tr><th>主要入口</th><td>桌面客户端 UI（文档浏览 → 搜索 → AI 对话 → 图谱）</td></tr>
+            <tr><th>典型场景</th><td>"退款系统和哪些模块有关联？" → 图谱可视化一目了然</td></tr>
+            <tr><th>关键需求</th><td>UI 直观友好、搜索简单、图谱可视化、回答可信</td></tr>
+          </table>
+        </div>
+
+        <div class="prd-h3">核心使用场景</div>
+        <table class="prd-table">
+          <tr><th>场景</th><th>入口</th><th>行为</th><th>期望结果</th></tr>
+          <tr><td>知识查询</td><td>AI 对话</td><td>提问，AI 检索知识库后综合回答</td><td>获得带引用来源的准确回答</td></tr>
+          <tr><td>精确检索</td><td>全局搜索</td><td>输入关键词或自然语言，快速定位文档</td><td>毫秒级返回相关文档列表</td></tr>
+          <tr><td>知识探索</td><td>知识图谱</td><td>浏览图谱、点击节点查看关联</td><td>理解知识间的关系网络</td></tr>
+          <tr><td>知识沉淀</td><td>文档管理 / MCP</td><td>导入新文档 → 分块嵌入 → 可搜索</td><td>新知识自动融入检索索引</td></tr>
+          <tr><td>开发中查询</td><td>MCP 工具</td><td>IDE 中 AI 自动调用 search_wiki</td><td>编码时直接获得知识库支撑</td></tr>
+          <tr><td>知识库管理</td><td>连接管理</td><td>挂载/切换/备份/导出知识库</td><td>数据包级别的可移植性</td></tr>
+          <tr><td><span class="badge badge-new">新</span> 数据源同步</td><td>数据源连接</td><td>配置 RSS / 语雀 / 飞书，自动增量同步</td><td>外部内容自动融入知识库</td></tr>
+          <tr><td><span class="badge badge-new">新</span> 通知推送</td><td>IM 通知</td><td>知识库更新 → 飞书/钉钉群收到卡片</td><td>团队及时感知知识沉淀</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 03. 设计原则 ═══ -->
+      <section class="prd-section" id="s3">
+        <div class="prd-section__num">03 — PRINCIPLES</div>
+        <h2 class="prd-section__title">核心设计原则</h2>
+        <div class="prd-card"><div class="prd-card__title">检索优先，编译可选</div><p>知识库的默认能力是<strong>检索</strong>：文档导入后自动分块 + 向量嵌入，即可被搜索和 AI 对话消费。不需要 AI 编译即可使用。编译是一个可选的增强工具——对高价值内容做深度结构化整理，但不是知识库运作的前提。这确保了：导入即可用、无黑箱、token 成本可预测。</p></div>
+        <div class="prd-card"><div class="prd-card__title">客户端-数据包分离</div><p>桌面应用是客户端，知识库是数据包。两者完全解耦——客户端不存储知识数据，数据包不依赖特定客户端。知识库可以在应用内挂载/卸载/切换，也可以导出为 zip 在实例间迁移。</p></div>
+        <div class="prd-card"><div class="prd-card__title">双通道、一份数据</div><p>开发者通过 MCP 工具在 IDE 中消费知识库，非开发者通过桌面 UI 浏览和对话。两条通道共享同一份知识库数据包，看到的数据完全一致。</p></div>
+        <div class="prd-card"><div class="prd-card__title">一个应用两种模式</div><p>同一个 Tauri 应用支持本地连接（PGLite 个人模式）和远程连接（Postgres 团队模式）。用户无需安装两个产品，本地积累的知识库可随时"升级"为团队共享。</p></div>
+        <div class="prd-card"><div class="prd-card__title">编辑级视觉语言</div><p>产品的视觉语言对标编辑出版物而非 SaaS 工具。宋体标题、米色背景、琥珀色单一强调色、编号化布局——给用户"这是一个有沉淀的系统"的感知。</p></div>
+        <div class="prd-card"><div class="prd-card__title">能力对齐，定位不漂</div><p>v4.0 吸收 WeKnora 等项目的工程能力（多租户、数据源、可观测性），但坚持桌面客户端定位：<strong>不抄服务端常驻运行模型</strong>（cron 守护、WebSocket 长连接、分布式去重），用桌面应用的方式实现（setInterval、sidecar、Rust 命令）。</p></div>
+      </section>
+
+      <!-- ═══ 04. 架构决策 ═══ -->
+      <section class="prd-section" id="s4">
+        <div class="prd-section__num">04 — ARCHITECTURE DECISION</div>
+        <h2 class="prd-section__title">架构决策：检索优先</h2>
+
+        <div class="prd-h3">两种范式对比</div>
+        <table class="prd-table">
+          <tr><th>维度</th><th>编译型（obsidian-wiki 范式）</th><th>检索型（GBrain 范式）· 我们的方案</th></tr>
+          <tr><td>核心流程</td><td>导入文档 → AI 编译为结构化 wiki 页面 → 查询时读编译产物</td><td>导入文档 → 分块 + 嵌入向量 → 查询时检索 chunks + AI 实时推理</td></tr>
+          <tr><td>写入成本</td><td>高（每篇 ~7000 tokens LLM）</td><td>低（分块 + 嵌入 ~200 tokens）</td></tr>
+          <tr><td>查询成本</td><td>较低（读 2-3 个 wiki 页面 ≈ 2600 tokens）</td><td>中等（读 8 个 chunks ≈ 4200 tokens）</td></tr>
+          <tr><td>可复现性</td><td>不可复现</td><td>可复现（确定性代码）</td></tr>
+          <tr><td>黑箱风险</td><td>高（编译幻觉被固化）</td><td>低（AI 只在查询时介入）</td></tr>
+        </table>
+        <div class="prd-callout green"><strong>架构决策结论：</strong>对于团队级知识库（几百到几千文档规模），检索型是正确选择。成本更低、风险更小、结果可复现。编译作为可选增强工具保留在 Phase 5。</div>
+
+        <div class="prd-h3">导入流程（检索优先）</div>
+        <p>导入全过程不消耗 LLM tokens。embedding API 成本约 200 tokens/文档，约 ¥0.001。</p>
+        <div class="prd-diagram">原始文档
+  │
+  ▼
+① 内容验证（三道关卡）
+  ├── content_hash 幂等检测（SHA-256，相同内容跳过）
+  ├── 垃圾内容过滤（过短/无意义/重复内容拦截）
+  └── 隐私信息检测（API Key / 密码 / 身份证号等脱敏提醒）
+  │
+  ▼
+② 文档解析（Rust sidecar，见 §07）
+  ├── Markdown → 直接读取 + frontmatter 解析
+  ├── PDF → pdfium 布局分析（替代 pdf-parse）
+  ├── Word/Excel/PPT → Rust 原生或 LibreOffice
+  └── HTML/URL → readability 正文提取
+  │
+  ▼
+③ 多层级分块（确定性代码，不调用 LLM）
+  ├── L1: 标题分块（H1/H2/H3 边界）
+  ├── L2: 段落分块（过长标题块按段落细分）
+  ├── L3: 句子分块（中英文句号/问号/感叹号边界）
+  ├── L4: 子句分块（逗号/分号/冒号边界）
+  └── L5: 字符限制（目标 300 词/块，重叠 50 词，CJK 按字符计）
+  代码文件使用 Tree-sitter 语义分块（支持 36 种语言）
+  │
+  ▼
+④ 上下文包裹（仅嵌入时使用，不存储）
+  ├── 为每个 chunk 拼接文档级上下文前缀
+  └── "本文档: {title}\n本章: {section}\n---\n{chunk_text}"
+  │
+  ▼
+⑤ 嵌入向量（embedding API，非 LLM）→ 存入 pgvector（HNSW 索引）
+  │   异步任务系统处理（见 §07），不阻塞 UI
+  ▼
+⑥ 图谱提取（确定性代码）
+  ├── 提取 [[wikilink]] 引用 + 实体识别
+  ├── 识别语义边类型（mentions / relates_to / discussed_in 等）
+  └── 更新 links 表（图谱边）
+  │
+  ▼
+⑦ 完成 — 文档立即可搜索、可被 AI 对话引用</div>
+
+        <div class="prd-h3">未来可选的编译增强（Phase 5）</div>
+        <ul>
+          <li><strong>用户手动触发</strong>：在文档管理页选中特定文档，点击"编译"按钮</li>
+          <li><strong>系统建议触发</strong>：当某个主题的查询频率超过阈值时，系统建议"是否编译为综合页面？"</li>
+          <li><strong>编译 Diff 审核</strong>：编译完成后展示 diff 对比视图，用户确认后才写入</li>
+          <li><strong>不做默认行为</strong>：编译永远是可选操作，不是导入流程的一部分</li>
+        </ul>
+      </section>
+
+      <!-- ═══ 05. 功能架构 ═══ -->
+      <section class="prd-section" id="s5">
+        <div class="prd-section__num">05 — ARCHITECTURE</div>
+        <h2 class="prd-section__title">功能架构总览</h2>
+        <div class="prd-h3">模块清单</div>
+        <table class="prd-table">
+          <tr><th>编号</th><th>模块</th><th>核心职责</th><th>阶段</th></tr>
+          <tr><td>01</td><td>知识库连接</td><td>挂载/卸载/切换知识库，管理连接配置（本地 PGLite / 远程 Postgres）</td><td><span class="phase-tag phase-p1">P1</span></td></tr>
+          <tr><td>02</td><td>文档管理</td><td>文档浏览、导入、编辑、查看；Rust sidecar 解析；异步任务系统</td><td><span class="phase-tag phase-p1">P1</span></td></tr>
+          <tr><td>03</td><td>AI 对话</td><td>基于知识库的智能问答，会话管理 + 多轮上下文 + 双 AI 通道</td><td><span class="phase-tag phase-p2">P2</span></td></tr>
+          <tr><td>04</td><td>知识图谱</td><td>知识关系的力导向图可视化</td><td><span class="phase-tag phase-p2">P2</span></td></tr>
+          <tr><td>05</td><td>全局搜索</td><td>混合检索（关键词 + 向量），快速定位</td><td><span class="phase-tag phase-p1">P1</span></td></tr>
+          <tr><td>06</td><td>数据源连接</td><td><span class="badge badge-new">新</span> RSS / 语雀 / 飞书 / 本地目录 自动增量同步</td><td><span class="phase-tag phase-p4">P4</span></td></tr>
+          <tr><td>07</td><td>可观测性</td><td><span class="badge badge-new">新</span> 检索质量日志、文档处理时间线、检索效果评估</td><td><span class="phase-tag phase-p3">P3</span></td></tr>
+          <tr><td>08</td><td>IM 通知</td><td><span class="badge badge-new">新</span> 知识库更新推送飞书/钉钉群（单向通知，非双向对话）</td><td><span class="phase-tag phase-p5">P5</span></td></tr>
+        </table>
+
+        <div class="prd-h3">数据流（检索优先架构）</div>
+        <div class="prd-diagram">                    导 入 流 程
+                ┌────────────────────────────────────┐
+                │                                    │
+原始文档        │  验证 → Rust 解析 → 分块 →          │       查 询 流 程
+(raw/)  ────────┤  上下文包裹 → 嵌入向量 →            │  ──────────────→
+       │        │  存入 pgvector +                   │        │
+数据源 ─────────┤  提取图谱边                        │        ▼
+(RSS等)         │  （异步任务系统，见 §07）           │  ┌──────────────────────────┐
+                └────────────────────────────────────┘  │  用户查询 / AI 提问       │
+                                                         │    │                     │
+                                                         │    ├── 意图分类           │
+                                                         │    ├── BM25 关键词       │
+                                                         │    ├── 向量语义检索       │
+                                                         │    └── RRF 融合排序      │
+                                                         │         │                │
+                                                         │         ▼                │
+                                                         │  后融合 Boost            │
+                                                         │         │                │
+                                                         │         ▼                │
+                                                         │   Top-K 相关文档         │
+                                                         │         │                │
+                                                         │         ▼                │
+                                                         │   AI 综合推理回答        │
+                                                         │   (附引用来源)           │
+                                                         │         │ 记录到 §12     │
+                                                         │         ▼ 可观测性日志   │
+                                                         └──────────────────────────┘</div>
+      </section>
+
+      <!-- ═══ 06. 知识库连接 ═══ -->
+      <section class="prd-section" id="s6">
+        <div class="prd-section__num">06 — CONNECTION</div>
+        <h2 class="prd-section__title">模块一：知识库连接（多知识库）</h2>
+        <p>知识库连接是客户端的入口模块，类似 Navicat 的"连接管理"。同一个应用支持两种使用模式，用户在连接页面二选一；同一个应用可注册多个连接，自由切换。</p>
+
+        <div class="prd-h3">两种模式对比</div>
+        <table class="prd-table">
+          <tr><th>维度</th><th>模式 A：远程连接（团队）</th><th>模式 B：本地连接（个人）</th></tr>
+          <tr><td>数据来源</td><td>内网服务端的 Postgres</td><td>本地 PGLite（进程内嵌入式）</td></tr>
+          <tr><td>客户端胖瘦</td><td><strong>thin</strong>（只有 UI，业务逻辑在服务端）</td><td>胖（UI + 业务逻辑 + PGLite 都在客户端进程内）</td></tr>
+          <tr><td>本地数据库</td><td>不启用（PGLite 打包但不运行）</td><td>启用（PGLite WASM）</td></tr>
+          <tr><td>并发</td><td>多人 MVCC + 行级锁</td><td>单人</td></tr>
+          <tr><td>权限</td><td>source 分区 + token</td><td>无需</td></tr>
+          <tr><td>适用</td><td>团队协作</td><td>个人积累</td></tr>
+        </table>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr><td>当前连接</td><td>显示当前活跃的知识库：名称、引擎类型、source_id、统计信息</td></tr>
+          <tr><td>已注册连接列表</td><td>区分本地连接（PGLite 数据目录）和远程连接（Postgres 服务端 URL + token）</td></tr>
+          <tr><td>添加本地知识库</td><td>选择本地目录，启动 PGLite 引擎挂载数据目录</td></tr>
+          <tr><td>连接远程知识库</td><td>输入服务端 URL + access_token，thin 连接到团队 Postgres</td></tr>
+          <tr><td>切换知识库</td><td>切换当前活跃连接，所有模块自动切到新数据</td></tr>
+          <tr><td>快照（本地）</td><td>打包本地 PGLite 数据目录 + raw/ 为 .zip</td></tr>
+          <tr><td>导出</td><td>① 完整快照（raw/ + 数据库 dump）；② OKF bundle（跨工具可移植）</td></tr>
+          <tr><td>导入</td><td>从 .zip 恢复，支持完整快照和 OKF bundle 两种格式</td></tr>
+          <tr><td>本地 → 团队上传</td><td>把本地知识库 dump 上传到团队 Postgres，转为团队共享 source</td></tr>
+        </table>
+        <div class="prd-callout green"><strong>OKF 互操作：</strong>导出支持 OKF bundle 格式——声明兼容 Open Knowledge Format v0.1，导出的知识库能被任何 OKF 消费者读取，不被锁定在自有格式。运行时仍是 DB，OKF 仅用于导出/导入时刻。</div>
+      </section>
+
+      <!-- ═══ 07. 文档管理 ═══ -->
+      <section class="prd-section" id="s7">
+        <div class="prd-section__num">07 — DOCUMENTS</div>
+        <h2 class="prd-section__title">模块二：文档管理（解析升级 + 异步任务） <span class="badge badge-changed">v4 升级</span></h2>
+
+        <div class="prd-h3">文档解析：从 npm 库升级为 Rust sidecar <span class="badge badge-changed">关键变更</span></div>
+        <p>v3.0 的 PDF 解析方案（<code>pdf-parse / unpdf</code>）对扫描版 PDF、复杂排版 PDF 基本无效。v4.0 将文档解析升级为<strong>独立的 Rust sidecar</strong>，通过 Tauri command 调用，在 Rust 线程跑重解析，不阻塞前端事件循环。</p>
+        <table class="prd-table">
+          <tr><th>格式</th><th>v3.0 方案</th><th>v4.0 方案</th><th>说明</th></tr>
+          <tr><td>PDF</td><td>pdf-parse（npm）</td><td><strong>pdfium-render</strong>（Rust 绑定 Chrome PDF 引擎）</td><td>支持布局分析、扫描版渲染</td></tr>
+          <tr><td>Word (.docx)</td><td>mammoth（npm）</td><td><strong>docx-rs</strong>（Rust 原生）</td><td>结构化解析 + 图片提取</td></tr>
+          <tr><td>Word (.doc)</td><td>不支持</td><td>调用 LibreOffice headless 转换</td><td>需系统装 LibreOffice</td></tr>
+          <tr><td>HTML / URL</td><td>@mozilla/readability</td><td>reqwest + readability（Rust）</td><td>不依赖 Playwright 那么重</td></tr>
+          <tr><td>Markdown / TXT</td><td>直接读取</td><td>TS 直接解析（保留）</td><td>P1 零成本</td></tr>
+          <tr><td>代码文件</td><td>Tree-sitter</td><td>Tree-sitter（保留）</td><td>36 种语言语义分块</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>架构借鉴：</strong>参考 WeKnora 的 docreader 设计——文档解析独立成服务，不塞进主进程。Tauri 架构天然支持：Rust 侧重计算通过 <code>tauri::command</code> 暴露给前端。混合方案：Markdown/TXT 用 TS 直接解析（零成本），重格式走 Rust 命令。</div>
+
+        <div class="prd-h3">异步任务系统 <span class="badge badge-new">新增</span></div>
+        <p>导入一篇大文档时，embedding + 图谱提取可能耗时几十秒。v4.0 引入轻量异步任务系统，参考 WeKnora 的 asynq 思路但<strong>桌面端实现</strong>（不依赖 Redis）：</p>
+        <table class="prd-table">
+          <tr><th>组件</th><th>职责</th><th>技术方案</th></tr>
+          <tr><td>任务队列</td><td>管理导入/重嵌入/图谱提取任务</td><td>本地 SQLite 表（轻量）或 BullMQ（团队模式）</td></tr>
+          <tr><td>失败重试</td><td>embedding API 失败自动重试</td><td>指数退避，最多 5 次</td></tr>
+          <tr><td>进度反馈</td><td>导入 50 篇文档时的进度条</td><td>process_spans 表 + 进度 UI</td></tr>
+          <tr><td>任务状态</td><td>running / done / failed / cancelled</td><td>process_spans 表</td></tr>
+        </table>
+        <div class="prd-diagram">-- 文档处理时间线表（process_spans）
+-- 参考自 WeKnora 的 knowledge_processing_spans
+CREATE TABLE process_spans (
+  id            SERIAL PRIMARY KEY,
+  page_id       INT REFERENCES pages(id) ON DELETE CASCADE,
+  stage         TEXT NOT NULL,    -- parse/chunk/embed/graph/done
+  status        TEXT NOT NULL,    -- running/done/failed/skipped/cancelled
+  started_at    TIMESTAMPTZ DEFAULT now(),
+  finished_at   TIMESTAMPTZ,
+  error         TEXT,
+  detail        JSONB             -- 阶段内细节（如 chunk 数量、向量数）
+);
+CREATE INDEX idx_spans_page ON process_spans(page_id);
+CREATE INDEX idx_spans_status ON process_spans(status);</div>
+
+        <div class="prd-h3">内容验证管线</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step"><div class="prd-flow__step-num">GATE 01</div><div class="prd-flow__step-text"><strong>幂等检测</strong>：SHA-256 content_hash，相同跳过</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">GATE 02</div><div class="prd-flow__step-text"><strong>垃圾过滤</strong>：过短/纯数字/乱码拦截</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">GATE 03</div><div class="prd-flow__step-text"><strong>隐私检测</strong>：API Key/密码/身份证号脱敏提醒</div></div>
+        </div>
+
+        <div class="prd-h3">多层级分块策略</div>
+        <table class="prd-table">
+          <tr><th>层级</th><th>分隔符</th><th>说明</th></tr>
+          <tr><td>L1</td><td><code>\n# </code> / <code>\n## </code> / <code>\n### </code></td><td>Markdown 标题边界，最高优先级</td></tr>
+          <tr><td>L2</td><td><code>\n\n</code>（双换行）</td><td>段落边界</td></tr>
+          <tr><td>L3</td><td><code>。！？.!?</code>（句末标点）</td><td>句子边界，支持中英文混合</td></tr>
+          <tr><td>L4</td><td><code>，；;：</code>（句中停顿）</td><td>子句边界</td></tr>
+          <tr><td>L5</td><td>字符级切分</td><td>最终兜底</td></tr>
+        </table>
+        <table class="prd-table">
+          <tr><th>参数</th><th>值</th></tr>
+          <tr><td>目标块大小</td><td>300 词（约 600-800 中文字符）</td></tr>
+          <tr><td>重叠大小</td><td>50 词</td></tr>
+          <tr><td>CJK 支持</td><td>CJK 字符单独计数，每个汉字 = 1 词</td></tr>
+          <tr><td>最大块大小</td><td>目标 × 1.5（约 450 词）</td></tr>
+        </table>
+
+        <div class="prd-h3">摄入文档类型（分级支持）</div>
+        <table class="prd-table">
+          <tr><th>优先级</th><th>类型</th><th>解析方案</th></tr>
+          <tr><td><span class="phase-tag phase-p1">P1</span></td><td>Markdown / 纯文本</td><td>TS 直接读取</td></tr>
+          <tr><td><span class="phase-tag phase-p1">P1</span></td><td>PDF</td><td>Rust pdfium-render</td></tr>
+          <tr><td><span class="phase-tag phase-p2">P2</span></td><td>网页 (URL)</td><td>Rust reqwest + readability</td></tr>
+          <tr><td><span class="phase-tag phase-p3">P3</span></td><td>Word (.docx/.doc) / HTML</td><td>docx-rs / LibreOffice</td></tr>
+          <tr><td><span class="phase-tag phase-p4">P4</span></td><td>代码文件 / CSV / JSON / PPT</td><td>Tree-sitter / 按行分块</td></tr>
+        </table>
+
+        <div class="prd-h3">导入流程（事务约定）</div>
+        <p><strong>STEP 01-04 在事务外</strong>（含慢 embedding 调用），<strong>DB 写入在一个短事务内</strong>：</p>
+        <div class="prd-flow">
+          <div class="prd-flow__step"><div class="prd-flow__step-num">事务外</div><div class="prd-flow__step-text">验证 → Rust 解析 → 分块 → 上下文包裹</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">事务外</div><div class="prd-flow__step-text">embedBatch() ← 慢网络调用，必须放事务外（异步任务）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">★事务内</div><div class="prd-flow__step-text">BEGIN → 写 pages/chunks/links → COMMIT（毫秒级）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">事务后</div><div class="prd-flow__step-text">更新 process_spans 状态为 done</div></div>
+        </div>
+      </section>
+
+      <!-- ═══ 08. AI 对话 ═══ -->
+      <section class="prd-section" id="s8">
+        <div class="prd-section__num">08 — AI DIALOGUE</div>
+        <h2 class="prd-section__title">模块三：AI 对话（会话管理 + 多模型） <span class="badge badge-changed">v4 增强</span></h2>
+
+        <div class="prd-h3">会话管理 <span class="badge badge-new">明确</span></div>
+        <p>AI 对话支持<strong>多轮上下文</strong>。每个会话绑定一个知识库，支持上下文 rewrite（查询改写）。会话可新建、列表、删除、继续。</p>
+        <table class="prd-table">
+          <tr><th>能力</th><th>描述</th></tr>
+          <tr><td>新建会话</td><td>绑定知识库，设置 max_rounds（上下文窗口轮数，默认 5）</td></tr>
+          <tr><td>查询改写</td><td>enable_rewrite：根据历史把"它的退款流程"改写为完整问题</td></tr>
+          <tr><td>会话列表</td><td>侧边栏最近对话，点击切换</td></tr>
+          <tr><td>继续对话</td><td>恢复历史会话，保留上下文</td></tr>
+          <tr><td>删除会话</td><td>清理会话历史</td></tr>
+          <tr><td>跨会话记忆</td><td>enable_memory：跨会话的事实记忆（Phase 5）</td></tr>
+        </table>
+
+        <div class="prd-h3">多模型可插拔 <span class="badge badge-new">明确</span></div>
+        <table class="prd-table">
+          <tr><th>模型类型</th><th>用途</th><th>可选方案</th></tr>
+          <tr><td>嵌入模型</td><td>文档分块 + 查询向量化</td><td>在线：text-embedding-3-small / 智谱；本地：bge-m3 via Ollama</td></tr>
+          <tr><td>对话模型</td><td>AI 对话推理</td><td>双 AI 通道（见 §18）：本地 CLI 代理 / Mini Agent API</td></tr>
+          <tr><td>重排模型</td><td>Cross-encoder 精排（可选）</td><td>默认关闭，Phase 5 启用</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>模型配置层级：</strong>知识库级别配置 embedding 模型（嵌入维度影响向量列定义）；会话级别选择对话通道；全局级别配置重排模型。模型 CRUD 在<strong>设置界面</strong>完成，不暴露到 MCP。</div>
+
+        <div class="prd-h3">对话检索流程</div>
+        <div class="prd-diagram">用户输入问题
+  │
+  ▼
+① 查询改写（如启用，调小模型，非主 LLM）
+  ├── 根据会话历史补全指代
+  └── "它的退款流程" → "IAP 系统的退款流程"
+  │
+  ▼
+② 意图分类（零 LLM 调用）
+  ├── 关键词匹配 + 正则模式识别
+  └── 分类：entity / temporal / event / general → 调权重
+  │
+  ▼
+③ 检索阶段（确定性代码，不调用 LLM）
+  ├── BM25 关键词检索 → top-30 chunks
+  ├── 向量语义检索（pgvector HNSW）→ top-30 chunks
+  ├── RRF 融合排序
+  ├── 后融合 Boost
+  └── (可选) Cross-encoder 重排序 → top-K（默认 8）
+  │
+  ▼
+④ 上下文构建
+  ├── 会话历史（max_rounds 内的对话）
+  ├── Top-K chunks 内容
+  └── 系统提示词（"基于知识库内容回答，标注引用"）
+  │
+  ▼
+⑤ AI 推理阶段（双通道之一）
+  ├── 本地 CLI 代理：转发给 Claude Code / Gemini CLI
+  └── Mini Agent：调用 API
+  │
+  ▼
+⑥ 流式回复 + 记录可观测性日志（见 §12）</div>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr><td>消息流</td><td>用户消息右对齐，AI 消息左对齐，显示时间戳</td></tr>
+          <tr><td>引用标注</td><td>AI 回答中内联引用编号 [1][2][3]，可点击跳转</td></tr>
+          <tr><td>引用来源面板</td><td>展示所有检索命中的文档片段</td></tr>
+          <tr><td>AI 通道指示器</td><td>绿色 = 本地 CLI 代理，蓝色 = Mini Agent</td></tr>
+          <tr><td>沉淀到知识库</td><td>"💾 沉淀"按钮，编辑后写入 wiki/synthesis/，自动嵌入</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 09. 知识图谱 ═══ -->
+      <section class="prd-section" id="s9">
+        <div class="prd-section__num">09 — KNOWLEDGE GRAPH</div>
+        <h2 class="prd-section__title">模块四：知识图谱</h2>
+        <p>知识图谱是面向人类理清思路的可视化工具，也是<strong>本产品对比 WeKnora 的差异化能力</strong>——WeKnora 的 MCP 没有图谱 API。</p>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr><td>力导向图渲染</td><td>基于 D3.js 的力导向图可视化</td></tr>
+          <tr><td>节点类型</td><td>Source=实心圆，Entity=圆角矩形，Concept=菱形，Synthesis=六边形</td></tr>
+          <tr><td>边类型标注</td><td>mentions=灰虚线，relates_to=蓝实线，discussed_in=绿色，works_at=橙色</td></tr>
+          <tr><td>节点点击</td><td>右侧抽屉显示详情和关联</td></tr>
+          <tr><td>展开邻域</td><td>聚焦展示 1-2 跳邻居</td></tr>
+          <tr><td>路径探索</td><td>选中两节点显示最短路径</td></tr>
+        </table>
+
+        <div class="prd-h3">语义边类型</div>
+        <table class="prd-table">
+          <tr><th>边类型</th><th>语义</th><th>提取方式</th></tr>
+          <tr><td><code>mentions</code></td><td>文档提及某实体/概念</td><td>正则匹配 + [[wikilink]]</td></tr>
+          <tr><td><code>relates_to</code></td><td>概念关联</td><td>共现分析（同一 chunk）</td></tr>
+          <tr><td><code>discussed_in</code></td><td>深入讨论</td><td>chunk 中出现 ≥ 3 次</td></tr>
+          <tr><td><code>references</code></td><td>文档引用</td><td>[[wikilink]] + Markdown 链接</td></tr>
+          <tr><td><code>extracted_from</code></td><td>实体来源</td><td>分块时记录</td></tr>
+          <tr><td><code>works_at</code></td><td>人物归属</td><td>frontmatter / 正则</td></tr>
+          <tr><td><code>authored</code></td><td>作者关系</td><td>frontmatter.author</td></tr>
+          <tr><td><code>synthesizes</code></td><td>综合引用</td><td>synthesis 的 references</td></tr>
+        </table>
+        <div class="prd-callout"><strong>图谱的双重价值：</strong>① 给人类看（UI 可视化理清思路）；② 给 AI 用（MCP 的 get_related 工具，让 IDE 里的 AI 能做关联探索）。</div>
+      </section>
+
+      <!-- ═══ 10. 全局搜索 ═══ -->
+      <section class="prd-section" id="s10">
+        <div class="prd-section__num">10 — SEARCH</div>
+        <h2 class="prd-section__title">模块五：全局搜索</h2>
+        <p>全局搜索是知识库的精确检索入口。混合搜索（关键词 + 向量语义），不调用 AI，延迟极低。</p>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr><td>模式 banner</td><td>顶部标注"纯检索模式"，提供跳转对话链接</td></tr>
+          <tr><td>搜索模式</td><td>混合（BM25 + 向量 RRF + Boost）/ 关键词（ts_rank）/ 向量（语义）</td></tr>
+          <tr><td>范围筛选</td><td>按来源：原始文档 / 沉淀知识 / 全部</td></tr>
+          <tr><td>结果卡片</td><td>编号 + 标题 + 来源 badge + 摘要高亮 + 相关度</td></tr>
+          <tr><td>Cmd+K</td><td>任意页面 ⌘K 快速跳转搜索</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 11. 数据源连接 ═══ -->
+      <section class="prd-section" id="s11">
+        <div class="prd-section__num">11 — DATASOURCE</div>
+        <h2 class="prd-section__title">模块六：数据源连接 <span class="badge badge-new">v4 新增</span></h2>
+        <p>知识库的价值很大程度在于"自动同步"——否则用户不会手动导入。参考 WeKnora 的 Connector 接口设计，但<strong>用桌面应用方式实现</strong>（应用启动同步 + 定时器，非 cron 守护）。</p>
+
+        <div class="prd-h3">连接器接口（参考 WeKnora）</div>
+        <div class="prd-diagram">interface Connector {
+  type(): string;
+  validate(config): Promise&lt;void&gt;;
+  listResources(config): Promise&lt;Resource[]&gt;;      // 列出可同步目录/页面
+  fetchIncremental(config, cursor): Promise&lt;{       // ★ 核心：增量
+    items: FetchedItem[],
+    nextCursor: SyncCursor
+  }&gt;;
+  fetchAll(config): Promise&lt;FetchedItem[]&gt;;          // 全量（首次）
+}</div>
+
+        <div class="prd-h3">同步触发机制（桌面端定制）</div>
+        <table class="prd-table">
+          <tr><th>WeKnora（服务端）</th><th>本产品（桌面端）</th></tr>
+          <tr><td>robfig/cron 守护进程，常驻</td><td><strong>应用启动触发一次 + setInterval 定时</strong>（30 分钟）</td></tr>
+          <tr><td>asynq + Redis 分布式去重</td><td>本地 SQLite 标记 last_sync_at，无需 Redis</td></tr>
+          <tr><td>多副本 TaskID 竞争</td><td>单进程无竞争</td></tr>
+          <tr><td>7×24 同步</td><td>应用关闭即停止，下次启动补同步</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>关键设计：</strong>连接器接口照抄 WeKnora 的设计（这是它最干净的部分），但运行模型完全不同。增量游标机制保留——每个连接器存自己的游标（飞书存 nodeToken→editTime，语雀存 docID→updatedAt），下次只拉变化的。</div>
+
+        <div class="prd-h3">连接器优先级</div>
+        <table class="prd-table">
+          <tr><th>连接器</th><th>难度</th><th>阶段</th><th>说明</th></tr>
+          <tr><td>本地目录监控</td><td>⭐</td><td><span class="phase-tag phase-p4">P4</span></td><td>chokidar 监听文件夹变化，自动导入新文件。成本极低</td></tr>
+          <tr><td>RSS</td><td>⭐</td><td><span class="phase-tag phase-p4">P4</span></td><td>无鉴权，最简单。gofeed 解析 + readability 提取</td></tr>
+          <tr><td>语雀</td><td>⭐⭐</td><td><span class="phase-tag phase-p5">P5</span></td><td>单 token 鉴权（X-Auth-Token）</td></tr>
+          <tr><td>飞书文档</td><td>⭐⭐⭐⭐</td><td><span class="phase-tag phase-p6">P6</span></td><td>导出任务流水线（创建任务→轮询→下载），3-4 个 API/文档</td></tr>
+          <tr><td>钉钉文档</td><td>—</td><td>—</td><td>WeKnora 也未实现，暂不考虑</td></tr>
+          <tr><td>Notion</td><td>⭐⭐⭐</td><td><span class="phase-tag phase-p6">P6</span></td><td>官方 API + 分页查询</td></tr>
+        </table>
+        <div class="prd-callout red"><strong>飞书文档同步的坑：</strong>飞书没有"直接给文档内容"的 API，必须走导出任务流水线——创建导出任务 → 轮询任务状态 → 下载导出文件 → 解析。一个文档要 3-4 个 API 调用 + 轮询等待。仅当团队重度使用飞书时投入。</div>
+
+        <div class="prd-h3">凭据安全</div>
+        <p>参考 WeKnora：凭据 AES-256-GCM 加密存储，API 响应永不返回。桌面端用系统 keychain（macOS Keychain / Windows Credential Manager）存加密密钥。</p>
+      </section>
+
+      <!-- ═══ 12. 可观测性 ═══ -->
+      <section class="prd-section" id="s12">
+        <div class="prd-section__num">12 — OBSERVABILITY</div>
+        <h2 class="prd-section__title">模块七：可观测性 <span class="badge badge-new">v4 新增</span></h2>
+        <p>参考 WeKnora 的轻量思路——不用 OpenTelemetry/Sentry 重框架，自建三层轻量追踪。<strong>检索质量日志和文档处理时间线是第一天就要做的</strong>。</p>
+
+        <div class="prd-h3">三层可观测性</div>
+        <table class="prd-table">
+          <tr><th>层</th><th>作用</th><th>WeKnora 对应</th><th>本产品方案</th></tr>
+          <tr><td><strong>检索质量日志</strong></td><td>记录每次查询的命中情况和用户反馈</td><td>evaluation.go</td><td>search_log 表（必须）</td></tr>
+          <tr><td><strong>文档处理时间线</strong></td><td>导入文档各阶段耗时和状态</td><td>knowledge_processing_spans + Gantt UI</td><td>process_spans 表 + 进度 UI</td></tr>
+          <tr><td><strong>检索效果评估</strong></td><td>离线测检索质量（P/R/NDCG）</td><td>metric/（precision/recall/ndcg/mrr/map）</td><td>评估套件（Phase 5）</td></tr>
+        </table>
+
+        <div class="prd-h3">检索质量日志表（P3 必须落地）</div>
+        <div class="prd-diagram">CREATE TABLE search_log (
+  id            SERIAL PRIMARY KEY,
+  query         TEXT NOT NULL,
+  mode          TEXT,              -- hybrid/keyword/vector
+  intent        TEXT,              -- entity/temporal/event/general
+  result_count  INT,
+  top_chunks    JSONB,             -- [{chunk_id, score, source, title}]
+  retrieved_at  TIMESTAMPTZ DEFAULT now(),
+  feedback      TEXT,              -- null / 'good' / 'bad'
+  user_id       TEXT
+);
+CREATE INDEX idx_search_log_time ON search_log(retrieved_at);
+CREATE INDEX idx_search_log_feedback ON search_log(feedback);</div>
+        <div class="prd-callout red"><strong>为什么 P3 必须做：</strong>Phase 3 要验收"意图分类准确率 > 80%"、"Boost 使 P@5 提升 > 10%"——没有 search_log 表这些指标无法量化。这张表是后续所有检索优化的数据基础。</div>
+
+        <div class="prd-h3">LLM 调用追踪（Phase 5 可选）</div>
+        <p>桌面端不需要 Langfuse 全家桶，但记录 LLM 调用的 token/延迟/错误到本地日志即可。格式参考 WeKnora 的 llm_debug：</p>
+        <div class="prd-diagram">-- 一条 LLM 调用记录
+{
+  "ts": "2026-06-28T10:30:00Z",
+  "model": "claude-3-5-sonnet",
+  "channel": "mini-agent",       // mini-agent / cli-proxy
+  "prompt_tokens": 4200,
+  "completion_tokens": 380,
+  "latency_ms": 2300,
+  "status": "ok",                // ok / error
+  "error": null
+}</div>
+
+        <div class="prd-callout"><strong>不抄的部分：</strong>Langfuse 异步批量上报、跨进程 trace 传播、asynq 中间件——单机桌面应用不需要分布式追踪。Sentry 也不需要，本地日志文件足够。</div>
+      </section>
+
+      <!-- ═══ 13. IM 通知 ═══ -->
+      <section class="prd-section" id="s13">
+        <div class="prd-section__num">13 — IM NOTIFICATION</div>
+        <h2 class="prd-section__title">模块八：IM 通知与集成 <span class="badge badge-new">v4 新增</span></h2>
+
+        <div class="prd-h3">重新定位：通知推送，而非双向对话</div>
+        <p>WeKnora 的 IM 子系统是最重的部分（~12,884 行），依赖服务端常驻进程（WebSocket 长连接、Redis 领导选举、QA 工作池）。这与桌面客户端定位冲突。<strong>v4.0 将 IM 重新定义为单向通知推送</strong>。</p>
+        <table class="prd-table">
+          <tr><th>方案</th><th>WeKnora（双向对话）</th><th>本产品（单向通知）</th></tr>
+          <tr><td>代码量</td><td>~12,884 行 + 8 平台适配器</td><td><strong>~200 行</strong>（一个 webhook 调用）</td></tr>
+          <tr><td>运行要求</td><td>服务端常驻 + Redis 领导选举</td><td>桌面端触发时发一个 HTTP 请求</td></tr>
+          <tr><td>用户场景</td><td>在钉钉里和 Bot 对话查知识库</td><td>知识库有新沉淀 → 群里收到卡片通知</td></tr>
+          <tr><td>定位匹配</td><td>❌ 与桌面应用冲突（关了收不到消息）</td><td>✅ 符合桌面应用模式</td></tr>
+        </table>
+
+        <div class="prd-h3">通知触发场景</div>
+        <ul>
+          <li><strong>文档沉淀</strong>：AI 对话回答被沉淀为 synthesis 文档 → 推送通知</li>
+          <li><strong>批量导入完成</strong>：50 篇文档导入完成 → 推送汇总</li>
+          <li><strong>数据源同步</strong>：RSS 更新了 3 篇新文章 → 推送</li>
+          <li><strong>图谱变更</strong>：高 salience 节点新增关联 → 推送（Phase 5）</li>
+        </ul>
+
+        <div class="prd-h3">实现：飞书/钉钉 Incoming Webhook</div>
+        <div class="prd-diagram">// 飞书自定义机器人 webhook
+POST https://open.feishu.cn/open-apis/bot/v2/hook/{bot_id}
+{
+  "msg_type": "interactive",
+  "card": {
+    "header": { "title": { "tag": "plain_text", "content": "📖 知识库更新" }},
+    "elements": [
+      { "tag": "div", "text": { "tag": "lark_md",
+        "content": "**新沉淀：IAP 退款流程综述**\n来源：AI 对话沉淀\n引用：3 篇文档" }}
+    ]
+  }
+}
+
+// 钉钉自定义机器人 webhook
+POST https://oapi.dingtalk.com/robot/send?access_token={token}
+{
+  "msgtype": "actionCard",
+  "actionCard": { "title": "知识库更新", "text": "..." }
+}</div>
+        <div class="prd-callout green"><strong>为什么这样选：</strong>双向对话的 IM Bot 需要常驻服务端收消息，与桌面定位冲突。而通知推送只需一个 webhook HTTP 请求，桌面端触发即发，无需常驻。用户在桌面端或 IDE（MCP）对话，通知只是"告知有新知识"的辅助通道。</div>
+      </section>
+
+      <!-- ═══ 14. 多租户与权限 ═══ -->
+      <section class="prd-section" id="s14">
+        <div class="prd-section__num">14 — TENANCY</div>
+        <h2 class="prd-section__title">多租户与权限模型</h2>
+        <p>个人形态无需权限。团队形态采用 <strong>source 分区 + token 凭证</strong>模型：</p>
+
+        <div class="prd-h3">权限机制</div>
+        <table class="prd-table">
+          <tr><th>机制</th><th>说明</th></tr>
+          <tr><td>source 分区</td><td>每个知识库/部门一个 source_id，pages/chunks 都带 source_id</td></tr>
+          <tr><td>token 绑定 source</td><td>access_token 绑定 source_id（写范围）+ federated_read[]（跨源只读）</td></tr>
+          <tr><td>WHERE 下推</td><td>所有检索 SQL 带 AND source_id = ANY($可见集)，权限过滤下推进 HNSW/FTS</td></tr>
+          <tr><td>user 归属</td><td>pages.owner_id 记录作者</td></tr>
+          <tr><td>visibility 过滤</td><td>deleted_at（软删）/ sources.archived（归档）三层过滤</td></tr>
+        </table>
+
+        <div class="prd-h3">并发与冲突控制</div>
+        <table class="prd-table">
+          <tr><th>场景</th><th>机制</th></tr>
+          <tr><td>多人同时读</td><td>Postgres MVCC，无冲突</td></tr>
+          <tr><td>多人写不同文档</td><td>Postgres 行级锁，无冲突</td></tr>
+          <tr><td>多人写同一文档</td><td>P1: last-write-wins；P3: 乐观锁 CAS（pages.version）</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>MCP 安全约束（P3 必须落地）：</strong>schema 类参数只能由本地可信客户端设置。远程调用（ctx.remote === true）传入的 schema 覆盖一律拒绝，防止远程 agent 偷换 schema 规避权限。</div>
+      </section>
+
+      <!-- ═══ 15. 全局交互 ═══ -->
+      <section class="prd-section" id="s15">
+        <div class="prd-section__num">15 — GLOBAL UX</div>
+        <h2 class="prd-section__title">全局交互规范</h2>
+        <table class="prd-table">
+          <tr><th>元素</th><th>规格</th></tr>
+          <tr><td>Header（56px）</td><td>左侧品牌标题（宋体），右侧知识库切换器 + AI 通道指示器 + ⌘K + 设置</td></tr>
+          <tr><td>Sidebar（240px）</td><td>编号化导航 01-05，下方最近访问记录</td></tr>
+          <tr><td>Main</td><td>剩余空间，背景 --bg-page（暖米色）</td></tr>
+        </table>
+        <div class="prd-h3">设计系统</div>
+        <table class="prd-table">
+          <tr><th>类别</th><th>规范</th></tr>
+          <tr><td>配色</td><td>暖米色背景（#FAF8F3）+ 近黑主文字（#1C1917）+ 琥珀色强调（#B45309）</td></tr>
+          <tr><td>字体</td><td>中文标题宋体，英文标题 Georgia，正文系统无衬线，代码等宽</td></tr>
+          <tr><td>间距</td><td>4px 基础单位，圆角 6px</td></tr>
+          <tr><td>动效</td><td>克制。fade-in 60ms，hover 150ms，抽屉 320ms</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 16. 数据模型 ═══ -->
+      <section class="prd-section" id="s16">
+        <div class="prd-section__num">16 — DATA MODEL</div>
+        <h2 class="prd-section__title">数据模型</h2>
+        <p>数据库 schema 为权威，文件系统为快照。所有结构化数据存数据库，磁盘文件只是可重建的 raw 原文 + 可读快照。</p>
+
+        <div class="prd-h3">核心表（节选，完整见 v3.0 §12）</div>
+        <div class="prd-diagram">sources        -- 数据源/权限分区（id, name, kind, archived）
+pages          -- 文档（slug, source_id, type, title, body_md, content_hash, generation, version...）
+content_chunks -- 分块+向量（page_id, chunk_index, body, embedding vector(1536), search_vector...）
+links          -- 图谱边（from_page_id, to_page_id, link_type, link_source, weight）
+users          -- 用户（id, name, email）
+access_tokens  -- 凭证（token_hash, source_id, federated_read[], scopes）
+
+-- v4 新增表
+process_spans  -- 文档处理时间线（page_id, stage, status, started_at, finished_at, error）
+search_log     -- 检索质量日志（query, mode, intent, top_chunks, feedback）
+datasources    -- 数据源连接配置（connector_type, config加密, sync_cursor, last_sync_at）
+sync_logs      -- 同步日志（datasource_id, started_at, finished_at, result）</div>
+
+        <div class="prd-h3">关键索引</div>
+        <table class="prd-table">
+          <tr><th>索引</th><th>类型</th><th>加速</th></tr>
+          <tr><td>idx_chunks_embedding</td><td>HNSW (vector_cosine_ops)</td><td>向量 ANN 检索</td></tr>
+          <tr><td>idx_chunks_search / idx_pages_search</td><td>GIN (tsvector)</td><td>全文检索</td></tr>
+          <tr><td>idx_links_from / idx_links_to</td><td>B-tree</td><td>图谱遍历、backlink</td></tr>
+          <tr><td>idx_pages_source (partial)</td><td>Partial B-tree</td><td>source 权限隔离</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 17. 技术架构 ═══ -->
+      <section class="prd-section" id="s17">
+        <div class="prd-section__num">17 — TECH STACK</div>
+        <h2 class="prd-section__title">技术架构</h2>
+
+        <div class="prd-h3">已确认技术决策</div>
+        <table class="prd-table">
+          <tr><th>决策项</th><th>选择</th><th>理由</th></tr>
+          <tr><td>前端框架</td><td>React / Next.js (App Router)</td><td>全栈框架，API Routes 即后端</td></tr>
+          <tr><td>后端语言</td><td>TypeScript (Next.js API Routes)</td><td>前后端统一</td></tr>
+          <tr><td>文档解析</td><td><strong>Rust sidecar（v4 升级）</strong></td><td>Tauri command 调用，重解析在 Rust 线程</td></tr>
+          <tr><td>数据库（个人）</td><td>PGLite（Postgres 17 WASM）</td><td>零配置，与团队形态同一套 SQL</td></tr>
+          <tr><td>数据库（团队）</td><td>PostgreSQL + pgvector</td><td>MVCC 多人并发</td></tr>
+          <tr><td>向量检索</td><td>pgvector（HNSW + 余弦）</td><td>与关系数据同库，可 JOIN</td></tr>
+          <tr><td>全文检索</td><td>Postgres tsvector + GIN + ts_rank</td><td>中文配 zhparser</td></tr>
+          <tr><td>桌面打包</td><td>Tauri</td><td>体积小（~40MB）</td></tr>
+          <tr><td>图谱可视化</td><td>D3.js</td><td>力导向图</td></tr>
+          <tr><td>流式通信</td><td>SSE</td><td>AI 对话流式输出</td></tr>
+          <tr><td>异步任务</td><td>本地 SQLite 队列 / BullMQ</td><td>导入/重嵌入/图谱提取（v4 新增）</td></tr>
+          <tr><td>分块引擎</td><td>5 层递归 + Tree-sitter 代码语义</td><td>CJK 单独计数</td></tr>
+          <tr><td>嵌入模型</td><td>双模式：在线 + 本地</td><td>text-embedding-3-small / bge-m3</td></tr>
+        </table>
+
+        <div class="prd-h3">双引擎架构</div>
+        <div class="prd-diagram">┌─────────────────────────────────────────────────────────────┐
+│  同一个 Tauri 应用（一个 .exe / .dmg）                          │
+│                                                                │
+│  应用层（Next.js UI / MCP server）                              │
+│  只依赖 BrainEngine 接口，不感知本地还是远程                      │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+        ┌────────────────┴────────────────┐
+        ▼  模式 B：本地（个人）             ▼  模式 A：远程（团队）
+┌───────────────────┐            ┌────────────────────────┐
+│  PgliteEngine     │            │  RemoteEngine          │
+│  · PGLite WASM    │            │  · HTTP 客户端          │
+│  · SQL 直连        │            │  · 每个操作翻译成 HTTP  │
+│  · 零配置          │            │  · 携带 access_token   │
+└────────┬──────────┘            └───────────┬────────────┘
+         │                                   │
+         ▼                                   ▼
+   本地数据目录                      内网服务端 Postgres
+   + Rust sidecar 解析              + Rust/Python docreader</div>
+      </section>
+
+      <!-- ═══ 18. 双 AI 通道 ═══ -->
+      <section class="prd-section" id="s18">
+        <div class="prd-section__num">18 — AI CHANNELS</div>
+        <h2 class="prd-section__title">双 AI 通道</h2>
+        <table class="prd-table">
+          <tr><th>维度</th><th>通道 A：本地 CLI 代理</th><th>通道 B：内置 Mini Agent</th></tr>
+          <tr><td>前置要求</td><td>本地安装 Claude Code / Gemini CLI</td><td>配置 API Key</td></tr>
+          <tr><td>AI 能力</td><td>CLI 工具自带的全部能力</td><td>专用知识库 Agent（轻量、快速）</td></tr>
+          <tr><td>MCP 集成</td><td>CLI 原生支持 MCP</td><td>Mini Agent 内置工具调用</td></tr>
+          <tr><td>Token 成本</td><td>较高（系统提示词 10k+ tokens）</td><td>较低（专用提示词 2-3k tokens）</td></tr>
+          <tr><td>适用场景</td><td>已有 CLI 环境的开发者</td><td>无 CLI 环境的用户</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 19. MCP 工具 ═══ -->
+      <section class="prd-section" id="s19">
+        <div class="prd-section__num">19 — MCP TOOLS</div>
+        <h2 class="prd-section__title">MCP 工具集成（8 个工具） <span class="badge badge-changed">v4 扩充</span></h2>
+        <p>v3.0 仅 2 个工具（search_wiki + update_wiki），缺少"看全文""了解知识库有什么""图谱关联"等关键环节。v4.0 扩充到 8 个工具，覆盖完整的<strong>"发现 → 检索 → 深读 → 关联 → 对话 → 沉淀"</strong>闭环。</p>
+
+        <div class="prd-callout info"><strong>设计原则：</strong>不暴露管理类操作（创建租户/配置模型/管理凭据）——这些是 UI 的职责，不是 IDE 里 AI 该做的。WeKnora 27 个工具里相当一部分（tenant/model CRUD）是过度暴露。<strong>判断标准：这件事让 IDE 里的 AI 做，比让用户去 UI 点一下，更合理吗？</strong></div>
+
+        <div class="prd-h3">工具清单（三层结构 × 多库）</div>
+        <table class="prd-table">
+          <tr><th>层</th><th>工具</th><th>作用</th><th>状态</th></tr>
+          <tr><td>库管理</td><td><code>list_knowledge_bases</code></td><td>列出所有已连接的知识库</td><td><span class="badge badge-new">新增</span></td></tr>
+          <tr><td>库管理</td><td><code>use_knowledge_base</code></td><td>切换当前操作的库</td><td><span class="badge badge-new">新增</span></td></tr>
+          <tr><td>发现</td><td><code>list_pages</code></td><td>列出当前库的文档</td><td><span class="badge badge-new">新增</span></td></tr>
+          <tr><td>检索</td><td><code>search_wiki</code></td><td>语义检索，返回 chunks 片段</td><td>保留（增强）</td></tr>
+          <tr><td>检索</td><td><code>read_page</code></td><td>读完整文档</td><td><span class="badge badge-new">新增（关键）</span></td></tr>
+          <tr><td>图谱</td><td><code>get_related</code></td><td>查关联节点（差异化）</td><td><span class="badge badge-new">新增</span></td></tr>
+          <tr><td>会话</td><td><code>chat</code></td><td>多轮问答（带历史）</td><td><span class="badge badge-new">新增</span></td></tr>
+          <tr><td>沉淀</td><td><code>update_wiki</code></td><td>写综合文档</td><td>保留</td></tr>
+        </table>
+
+        <div class="prd-h3">工具详细规格</div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">1. list_knowledge_bases — 列出知识库</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+            <tr><td>（无）</td><td>—</td><td>返回所有已连接的库</td></tr>
+          </table>
+          <p>返回：[{id, name, engine, stats}]。AI 第一次接入时用这个了解有哪些库。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">2. use_knowledge_base — 切换当前库</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>name_or_id</td><td>string</td><td>是</td><td>库名或 ID（支持模糊匹配）</td></tr>
+          </table>
+          <p>设当前操作的库，后续 search/read 默认用这个库。比 WeKnora 每次传 kb_id 更符合"客户端切换数据包"的交互模型。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">3. list_pages — 列出文档</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+            <tr><td>type</td><td>enum</td><td>source/synthesis/note/all，默认 all</td></tr>
+            <tr><td>tag</td><td>string</td><td>按标签过滤</td></tr>
+            <tr><td>limit</td><td>integer</td><td>默认 20</td></tr>
+          </table>
+          <p>返回：[{slug, title, type, tags, summary, updated_at}]。了解知识库有什么，再用 search_wiki 深入。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">4. search_wiki — 语义检索（保留增强）</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+            <tr><td>query</td><td>string</td><td>必填，自然语言或关键词</td></tr>
+            <tr><td>mode</td><td>enum</td><td>hybrid/keyword/vector，默认 hybrid</td></tr>
+            <tr><td>top_k</td><td>integer</td><td>默认 5</td></tr>
+            <tr><td>page_type</td><td>string</td><td>限定页面类型（v4 新增）</td></tr>
+            <tr><td>kb_id</td><td>string</td><td>可选，覆盖 use_knowledge_base 的默认库（跨库检索）</td></tr>
+          </table>
+          <p>返回 chunks 片段。描述引导：片段不够用 read_page，了解全貌用 list_pages，查关联用 get_related。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">5. read_page — 读取完整文档（关键新增）</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>slug_or_title</td><td>string</td><td>是</td><td>slug 或标题（支持模糊匹配）</td></tr>
+          </table>
+          <p>返回：{title, type, body_md（完整正文）, tags, references, chunk_count}。搜索的"放大镜"，解决"只能看 200 字摘要"的困境。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">6. get_related — 图谱关联查询（差异化）</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+            <tr><td>slug_or_title</td><td>string</td><td>必填</td></tr>
+            <tr><td>link_type</td><td>string</td><td>边类型过滤：mentions/relates_to/references</td></tr>
+            <tr><td>depth</td><td>integer</td><td>遍历跳数，默认 1（1-2）</td></tr>
+          </table>
+          <p>返回：[{slug, title, link_type, direction, depth}]。<strong>这是 WeKnora MCP 没有的能力</strong>，让 IDE 里的 AI 能做关联探索。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">7. chat — 多轮对话</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>query</td><td>string</td><td>是</td><td>用户问题</td></tr>
+            <tr><td>session_id</td><td>string</td><td>否</td><td>会话 ID，不传则新建一次性会话</td></tr>
+            <tr><td>kb_id</td><td>string</td><td>否</td><td>指定库，覆盖默认</td></tr>
+          </table>
+          <p>带历史的多轮问答。返回 answer + references + session_id（可用于继续对话）。</p>
+        </div>
+
+        <div class="prd-card">
+          <div class="prd-card__title">8. update_wiki — 沉淀综合文档（保留）</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>title</td><td>string</td><td>是</td><td>文档标题</td></tr>
+            <tr><td>content</td><td>string</td><td>是</td><td>markdown 正文</td></tr>
+            <tr><td>tags</td><td>string[]</td><td>否</td><td>标签</td></tr>
+            <tr><td>original_query</td><td>string</td><td>否</td><td>溯源：原始问题</td></tr>
+            <tr><td>references</td><td>string[]</td><td>否</td><td>溯源：引用的 slug</td></tr>
+          </table>
+          <p>写入 wiki/synthesis/，自动分块 + 嵌入 + 提取图谱边。</p>
+        </div>
+
+        <div class="prd-h3">三个工程质量要点（参考 WeKnora）</div>
+        <div class="prd-card">
+          <div class="prd-card__title">① 名称自动解析（必须抄）</div>
+          <p>所有接受 slug/title/kb_id 的参数都<strong>同时支持 UUID 和人类可读名称</strong>。AI 在 IDE 里会说"读一下 IAP 退款流程那篇"，不会记 slug。</p>
+        </div>
+        <div class="prd-card">
+          <div class="prd-card__title">② 工具描述里的"引导链"（必须抄）</div>
+          <p>每个工具 description 里<strong>告诉 AI 什么时候该换工具</strong>。例：search_wiki 描述写"片段不够用 read_page；了解全貌用 list_pages；查关联用 get_related"。比堆工具数量有效得多。</p>
+        </div>
+        <div class="prd-card">
+          <div class="prd-card__title">③ 快速失败 + 有用提示（可选抄）</div>
+          <p>update_wiki 的 references slug 不存在时，返回"slug 'xxx' 不存在，可用的有 ..."，而非写入悬空引用。</p>
+        </div>
+
+        <div class="prd-h3">注册方式</div>
+        <div class="prd-diagram"># 在 Claude Code / Cursor 中注册
+claude mcp add work-kb -- node app/dist/mcp-server.js
+
+# 环境变量指定默认知识库
+WORK_KB_DEFAULT=./knowledge/iap</div>
+      </section>
+
+      <!-- ═══ 20. 检索引擎 ═══ -->
+      <section class="prd-section" id="s20">
+        <div class="prd-section__num">20 — RETRIEVAL ENGINE</div>
+        <h2 class="prd-section__title">检索引擎</h2>
+        <p>全部检索 SQL 化——向量、全文、图谱、boost 都在一个 Postgres（PGLite）里用 SQL 完成。</p>
+
+        <div class="prd-h3">完整检索管线</div>
+        <div class="prd-diagram">Stage 0: 意图分类（零 LLM）→ entity/temporal/event/general → 调权重
+Stage 1: 双路召回（SQL，WHERE 下推）
+  · BM25: tsvector + GIN + ts_rank → top-30
+  · 向量: HNSW + 余弦，权限/软删 WHERE 下推 → top-30
+Stage 2: RRF 融合（k=60）
+Stage 3: 后融合 Boost（分两步）
+  · 标题匹配 ×1.25 / 来源类型 ── Phase 3
+  · 显著性 / 时效 / 图谱信号 ── Phase 5
+Stage 4（可选）: Cross-encoder 重排序 ── Phase 5
+Stage 5: 输出 top-K（默认 8）</div>
+
+        <div class="prd-h3">向量表 JOIN 关系表（核心能力）</div>
+        <div class="prd-diagram">-- 向量路：HNSW 候选集 + 关系过滤下推
+WITH hnsw_candidates AS (
+  SELECT p.slug, p.title, p.type, p.source_id,
+         cc.id AS chunk_id, cc.body,
+         1 - (cc.embedding <=> $1::vector) AS raw_score
+  FROM content_chunks cc
+  JOIN pages p   ON p.id = cc.page_id
+  JOIN sources s ON s.id = p.source_id
+  WHERE cc.embedding IS NOT NULL
+    AND p.source_id = ANY($visible_sources)      -- 权限下推
+    AND p.deleted_at IS NULL                      -- 软删下推
+    AND NOT s.archived                            -- 归档下推
+  ORDER BY cc.embedding <=> $1::vector
+  LIMIT 30
+)
+SELECT * FROM hnsw_candidates ORDER BY raw_score DESC LIMIT $top_k;</div>
+
+        <div class="prd-callout green"><strong>为什么这个 JOIN 重要：</strong>团队场景下某客户端只该看自己 source 的 10% 数据。先向量取 top-100 再过滤，可能 90 个是别人的，召回率从 ~100% 掉到 ~10%。WHERE 下推让 HNSW 只在合格行上扫描。</div>
+
+        <div class="prd-h3">检索参数</div>
+        <table class="prd-table">
+          <tr><th>参数</th><th>默认值</th></tr>
+          <tr><td>top_k</td><td>8</td></tr>
+          <tr><td>candidate_k</td><td>30</td></tr>
+          <tr><td>rrf_k</td><td>60</td></tr>
+          <tr><td>min_score</td><td>0.1</td></tr>
+          <tr><td>boost_title_factor</td><td>1.25</td></tr>
+        </table>
+
+        <div class="prd-h3">上下文检索</div>
+        <p>嵌入时为每个 chunk 拼接文档级上下文前缀，向量编码时"知道"自己属于哪个文档、章节。上下文只在嵌入时用，不存储。<strong>必须 Phase 1 一次到位，否则后续全量重嵌入。</strong></p>
+      </section>
+
+      <!-- ═══ 21. 开发路线 ═══ -->
+      <section class="prd-section" id="s21">
+        <div class="prd-section__num">21 — ROADMAP</div>
+        <h2 class="prd-section__title">开发路线与验收标准</h2>
+
+        <table class="prd-table">
+          <tr>
+            <td><span class="phase-tag phase-p1" style="font-size:12px;padding:4px 8px;">PHASE 1</span><br>基础骨架 + 检索地基</td>
+            <td>第 1-3 周</td>
+            <td>
+              Next.js 骨架 + 知识库连接管理 + 文档导入 +<br>
+              <strong>5 层递归分块 + CJK 计数</strong><br>
+              <strong>内容验证管线（content_hash 幂等 + 垃圾/隐私检测）</strong><br>
+              <strong>上下文检索</strong>——嵌入时包裹文档上下文（一次到位）<br>
+              混合搜索（BM25 + 向量 + RRF）<br>
+              <strong>schema 指纹折进缓存键</strong><br>
+              <strong>Rust sidecar PDF 解析（pdfium）</strong> <span class="badge badge-changed">v4</span>
+            </td>
+            <td>导入文档可搜索；分块 300 词/块；content_hash 幂等；PDF 可正常解析</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p2" style="font-size:12px;padding:4px 8px;">PHASE 2</span><br>AI 对话 + 图谱</td>
+            <td>第 3-5 周</td>
+            <td>双 AI 通道 + AI 对话（会话管理 + 多轮 rewrite）+ 知识图谱 + <strong>8 种语义边</strong> + 沉淀机制</td>
+            <td>对话可回答问题并标注引用；图谱展示有类型边；沉淀文档可被检索命中</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p3" style="font-size:12px;padding:4px 8px;">PHASE 3</span><br>检索增强 + MCP + 可观测性</td>
+            <td>第 5-7 周</td>
+            <td>
+              <strong>MCP 工具（8 个：list_kbs/use_kb/list_pages/search/read/related/chat/update）</strong> <span class="badge badge-changed">v4</span><br>
+              意图分类（零 LLM）+ 后融合 Boost（标题+来源）+ 乐观锁 CAS +<br>
+              <strong>检索质量日志（search_log 表）</strong> <span class="badge badge-new">v4</span> +<br>
+              <strong>文档处理时间线 UI（process_spans）</strong> <span class="badge badge-new">v4</span> +<br>
+              MCP schema 安全约束
+            </td>
+            <td>MCP 8 工具可调用；意图分类准确率 > 80%；Boost 使 P@5 提升 > 10%</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p4" style="font-size:12px;padding:4px 8px;">PHASE 4</span><br>打包部署 + 数据源</td>
+            <td>第 7-9 周</td>
+            <td>
+              Tauri 打包 + Docker 内网部署 + 快照/导出/迁移 + OKF 导入导出 +<br>
+              代码语义分块（Tree-sitter）+ seekdb spike +<br>
+              <strong>数据源连接（本地目录监控 + RSS）</strong> <span class="badge badge-new">v4</span>
+            </td>
+            <td>.exe 双击可用；RSS 自动同步；OKF 导出可被其他工具消费</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p5" style="font-size:12px;padding:4px 8px;">PHASE 5</span><br>可选增强 + IM 通知</td>
+            <td>第 9+ 周</td>
+            <td>
+              知识编译（可选）+ Cross-encoder 重排序 + 评估体系 +<br>
+              完整后融合 Boost（显著性/时效/图谱）+<br>
+              <strong>IM 通知推送（飞书/钉钉 webhook）</strong> <span class="badge badge-new">v4</span> +<br>
+              <strong>语雀数据源连接</strong> <span class="badge badge-new">v4</span>
+            </td>
+            <td>重排序使 P@5 > 0.7；飞书群能收到知识库更新通知；语雀可增量同步</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p6" style="font-size:12px;padding:4px 8px;">PHASE 6</span><br>按需扩展</td>
+            <td>按需</td>
+            <td>
+              飞书文档同步（导出任务流水线）+ Notion 连接 + 跨会话记忆 +<br>
+              schema 继承链 / 解析链
+            </td>
+            <td>团队重度使用飞书时投入</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">v4.0 相对 v3.0 的变化总结</div>
+        <table class="prd-table">
+          <tr><th>变化</th><th>说明</th><th>阶段</th></tr>
+          <tr><td><span class="badge badge-changed">升级</span> 文档解析</td><td>npm 库 → Rust sidecar（pdfium-render + docx-rs）</td><td>P1</td></tr>
+          <tr><td><span class="badge badge-new">新增</span> 异步任务系统</td><td>process_spans 表 + 重试 + 进度 UI</td><td>P1</td></tr>
+          <tr><td><span class="badge badge-changed">扩充</span> MCP 工具</td><td>2 个 → 8 个（补 list/read/related/chat/use_kb 等）</td><td>P3</td></tr>
+          <tr><td><span class="badge badge-new">新增</span> 可观测性</td><td>search_log + process_spans + 评估套件</td><td>P3</td></tr>
+          <tr><td><span class="badge badge-new">新增</span> 数据源连接</td><td>本地监控 + RSS（P4），语雀（P5），飞书（P6）</td><td>P4</td></tr>
+          <tr><td><span class="badge badge-new">新增</span> IM 通知</td><td>单向 webhook 推送（非双向对话）</td><td>P5</td></tr>
+          <tr><td><span class="badge badge-changed">明确</span> 多租户/多库/多模型/会话</td><td>明确这些能力的模型和接口</td><td>各阶段</td></tr>
+        </table>
+
+        <div class="prd-callout"><strong>坚持的定位：</strong>v4.0 吸收 WeKnora 的工程能力，但不抄服务端常驻运行模型。能力对齐企业级，定位仍是桌面客户端——数据私有、可迁移、检索优先。</div>
+
+        <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
+          <span>PRD · 工作知识库 · V4.0</span>
+          <span>2026-06-28</span>
+          <span>END OF DOCUMENT</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/sidebar.js"></script>
+<script src="assets/settings.js"></script>
+
+</body>
+</html>

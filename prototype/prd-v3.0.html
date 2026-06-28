@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>产品需求文档 · 工作知识库 v3.0</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
+    .prd-header { margin-bottom: 56px; padding-bottom: 32px; border-bottom: 2px solid var(--ink); }
+    .prd-header__meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .prd-header__field-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-faint); margin-bottom: 4px; }
+    .prd-header__field-value { font-size: 13px; color: var(--ink); }
+    .prd-section { margin-top: 56px; }
+    .prd-section__num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.12em; margin-bottom: 4px; }
+    .prd-section__title { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--ink); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .prd-h3 { font-family: var(--font-serif); font-size: 17px; font-weight: 700; color: var(--ink); margin: 32px 0 12px; }
+    .prd-h4 { font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--ink-muted); margin: 20px 0 8px; }
+    .prd-body p { font-size: 14px; line-height: 1.85; color: var(--ink); margin-bottom: 14px; }
+    .prd-body ul, .prd-body ol { padding-left: 24px; margin-bottom: 14px; }
+    .prd-body li { font-size: 14px; line-height: 1.85; color: var(--ink); margin-bottom: 4px; }
+    .prd-table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13px; }
+    .prd-table th { text-align: left; padding: 10px 12px; background: var(--bg-soft); border-bottom: 2px solid var(--border); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-muted); }
+    .prd-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; line-height: 1.6; }
+    .prd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin: 16px 0; }
+    .prd-card + .prd-card { margin-top: 12px; }
+    .prd-card__title { font-family: var(--font-serif); font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+    .prd-diagram { background: var(--bg-soft); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 32px; margin: 16px 0 24px; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--ink-muted); overflow-x: auto; white-space: pre; }
+    .prd-callout { border-left: 3px solid var(--accent); padding: 12px 20px; margin: 16px 0; background: var(--accent-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; line-height: 1.7; color: var(--accent-ink); }
+    .prd-callout.info { border-left-color: #1E40AF; background: #EFF6FF; color: #1E40AF; }
+    .prd-callout.green { border-left-color: #166534; background: #F0FDF4; color: #166534; }
+    .prd-callout.red { border-left-color: #991B1B; background: #FEF2F2; color: #991B1B; }
+    .prd-flow { display: flex; gap: 12px; margin: 16px 0 24px; flex-wrap: wrap; }
+    .prd-flow__step { flex: 1; min-width: 140px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; position: relative; }
+    .prd-flow__step-num { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 6px; }
+    .prd-flow__step-text { font-size: 12px; line-height: 1.6; color: var(--ink); }
+    .prd-flow__step + .prd-flow__step::before { content: '→'; position: absolute; left: -16px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); font-size: 14px; }
+    .prd-toc { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 28px; margin-bottom: 32px; }
+    .prd-toc__title { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-faint); margin-bottom: 12px; }
+    .prd-toc a { display: block; padding: 4px 0; font-size: 13px; color: var(--ink-muted); text-decoration: none; transition: color 150ms; }
+    .prd-toc a:hover { color: var(--accent); }
+    .prd-toc a .toc-num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-right: 8px; }
+    .badge { display: inline-block; font-family: var(--font-mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+    .badge-new { background: #F0FDF4; color: #166534; }
+    .badge-changed { background: #FEF3C7; color: #B45309; }
+    .badge-removed { background: #FEF2F2; color: #991B1B; }
+    .phase-tag { display: inline-block; font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+    .phase-p1 { background: #DBEAFE; color: #1E40AF; }
+    .phase-p2 { background: #F0FDF4; color: #166534; }
+    .phase-p3 { background: #FEF3C7; color: #B45309; }
+    .phase-p4 { background: #F3E8FF; color: #6B21A8; }
+    .phase-p5 { background: #F0EDE7; color: #57534E; }
+    @media print { .app-sidebar, .app-header { display: none; } .app { grid-template-columns: 1fr; grid-template-rows: auto; } .prd-layout { padding: 32px; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__title">工 作 知 识 库</span>
+      <span class="app-header__subtitle">editorial · v3.0</span>
+    </div>
+    <div class="app-header__actions">
+      <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
+      <div class="settings-wrap"><button class="icon-btn" id="settings-btn" title="设置">⚙</button></div>
+    </div>
+  </header>
+  <aside class="app-sidebar" id="sidebar"></aside>
+  <main class="app-main prd-body" style="padding: 0;">
+    <div class="prd-layout">
+
+      <!-- ── 文档头 ── -->
+      <div class="prd-header">
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V3.0</div>
+        <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
+        <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
+        <div class="prd-header__meta">
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v3.0</div></div>
+          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-28</div></div>
+          <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
+          <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
+        </div>
+        <div class="prd-callout" style="margin-top: 16px;"><strong>v3.0 说明：</strong>整合 v2.0–v2.9 全部迭代内容为一份干净的完整 PRD。消除版本变更历史冗余，保留所有已确认的架构决策和功能规格。原有 <code>prd.html</code>（v2.9）保留不动。</div>
+      </div>
+
+      <!-- ── 目录 ── -->
+      <nav class="prd-toc">
+        <div class="prd-toc__title">TABLE OF CONTENTS</div>
+        <a href="#s1"><span class="toc-num">01</span>产品定位与核心类比</a>
+        <a href="#s2"><span class="toc-num">02</span>目标用户与使用场景</a>
+        <a href="#s3"><span class="toc-num">03</span>核心设计原则</a>
+        <a href="#s4"><span class="toc-num">04</span>架构决策：检索优先</a>
+        <a href="#s5"><span class="toc-num">05</span>功能架构总览</a>
+        <a href="#s6"><span class="toc-num">06</span>模块一：知识库连接</a>
+        <a href="#s7"><span class="toc-num">07</span>模块二：文档管理</a>
+        <a href="#s8"><span class="toc-num">08</span>模块三：AI 对话</a>
+        <a href="#s9"><span class="toc-num">09</span>模块四：知识图谱</a>
+        <a href="#s10"><span class="toc-num">10</span>模块五：全局搜索</a>
+        <a href="#s11"><span class="toc-num">11</span>全局交互规范</a>
+        <a href="#s12"><span class="toc-num">12</span>数据模型</a>
+        <a href="#s13"><span class="toc-num">13</span>技术架构</a>
+        <a href="#s14"><span class="toc-num">14</span>双 AI 通道</a>
+        <a href="#s15"><span class="toc-num">15</span>MCP 工具集成</a>
+        <a href="#s16"><span class="toc-num">16</span>检索引擎</a>
+        <a href="#s17"><span class="toc-num">17</span>开发路线与验收标准</a>
+      </nav>
+
+      <!-- ═══ 01. 产品定位 ═══ -->
+      <section class="prd-section" id="s1">
+        <div class="prd-section__num">01 — POSITIONING</div>
+        <h2 class="prd-section__title">产品定位与核心类比</h2>
+
+        <div class="prd-h3">一句话定位</div>
+        <p>工作知识库是一款<strong>知识库管理桌面客户端</strong>。知识库本身是一个可插拔、可备份、可迁移的数据包（类似 MySQL 数据库），桌面客户端负责连接、浏览、搜索和管理这个数据包（类似 Navicat / DBeaver）。</p>
+        <div class="prd-callout"><strong>一句话定位：</strong>知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的团队知识库。</div>
+
+        <div class="prd-h3">核心类比</div>
+        <table class="prd-table">
+          <tr><th>数据库世界</th><th>工作知识库</th><th>说明</th></tr>
+          <tr><td>MySQL 数据库</td><td>知识库数据包</td><td>自包含目录：markdown + 向量 + 图谱 + manifest</td></tr>
+          <tr><td>Navicat / DBeaver</td><td>本桌面客户端</td><td>连接、浏览、搜索、管理知识库</td></tr>
+          <tr><td>localhost / 远程服务器</td><td>本地目录 / 内网部署</td><td>连接本地知识库或团队内网共享知识库</td></tr>
+          <tr><td>SQL 查询</td><td>混合搜索 + AI 对话</td><td>精确检索和智能问答两种消费模式</td></tr>
+          <tr><td>数据库备份/导出</td><td>知识库快照/导出/迁移</td><td>数据包级别的可移植性</td></tr>
+        </table>
+
+        <div class="prd-h3">核心价值主张</div>
+        <ul>
+          <li><strong>数据包可插拔</strong>：知识库是一个自包含目录，可挂载/卸载/快照/导出/迁移。和数据库一样独立于客户端存在。</li>
+          <li><strong>检索优先</strong>：向量搜索 + BM25 混合检索 + AI 实时推理。不依赖 AI 编译，直接返回正确答案。</li>
+          <li><strong>双 AI 通道</strong>：可代理本地 CLI 工具（Claude Code、Gemini CLI），也可配置 API Key 使用内置 Mini Agent。灵活适配不同用户习惯。</li>
+          <li><strong>双用户群体</strong>：开发者通过 MCP 工具在 IDE 中消费知识库，非开发者通过桌面 UI 浏览和对话。同一份数据，两种入口。</li>
+          <li><strong>桌面原生体验</strong>：Tauri 打包为轻量桌面应用（~40MB），双击即开，内网也可 Docker 部署。</li>
+          <li><strong>一个应用两种模式</strong>：本地连接（PGLite，个人模式）和远程连接（Postgres，团队模式）是同一个安装包，用户在连接页面二选一。</li>
+        </ul>
+
+        <div class="prd-h3">与竞品的差异化</div>
+        <table class="prd-table">
+          <tr><th>维度</th><th>Notion / Confluence</th><th>Obsidian / Logseq</th><th>GBrain</th><th>工作知识库（本产品）</th></tr>
+          <tr><td>产品形态</td><td>SaaS Web 应用</td><td>个人笔记工具</td><td>Postgres 知识引擎</td><td><strong>知识库管理桌面客户端</strong></td></tr>
+          <tr><td>检索方式</td><td>全文搜索</td><td>关键词 + 图谱导航</td><td>混合搜索 + 重排 + 图信号</td><td><strong>混合检索 + 意图分类 + 后融合 Boost + AI 推理</strong></td></tr>
+          <tr><td>知识问答</td><td>无</td><td>插件支持</td><td>gbrain think</td><td><strong>双 AI 通道原生对话</strong></td></tr>
+          <tr><td>数据存储</td><td>云端</td><td>本地 Markdown</td><td>Postgres + pgvector</td><td><strong>PGLite（个人）/ Postgres（团队）+ pgvector</strong></td></tr>
+          <tr><td>图谱可视化</td><td>无</td><td>基础图谱</td><td>Admin 面板</td><td><strong>面向人类的知识图谱 + 语义边类型</strong></td></tr>
+          <tr><td>分块策略</td><td>无（全文索引）</td><td>按文件</td><td>5 层递归 + 代码语义</td><td><strong>5 层递归 + CJK + 代码语义（吸收 GBrain）</strong></td></tr>
+          <tr><td>互操作</td><td>私有格式</td><td>Markdown</td><td>Markdown + JSON</td><td><strong>DB 存储 + OKF 导出/导入互操作</strong></td></tr>
+        </table>
+
+        <div class="prd-h3">参考项目定位</div>
+        <table class="prd-table">
+          <tr><th>项目</th><th>是什么</th><th>对我们的参考价值</th></tr>
+          <tr><td><strong>GBrain</strong></td><td>Garry Tan 的个人战略知识库（投资人场景，10 万页）</td><td>⭐⭐⭐⭐⭐ <strong>工程蓝本</strong>：双引擎/检索管线/事务/并发/权限/schema pack 机制</td></tr>
+          <tr><td><strong>seekdb</strong></td><td>OceanBase 的 AI 原生数据库（2025.11 开源）</td><td>⭐⭐⭐⭐ <strong>潜在数据库底座</strong>：原生混合检索/内置 AI/COW 沙箱。待 Tauri/TS 验证</td></tr>
+          <tr><td>LLM Wiki</td><td>Karpathy 的思想文章（无代码）</td><td>⭐⭐ <strong>思想源头</strong>：知识工程 &gt; RAG；Phase 5 编译思想</td></tr>
+          <tr><td>Obsidian-Wiki</td><td>477 行 Python + 9731 行 prompt（个人极客 CLI）</td><td>⭐ <strong>几乎无工程价值</strong>：无 GUI/无数据库/个人工具/编译优先</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 02. 目标用户 ═══ -->
+      <section class="prd-section" id="s2">
+        <div class="prd-section__num">02 — USERS</div>
+        <h2 class="prd-section__title">目标用户与使用场景</h2>
+
+        <div class="prd-h3">用户画像</div>
+        <div class="prd-card">
+          <div class="prd-card__title">画像 A：开发者 / 知识贡献者</div>
+          <p>日常在 IDE 中写代码、查文档、解决技术问题。通过 MCP 工具在 Claude Code / Cursor 中直接查询知识库，也偶尔打开桌面客户端浏览图谱或进行深度对话。会向知识库贡献新技术文档和排障经验。</p>
+          <table class="prd-table">
+            <tr><th>主要入口</th><td>MCP 工具（IDE 中） → 桌面客户端（图谱浏览 / 深度对话）</td></tr>
+            <tr><th>典型场景</th><td>写退款功能时让 AI 查知识库 → 得到带引用的回答 → 把排障经验写回知识库</td></tr>
+            <tr><th>关键需求</th><td>MCP 集成稳定、搜索准确、写入知识库流程简单</td></tr>
+          </table>
+        </div>
+        <div class="prd-card">
+          <div class="prd-card__title">画像 B：技术管理者 / 非技术团队成员</div>
+          <p>需要了解团队知识积累的全貌。通过桌面客户端 UI 浏览文档、搜索知识、使用 AI 对话问答、查看知识图谱了解知识关联关系。不使用 IDE 和 MCP 工具。</p>
+          <table class="prd-table">
+            <tr><th>主要入口</th><td>桌面客户端 UI（文档浏览 → 搜索 → AI 对话 → 图谱）</td></tr>
+            <tr><th>典型场景</th><td>"退款系统和哪些模块有关联？" → 图谱可视化一目了然</td></tr>
+            <tr><th>关键需求</th><td>UI 直观友好、搜索简单、图谱可视化、回答可信</td></tr>
+          </table>
+        </div>
+
+        <div class="prd-h3">核心使用场景</div>
+        <table class="prd-table">
+          <tr><th>场景</th><th>入口</th><th>行为</th><th>期望结果</th></tr>
+          <tr><td>知识查询</td><td>AI 对话</td><td>提问，AI 检索知识库后综合回答</td><td>获得带引用来源的准确回答</td></tr>
+          <tr><td>精确检索</td><td>全局搜索</td><td>输入关键词或自然语言，快速定位文档</td><td>毫秒级返回相关文档列表</td></tr>
+          <tr><td>知识探索</td><td>知识图谱</td><td>浏览图谱、点击节点查看关联</td><td>理解知识间的关系网络</td></tr>
+          <tr><td>知识沉淀</td><td>文档管理 / MCP</td><td>导入新文档 → 分块嵌入 → 可搜索</td><td>新知识自动融入检索索引</td></tr>
+          <tr><td>开发中查询</td><td>MCP 工具</td><td>IDE 中 AI 自动调用 search_wiki</td><td>编码时直接获得知识库支撑</td></tr>
+          <tr><td>知识库管理</td><td>连接管理</td><td>挂载/切换/备份/导出知识库</td><td>数据包级别的可移植性</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 03. 设计原则 ═══ -->
+      <section class="prd-section" id="s3">
+        <div class="prd-section__num">03 — PRINCIPLES</div>
+        <h2 class="prd-section__title">核心设计原则</h2>
+        <div class="prd-card"><div class="prd-card__title">检索优先，编译可选</div><p>知识库的默认能力是<strong>检索</strong>：文档导入后自动分块 + 向量嵌入，即可被搜索和 AI 对话消费。不需要 AI 编译即可使用。编译是一个可选的增强工具——对高价值内容做深度结构化整理，但不是知识库运作的前提。这确保了：导入即可用、无黑箱、token 成本可预测。</p></div>
+        <div class="prd-card"><div class="prd-card__title">客户端-数据包分离</div><p>桌面应用是客户端，知识库是数据包。两者完全解耦——客户端不存储知识数据，数据包不依赖特定客户端。知识库可以在应用内挂载/卸载/切换，也可以导出为 zip 在实例间迁移。</p></div>
+        <div class="prd-card"><div class="prd-card__title">双通道、一份数据</div><p>开发者通过 MCP 工具在 IDE 中消费知识库，非开发者通过桌面 UI 浏览和对话。两条通道共享同一份知识库数据包，看到的数据完全一致。</p></div>
+        <div class="prd-card"><div class="prd-card__title">一个应用两种模式</div><p>同一个 Tauri 应用支持本地连接（PGLite 个人模式）和远程连接（Postgres 团队模式）。用户无需安装两个产品，本地积累的知识库可随时"升级"为团队共享。</p></div>
+        <div class="prd-card"><div class="prd-card__title">编辑级视觉语言</div><p>产品的视觉语言对标编辑出版物而非 SaaS 工具。宋体标题、米色背景、琥珀色单一强调色、编号化布局——给用户"这是一个有沉淀的系统"的感知。</p></div>
+      </section>
+
+      <!-- ═══ 04. 架构决策 ═══ -->
+      <section class="prd-section" id="s4">
+        <div class="prd-section__num">04 — ARCHITECTURE DECISION</div>
+        <h2 class="prd-section__title">架构决策：检索优先</h2>
+
+        <div class="prd-h3">两种范式对比</div>
+        <table class="prd-table">
+          <tr><th>维度</th><th>编译型（obsidian-wiki 范式）</th><th>检索型（GBrain 范式）· 我们的方案</th></tr>
+          <tr><td>核心流程</td><td>导入文档 → AI 编译为结构化 wiki 页面 → 查询时读编译产物</td><td>导入文档 → 分块 + 嵌入向量 → 查询时检索 chunks + AI 实时推理</td></tr>
+          <tr><td>写入成本</td><td>高（每篇 ~7000 tokens LLM）</td><td>低（分块 + 嵌入 ~200 tokens）</td></tr>
+          <tr><td>查询成本</td><td>较低（读 2-3 个 wiki 页面 ≈ 2600 tokens）</td><td>中等（读 8 个 chunks ≈ 4200 tokens）</td></tr>
+          <tr><td>可复现性</td><td>不可复现</td><td>可复现（确定性代码）</td></tr>
+          <tr><td>黑箱风险</td><td>高（编译幻觉被固化）</td><td>低（AI 只在查询时介入）</td></tr>
+        </table>
+
+        <div class="prd-h3">成本收益分析</div>
+        <table class="prd-table">
+          <tr><th>环节</th><th>检索型（我们的方案）</th><th>编译型</th></tr>
+          <tr><td>单次查询总成本</td><td>~4200 tokens</td><td>~2600 tokens</td></tr>
+          <tr><td>编译一篇文档额外成本</td><td>无</td><td>~7000 tokens</td></tr>
+          <tr><td>盈亏平衡点</td><td>—</td><td>同一主题需被查询 ≥ 5 次才回本</td></tr>
+        </table>
+        <div class="prd-callout green"><strong>架构决策结论：</strong>对于团队级知识库（几百到几千文档规模），检索型是正确选择。成本更低、风险更小、结果可复现。编译作为可选增强工具保留在 Phase 5。</div>
+
+        <div class="prd-h3">导入流程（检索优先）</div>
+        <p>导入全过程不消耗 LLM tokens。embedding API 成本约 200 tokens/文档，约 ¥0.001。</p>
+        <div class="prd-diagram">原始文档
+  │
+  ▼
+① 内容验证（三道关卡）
+  ├── content_hash 幂等检测（SHA-256，相同内容跳过）
+  ├── 垃圾内容过滤（过短/无意义/重复内容拦截）
+  └── 隐私信息检测（API Key / 密码 / 身份证号等脱敏提醒）
+  │
+  ▼
+② 文档解析（确定性代码）
+  ├── Markdown → 直接读取 + frontmatter 解析
+  ├── PDF → 提取文本 + 结构
+  └── HTML/JSON/CSV → 解析内容
+  │
+  ▼
+③ 多层级分块（确定性代码，不调用 LLM）
+  ├── L1: 标题分块（H1/H2/H3 边界）
+  ├── L2: 段落分块（过长标题块按段落细分）
+  ├── L3: 句子分块（中英文句号/问号/感叹号边界）
+  ├── L4: 子句分块（逗号/分号/冒号边界）
+  └── L5: 字符限制（目标 300 词/块，重叠 50 词，CJK 按字符计）
+  代码文件使用 Tree-sitter 语义分块（支持 36 种语言）
+  │
+  ▼
+④ 上下文包裹（仅嵌入时使用，不存储）
+  ├── 为每个 chunk 拼接文档级上下文前缀
+  └── "本文档: {title}\n本章: {section}\n---\n{chunk_text}"
+  │
+  ▼
+⑤ 嵌入向量（embedding API，非 LLM）→ 存入 pgvector（HNSW 索引）
+  │
+  ▼
+⑥ 图谱提取（确定性代码）
+  ├── 提取 [[wikilink]] 引用 + 实体识别
+  ├── 识别语义边类型（mentions / relates_to / discussed_in 等）
+  └── 更新 links 表（图谱边）
+  │
+  ▼
+⑦ 完成 — 文档立即可搜索、可被 AI 对话引用</div>
+
+        <div class="prd-h3">未来可选的编译增强（Phase 5）</div>
+        <ul>
+          <li><strong>用户手动触发</strong>：在文档管理页选中特定文档，点击"编译"按钮</li>
+          <li><strong>系统建议触发</strong>：当某个主题的查询频率超过阈值时，系统建议"是否编译为综合页面？"</li>
+          <li><strong>编译 Diff 审核</strong>：编译完成后展示 diff 对比视图，用户确认后才写入</li>
+          <li><strong>不做默认行为</strong>：编译永远是可选操作，不是导入流程的一部分</li>
+        </ul>
+      </section>
+
+      <!-- ═══ 05. 功能架构 ═══ -->
+      <section class="prd-section" id="s5">
+        <div class="prd-section__num">05 — ARCHITECTURE</div>
+        <h2 class="prd-section__title">功能架构总览</h2>
+        <div class="prd-diagram">┌──────────────────────────────────────────────────────────────────┐
+│  工作知识库                                  ⌘K 搜索    ⚙ 设置   │
+├──────────┬───────────────────────────────────────────────────────┤
+│          │                                                       │
+│ 01 连接  │  ┌─────────────────────────────────────────────────┐  │
+│ 02 文档  │  │                                                 │  │
+│ 03 对话  │  │            Main Content Area                    │  │
+│ 04 图谱  │  │                                                 │  │
+│ 05 搜索  │  │   五个功能模块共用全局 Shell                    │  │
+│          │  │   · Header (56px) + Sidebar (240px) + Main     │  │
+│ ──────   │  │   · 统一设计系统（Editorial Knowledge Base）     │  │
+│          │  │   · 模块间通过侧边栏导航切换                    │  │
+│ 最近记录  │  │                                                 │  │
+│          │  └─────────────────────────────────────────────────┘  │
+└──────────┴───────────────────────────────────────────────────────┘</div>
+        <div class="prd-h3">模块清单</div>
+        <table class="prd-table">
+          <tr><th>编号</th><th>模块</th><th>核心职责</th></tr>
+          <tr><td>01</td><td>知识库连接</td><td>挂载/卸载/切换知识库，管理连接配置（本地 PGLite / 远程 Postgres）</td></tr>
+          <tr><td>02</td><td>文档管理</td><td>文档浏览、导入、编辑、查看</td></tr>
+          <tr><td>03</td><td>AI 对话</td><td>基于知识库的智能问答，双 AI 通道</td></tr>
+          <tr><td>04</td><td>知识图谱</td><td>知识关系的力导向图可视化</td></tr>
+          <tr><td>05</td><td>全局搜索</td><td>混合检索（关键词 + 向量），快速定位</td></tr>
+        </table>
+
+        <div class="prd-h3">数据流（检索优先架构）</div>
+        <div class="prd-diagram">                    导 入 流 程
+                ┌────────────────────────────────────┐
+                │                                    │
+原始文档        │  验证 → 分块 → 上下文包裹 →         │       查 询 流 程
+(raw/)  ────────┤  嵌入向量 → 存入 pgvector +        │  ──────────────→
+                │  提取图谱边（含语义边类型）          │        │
+                └────────────────────────────────────┘        │
+                                                              ▼
+                                                  ┌──────────────────────────┐
+                                                  │  用户查询 / AI 提问       │
+                                                  │    │                     │
+                                                  │    ├── 意图分类           │
+                                                  │    ├── BM25 关键词       │
+                                                  │    ├── 向量语义检索       │
+                                                  │    └── RRF 融合排序      │
+                                                  │         │                │
+                                                  │         ▼                │
+                                                  │  后融合 Boost            │
+                                                  │   标题·显著性·时效·图谱   │
+                                                  │         │                │
+                                                  │         ▼                │
+                                                  │  (可选) Cross-encoder    │
+                                                  │   重排序                 │
+                                                  │         │                │
+                                                  │         ▼                │
+                                                  │   Top-K 相关文档         │
+                                                  │         │                │
+                                                  │         ▼                │
+                                                  │   AI 综合推理回答        │
+                                                  │   (附引用来源)           │
+                                                  └──────────────────────────┘</div>
+      </section>
+
+      <!-- ═══ 06. 知识库连接 ═══ -->
+      <section class="prd-section" id="s6">
+        <div class="prd-section__num">06 — CONNECTION</div>
+        <h2 class="prd-section__title">模块一：知识库连接</h2>
+        <p>知识库连接是客户端的入口模块，类似 Navicat 的"连接管理"。同一个应用支持两种使用模式，用户在连接页面二选一：</p>
+        <ul>
+          <li><strong>本地连接</strong>（个人模式）：启用进程内 PGLite，数据存本地目录。无需服务端，单人使用。</li>
+          <li><strong>远程连接</strong>（团队模式）：填服务端 URL + access_token，thin 连内网 Postgres。多人并发协作。</li>
+        </ul>
+        <p>两种模式背后是同一套 schema 同一套 SQL，UI 和业务逻辑无感知。个人版积累的知识库可随时 dump 上传到团队服务端共享。</p>
+
+        <div class="prd-h3">两种模式对比</div>
+        <table class="prd-table">
+          <tr><th>维度</th><th>模式 A：远程连接（团队）</th><th>模式 B：本地连接（个人）</th></tr>
+          <tr><td>数据来源</td><td>内网服务端的 Postgres</td><td>本地 PGLite（进程内嵌入式）</td></tr>
+          <tr><td>客户端胖瘦</td><td><strong>thin</strong>（只有 UI，业务逻辑在服务端）</td><td>胖（UI + 业务逻辑 + PGLite 都在客户端进程内）</td></tr>
+          <tr><td>本地数据库</td><td>不启用（PGLite 打包但不运行）</td><td>启用（PGLite WASM）</td></tr>
+          <tr><td>并发</td><td>多人 MVCC + 行级锁</td><td>单人</td></tr>
+          <tr><td>权限</td><td>source 分区 + token</td><td>无需</td></tr>
+          <tr><td>适用</td><td>团队协作</td><td>个人积累</td></tr>
+        </table>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr><td>当前连接</td><td>显示当前活跃的知识库：名称、引擎类型（PGLite/Postgres）、source_id、统计信息（页面数、chunk 数、最后更新）</td></tr>
+          <tr><td>已注册连接列表</td><td>区分本地连接（PGLite 数据目录）和远程连接（Postgres 服务端 URL + token）</td></tr>
+          <tr><td>添加本地知识库</td><td>选择本地目录，启动 PGLite 引擎挂载数据目录。自动检测 manifest.json，无则引导创建（init schema.sql）</td></tr>
+          <tr><td>连接远程知识库</td><td>输入服务端 URL（如 http://192.168.1.5:3000）+ access_token，thin 连接到团队 Postgres。token 绑定可见 source 范围</td></tr>
+          <tr><td>切换知识库</td><td>切换当前活跃连接，所有模块自动切到新数据。本地↔远程可自由切换</td></tr>
+          <tr><td>快照（本地）</td><td>打包本地 PGLite 数据目录 + raw/ 为 .zip，完整备份，目标端开箱即用</td></tr>
+          <tr><td>导出</td><td>两种格式：① <strong>完整快照</strong>（raw/ + 数据库 dump，目标端 restore 即用）；② <strong>OKF bundle</strong>（pages→markdown + frontmatter，兼容 Open Knowledge Format v0.1，跨工具可移植）</td></tr>
+          <tr><td>导入</td><td>从 .zip 恢复：支持完整快照（pg_restore）和 OKF bundle（解析 markdown 入库）两种格式。也可仅导入 raw/ 触发全量重建</td></tr>
+          <tr><td>本地 → 团队上传</td><td>把本地知识库 dump 上传到团队 Postgres 服务端，转为团队共享 source</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>连接语义：</strong>本地连接 = PGLite 进程内引擎（个人，单用户）；远程连接 = Postgres 客户端-服务器（团队，多用户并发）。<strong>同一套 SQL</strong>，UI 层无感知差异。</div>
+        <div class="prd-callout green"><strong>OKF 互操作：</strong>导出支持 OKF bundle 格式——把 pages 表导成 markdown + frontmatter（type/title/description/resource/tags/timestamp），links 表导成 [[wikilink]] 正文链接。声明兼容 <strong>Open Knowledge Format v0.1</strong>，导出的知识库能被任何 OKF 消费者读取，不被锁定在自有格式。运行时仍是 DB，OKF 仅用于导出/导入时刻。</div>
+      </section>
+
+      <!-- ═══ 07. 文档管理 ═══ -->
+      <section class="prd-section" id="s7">
+        <div class="prd-section__num">07 — DOCUMENTS</div>
+        <h2 class="prd-section__title">模块二：文档管理</h2>
+        <p>文档管理是知识库的核心浏览模块。左侧展示知识库内的文档树，中间展示文档列表，右侧展示文档详情。支持文档的导入、浏览、编辑。</p>
+
+        <div class="prd-h3">页面布局</div>
+        <div class="prd-diagram">┌──────────┬──────────┬──────────┬─────────────────────────────────┐
+│          │ 知识库    │ 文档列表  │ 文档详情                         │
+│ Sidebar  │ 文档树   │ (320px)  │ (flex 1)                        │
+│ (240px)  │ (260px)  │          │                                 │
+│          │          │          │  IAP 支付系统 · 2024-03-15       │
+│          │ 📁 IAP   │ IAP退款  │  IAP退款流程                      │
+│          │  📄 退款  │ Payment  │                                  │
+│          │  📄 支付  │ System   │  ┌─ frontmatter ─────────────┐  │
+│          │ 📁 广告   │ UserCen  │  │ 类型: source              │  │
+│          │  📄 投放  │ ter      │  │ 更新时间: 2024-03-15      │  │
+│          │ 📁 钉钉   │ Refund   │  │ 标签: IAP, 退款, 支付      │  │
+│          │  📄 自动  │ Policy   │  │ chunks: 12 · 已嵌入 ✓     │  │
+│          │ 📁 原始   │          │  │ content_hash: a3f2... ✓   │  │
+│          │  📄 pdf  │          │  └────────────────────────────┘  │
+│          │  📄 md   │          │                                  │
+│          │          │          │  ## 摘要                        │
+│          │          │          │  IAP 系统退款流程包括...          │
+│          │          │          │                                  │
+│          │          │          │  ## 核心论点                     │
+│          │          │          │  - 退款必须在 7 天内发起          │
+│          │          │          │                                  │
+│          │ ──────── │          │                                  │
+│          │ [+ 导入] │          │                                  │
+│          │ [⚡ 编译] │          │                                  │
+└──────────┴──────────┴──────────┴─────────────────────────────────┘</div>
+
+        <div class="prd-h3">导入渠道区分</div>
+        <table class="prd-table">
+          <tr><th>渠道</th><th>文件导入</th><th>URL 导入</th><th>说明</th></tr>
+          <tr><td>桌面客户端 UI</td><td><span class="badge badge-new">支持</span></td><td><span class="badge badge-new">支持</span></td><td>主要导入入口。拖拽/选文件/粘贴 URL 均可</td></tr>
+          <tr><td>CLI 命令行</td><td><span class="badge badge-removed">不支持</span></td><td><span class="badge badge-new">支持</span></td><td>CLI 仅支持 URL 导入（<code>wiki import --url &lt;URL&gt;</code>）</td></tr>
+          <tr><td>MCP 工具</td><td><span class="badge badge-removed">不支持</span></td><td><span class="badge badge-removed">不支持</span></td><td>MCP 只暴露 search_wiki 和 update_wiki，不暴露导入能力</td></tr>
+        </table>
+
+        <div class="prd-h3">内容验证管线</div>
+        <p>文档进入分块流程前，先经过三道验证关卡，确保入库内容的质量和安全性：</p>
+        <div class="prd-flow">
+          <div class="prd-flow__step"><div class="prd-flow__step-num">GATE 01</div><div class="prd-flow__step-text"><strong>幂等检测</strong>：计算文件 SHA-256 content_hash，与已有记录比对。若 hash 相同则跳过，避免重复处理</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">GATE 02</div><div class="prd-flow__step-text"><strong>垃圾内容过滤</strong>：检测文件是否过短（&lt;50 字符）、纯数字/乱码、重复内容。命中则标记"已跳过"并提示用户</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">GATE 03</div><div class="prd-flow__step-text"><strong>隐私检测</strong>：正则扫描 API Key、密码、身份证号、手机号等敏感模式。命中时弹窗提醒用户确认是否脱敏后导入</div></div>
+        </div>
+
+        <div class="prd-h3">多层级分块策略</div>
+        <p>采用 5 层分隔符层级递归分块，配合 CJK 语言支持和代码语义分块：</p>
+        <table class="prd-table">
+          <tr><th>层级</th><th>分隔符</th><th>说明</th></tr>
+          <tr><td>L1</td><td><code>\n# </code> / <code>\n## </code> / <code>\n### </code></td><td>Markdown 标题边界，最高优先级</td></tr>
+          <tr><td>L2</td><td><code>\n\n</code>（双换行）</td><td>段落边界，过长标题块按段落细分</td></tr>
+          <tr><td>L3</td><td><code>。！？.!?</code>（句末标点）</td><td>句子边界，支持中英文混合</td></tr>
+          <tr><td>L4</td><td><code>，；;：</code>（句中停顿）</td><td>子句边界，进一步细分长句</td></tr>
+          <tr><td>L5</td><td>字符级切分</td><td>最终兜底，确保不超过目标大小</td></tr>
+        </table>
+
+        <div class="prd-h4">分块参数</div>
+        <table class="prd-table">
+          <tr><th>参数</th><th>值</th><th>说明</th></tr>
+          <tr><td>目标块大小</td><td>300 词（约 600-800 中文字符）</td><td>更小的块提升检索精度</td></tr>
+          <tr><td>重叠大小</td><td>50 词（约 100-150 中文字符）</td><td>保持上下文连贯</td></tr>
+          <tr><td>CJK 支持</td><td>CJK 字符单独计数，每个汉字 = 1 词</td><td>避免中文文本被过度切分</td></tr>
+          <tr><td>最大块大小</td><td>目标 × 1.5（约 450 词）</td><td>硬上限，超过则强制切分</td></tr>
+        </table>
+
+        <div class="prd-h4">代码文件语义分块</div>
+        <p>对代码文件（.ts / .py / .java / .go 等 36 种语言）使用 Tree-sitter 做语义分块，按 AST 节点边界（函数/类/方法）切分，而非简单的文本分隔符。确保每个 chunk 是一个完整的语义单元。</p>
+        <div class="prd-callout"><strong>设计决策：</strong>分块使用确定性代码（不调用 LLM），保证结果可复现、成本低、速度快。</div>
+
+        <div class="prd-h3">摄入文档类型（分级支持）</div>
+        <table class="prd-table">
+          <tr><th>优先级</th><th>类型</th><th>说明</th><th>解析方案</th></tr>
+          <tr><td><span class="phase-tag phase-p1">P1</span></td><td>Markdown (.md)</td><td>原生格式，最高优先级</td><td>直接读取</td></tr>
+          <tr><td><span class="phase-tag phase-p1">P1</span></td><td>纯文本 (.txt)</td><td>零成本</td><td>直接读取</td></tr>
+          <tr><td><span class="phase-tag phase-p2">P2</span></td><td>PDF</td><td>技术文档最常见</td><td>pdf-parse / unpdf</td></tr>
+          <tr><td><span class="phase-tag phase-p2">P2</span></td><td>网页 (URL)</td><td>抓取 + 正文提取</td><td>@mozilla/readability</td></tr>
+          <tr><td><span class="phase-tag phase-p3">P3</span></td><td>Word (.docx) / HTML</td><td>内部文档</td><td>mammoth / cheerio</td></tr>
+          <tr><td><span class="phase-tag phase-p4">P4</span></td><td>代码文件</td><td>技术代码库</td><td>Tree-sitter 语义分块</td></tr>
+          <tr><td><span class="phase-tag phase-p4">P4</span></td><td>CSV / JSON / PPT</td><td>结构化数据</td><td>按行/记录分块</td></tr>
+        </table>
+
+        <div class="prd-h3">编辑 → 重建流程</div>
+        <p><code>raw/</code> 和 <code>wiki/</code> 下的文档<strong>都可编辑</strong>。编辑保存时先计算新的 content_hash，与旧值比对：</p>
+        <div class="prd-flow">
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 01</div><div class="prd-flow__step-text">用户编辑文档内容，点击"保存"</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 02</div><div class="prd-flow__step-text">写回源文件 + 计算新 content_hash</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 03</div><div class="prd-flow__step-text">若 hash 变化：删除旧 chunks → 重分块 → 重嵌入 → 更新图谱边（异步）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 04</div><div class="prd-flow__step-text">若 hash 未变：跳过重建，提示"内容未修改"</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 05</div><div class="prd-flow__step-text">状态栏提示"已重新嵌入（N chunks）"。失败则标记为"待嵌入"</div></div>
+        </div>
+
+        <div class="prd-h3">导入流程（事务约定）</div>
+        <p><strong>STEP 01-04 在事务外</strong>（含慢 embedding 调用），<strong>DB 写入在一个短事务内</strong>：</p>
+        <div class="prd-flow">
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 01 · 事务外</div><div class="prd-flow__step-text">拖拽文件或选择文件夹，经过内容验证管线（幂等/垃圾/隐私检测）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 02 · 事务外</div><div class="prd-flow__step-text">5 层递归分块（标题→段落→句子→子句→字符），代码文件用 Tree-sitter</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 03 · 事务外</div><div class="prd-flow__step-text">上下文包裹：为每个 chunk 拼接文档级前缀（仅嵌入时使用）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 04 · 事务外</div><div class="prd-flow__step-text">每个 chunk 调用 embedding API 生成向量（慢网络调用，必须在事务外）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">STEP 05 · ★事务内</div><div class="prd-flow__step-text">BEGIN → 写 pages/content_chunks/links（含向量+tsvector+图谱边）→ COMMIT。短事务，毫秒级</div></div>
+        </div>
+        <div class="prd-callout red"><strong>为什么 embedding 必须在事务外：</strong>embedding 是网络调用，可能耗时几秒。如果放事务内，会长时间持有行锁，阻塞其他写入。事务只包纯 DB 写入（毫秒级），锁持有时间极短。</div>
+      </section>
+
+      <!-- ═══ 08. AI 对话 ═══ -->
+      <section class="prd-section" id="s8">
+        <div class="prd-section__num">08 — AI DIALOGUE</div>
+        <h2 class="prd-section__title">模块三：AI 对话</h2>
+        <p>AI 对话是知识库的智能问答入口。用户提问时，系统自动从当前知识库中检索相关文档片段，注入为 AI 上下文，由 AI 实时综合后生成带引用标注的回答。</p>
+        <div class="prd-callout"><strong>检索优先原则：</strong>AI 对话基于"向量搜索 + AI 实时推理"，而非"读取预编译的 wiki 页面"。即使知识库没有任何编译产物，AI 对话也能正常工作——它直接检索原始文档的 chunks。</div>
+
+        <div class="prd-h3">对话检索流程</div>
+        <div class="prd-diagram">用户输入问题
+  │
+  ▼
+① 意图分类（零 LLM 调用）
+  ├── 关键词匹配 + 正则模式识别
+  ├── 分类：实体查询 / 时间查询 / 事件查询 / 通用查询
+  └── 根据意图动态调整检索权重
+  │
+  ▼
+② 检索阶段（确定性代码，不调用 LLM）
+  ├── BM25 关键词检索 → top-30 chunks
+  ├── 向量语义检索（pgvector HNSW）→ top-30 chunks
+  ├── RRF 融合排序
+  ├── 后融合 Boost：标题匹配/显著性/时效/图谱信号
+  └── (可选) Cross-encoder 重排序 → 取 top-K（默认 8）
+  │
+  ▼
+③ 上下文构建
+  ├── 用户消息
+  ├── Top-K chunks 内容（作为参考上下文注入 prompt）
+  └── 系统提示词（"基于以下知识库内容回答问题，标注引用来源"）
+  │
+  ▼
+④ AI 推理阶段（调用 AI 通道）
+  ├── 本地 CLI 代理：转发给 Claude Code / Gemini CLI
+  └── Mini Agent：调用 Anthropic/OpenAI API
+  │
+  ▼
+⑤ 流式回复
+  ├── 实时渲染 AI 回复（SSE）
+  ├── 引用标注 [1][2][3] 可点击跳转
+  └── 底部展示引用来源面板</div>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th><th>交互细节</th></tr>
+          <tr><td>消息流</td><td>用户消息与 AI 回复的对话流</td><td>用户消息右对齐，AI 消息左对齐，显示时间戳</td></tr>
+          <tr><td>引用标注</td><td>AI 回答中内联引用编号 [1][2][3]</td><td>点击编号跳转到对应文档详情页</td></tr>
+          <tr><td>引用来源面板</td><td>展示所有检索命中的文档片段</td><td>显示文档标题、来源目录、相关度评分</td></tr>
+          <tr><td>AI 通道指示器</td><td>Header 显示当前使用的 AI 通道</td><td>绿色 = 本地 CLI 代理，蓝色 = Mini Agent</td></tr>
+          <tr><td>切换 AI 通道</td><td>点击通道指示器可切换</td><td>下拉菜单选择</td></tr>
+          <tr><td>新建对话</td><td>开始新的对话会话</td><td>清空当前消息流，显示空状态推荐问题</td></tr>
+          <tr><td>沉淀到知识库</td><td>每条 AI 回答下方提供"💾 沉淀到知识库"按钮</td><td>点击后弹出编辑弹窗，保存后自动嵌入，立即可被检索命中</td></tr>
+        </table>
+
+        <div class="prd-h3">沉淀机制</div>
+        <p>AI 对话的核心闭环：把有价值的回答沉淀回知识库。</p>
+        <table class="prd-table">
+          <tr><th>场景</th><th>触发方</th><th>存储方式</th></tr>
+          <tr><td>桌面客户端对话</td><td>用户点击"💾 沉淀到知识库"按钮</td><td>客户端弹窗编辑后写 wiki/synthesis/</td></tr>
+          <tr><td>IDE 中通过 MCP</td><td>用户明确说"存到知识库"，AI 调用 update_wiki</td><td>AI 写入 wiki/synthesis/</td></tr>
+        </table>
+        <div class="prd-h4">沉淀文档格式</div>
+        <div class="prd-diagram">---
+type: synthesis
+source: ai_dialogue
+title: IAP 退款流程综述
+created: 2026-06-23T10:30:00Z
+ai_channel: claude-cli
+original_query: "IAP 系统怎么处理退款？"
+references:
+  - raw/IAP系统/refund-spec.pdf
+  - raw/IAP系统/payment-api.md
+tags: [IAP, 退款, 支付]
+embedded: true
+---
+
+## IAP 退款流程综述
+（用户确认/编辑后的 AI 综合回答正文）</div>
+
+        <div class="prd-callout"><strong>与全局搜索的职责分工：</strong>AI 对话 = 智能问答（检索 + AI 综合，适合复杂问题）。全局搜索 = 纯检索（不调用 AI，延迟极低，适合精确定位）。两者共享同一套检索引擎。</div>
+      </section>
+
+      <!-- ═══ 09. 知识图谱 ═══ -->
+      <section class="prd-section" id="s9">
+        <div class="prd-section__num">09 — KNOWLEDGE GRAPH</div>
+        <h2 class="prd-section__title">模块四：知识图谱</h2>
+        <p>知识图谱是面向人类理清思路的可视化工具。展示知识库中文档之间的关联关系，帮助用户理解知识结构、发现知识盲区。</p>
+
+        <div class="prd-h3">页面布局</div>
+        <div class="prd-diagram">┌──────────┬───────────────────────────────────────────────────────┐
+│          │  ┌─ 工具栏 ─────────────────────────────────────────┐ │
+│ Sidebar  │  │ 09 — KNOWLEDGE GRAPH  知识图谱  28节点·42边 [⟳⛶]│ │
+│ (240px)  │  └──────────────────────────────────────────────────┘ │
+│          │                                                       │
+│          │          ○ IAP系统综合                                 │
+│          │         / │ \                                         │
+│          │      ○──●──○──○                                      │
+│          │  Payment  IAP退款  UserCenter                         │
+│          │   System    │                                         │
+│          │         ○───○                                         │
+│          │     RefundPolicy                                      │
+│          │                                                       │
+│          │  ┌─ 图例 ────────────────┐  ┌─ 搜索 ──────────────┐  │
+│          │  │● 源  ○ 实体  ◇ 概念   │  │ 退款流程...   [搜索] │  │
+│          │  │◎ 综合                  │  └─────────────────────┘  │
+│          │  │─ mentions ─ relates_to │                           │
+│          │  └────────────────────────┘                           │
+└──────────┴───────────────────────────────────────────────────────┘
+                       ↓ 点击节点
+                 ┌─────────────────────────┐
+                 │  NODE DETAIL       ✕    │ ← 右侧抽屉 340px
+                 │  IAP退款  [source]      │
+                 │  📄 raw/IAP/refund.md   │
+                 │  更新 2024-03-15 · 12c  │
+                 │  标签: IAP, 退款        │
+                 │  ─────────────────────  │
+                 │  入度 1   出度 3        │
+                 │  ─────────────────────  │
+                 │  出边:                   │
+                 │   → PaymentSystem       │
+                 │     [mentions]           │
+                 │   → UserCenter          │
+                 │     [relates_to]        │
+                 │   → RefundPolicy        │
+                 │     [discussed_in]      │
+                 │  ─────────────────────  │
+                 │  [📄 查看文档 →]        │
+                 │  [🔍 展开邻域(2跳) →]   │
+                 │  [💬 基于此节点提问 →]  │
+                 └─────────────────────────┘</div>
+
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th><th>交互细节</th></tr>
+          <tr><td>力导向图渲染</td><td>基于 D3.js 的力导向图可视化</td><td>全画布铺满主区域</td></tr>
+          <tr><td>节点类型区分</td><td>四种节点类型使用不同视觉形态</td><td>Source = 琥珀实心圆，Entity = 圆角矩形，Concept = 菱形，Synthesis = 六边形</td></tr>
+          <tr><td>边类型标注</td><td>不同语义边使用不同颜色和标签</td><td>mentions=灰色虚线，relates_to=蓝色实线，discussed_in=绿色，works_at=橙色等</td></tr>
+          <tr><td>节点点击</td><td>展示节点详情</td><td>被点击节点高亮，右侧抽屉滑出显示信息和关联</td></tr>
+          <tr><td>搜索联动</td><td>图谱内置搜索框</td><td>搜索后匹配的节点高亮</td></tr>
+          <tr><td>展开邻域</td><td>详情抽屉中的"展开 N 跳邻域"按钮</td><td>聚焦展示 1-2 跳邻居，其余节点变暗</td></tr>
+          <tr><td>路径探索</td><td>选中两个节点后显示最短路径</td><td>帮助发现概念间的隐含关联</td></tr>
+          <tr><td>跳转文档</td><td>详情抽屉"📄 查看文档"按钮</td><td>跳转到 source_file 对应的文档详情页</td></tr>
+          <tr><td>基于节点提问</td><td>详情抽屉"💬 基于此节点提问"按钮</td><td>跳转到 AI 对话，预填提问上下文</td></tr>
+        </table>
+
+        <div class="prd-h3">语义边类型</div>
+        <table class="prd-table">
+          <tr><th>边类型</th><th>语义</th><th>提取方式</th><th>示例</th></tr>
+          <tr><td><code>mentions</code></td><td>文档提及某实体/概念</td><td>正则匹配实体名 + [[wikilink]]</td><td>退款文档 mentions IAP系统</td></tr>
+          <tr><td><code>relates_to</code></td><td>两个概念/实体有概念关联</td><td>共现分析（同一 chunk 中同时出现）</td><td>IAP系统 relates_to 支付网关</td></tr>
+          <tr><td><code>discussed_in</code></td><td>实体在某文档中被深入讨论</td><td>chunk 中出现 ≥ 3 次且上下文丰富</td><td>退款政策 discussed_in refund-spec.pdf</td></tr>
+          <tr><td><code>references</code></td><td>文档引用另一文档</td><td>[[wikilink]] 和 Markdown 链接</td><td>payment-api.md references refund-spec.pdf</td></tr>
+          <tr><td><code>extracted_from</code></td><td>实体/概念从某文档提取</td><td>分块时自动记录来源</td><td>实体"UserCenter" extracted_from user-center.md</td></tr>
+          <tr><td><code>works_at</code></td><td>人物实体属于某组织</td><td>frontmatter 人物关系 / 正则提取</td><td>张三 works_at 支付团队</td></tr>
+          <tr><td><code>authored</code></td><td>人物创建了某文档</td><td>frontmatter.author 字段</td><td>张三 authored payment-api.md</td></tr>
+          <tr><td><code>synthesizes</code></td><td>综合文档总结了多个源文档</td><td>synthesis 文档的 references 字段</td><td>IAP综述 synthesizes refund-spec + payment-api</td></tr>
+        </table>
+
+        <div class="prd-h3">节点与文档的对应关系</div>
+        <table class="prd-table">
+          <tr><th>节点类型</th><th>有独立文件？</th><th>摘要来源</th></tr>
+          <tr><td>source（原始文档）</td><td>✅ (raw/)</td><td>文档 frontmatter.summary</td></tr>
+          <tr><td>synthesis（沉淀综合）</td><td>✅ (wiki/synthesis/)</td><td>文档 frontmatter.summary</td></tr>
+          <tr><td>entity / concept（实体/概念）</td><td>❌</td><td>从提及它的文档聚合</td></tr>
+        </table>
+        <div class="prd-callout"><strong>图谱的定位：</strong>图谱主要是给人类看的（理清思路、发现关联），不是给 AI 做搜索辅助的。AI 对话和全局搜索使用向量检索引擎，不依赖图谱。</div>
+      </section>
+
+      <!-- ═══ 10. 全局搜索 ═══ -->
+      <section class="prd-section" id="s10">
+        <div class="prd-section__num">10 — SEARCH</div>
+        <h2 class="prd-section__title">模块五：全局搜索</h2>
+        <p>全局搜索是知识库的精确检索入口。支持混合搜索（关键词 + 向量语义），不调用 AI，延迟极低。意图分类和后融合 Boost 同样应用于搜索模块。</p>
+        <div class="prd-h3">功能规格</div>
+        <table class="prd-table">
+          <tr><th>功能</th><th>描述</th></tr>
+          <tr><td>模式 banner</td><td>顶部横幅标注"纯检索模式"，提供跳转对话的链接</td></tr>
+          <tr><td>搜索模式</td><td>混合（BM25 + 向量 RRF + Boost）/ 关键词（ts_rank）/ 向量（pgvector 语义）</td></tr>
+          <tr><td>范围筛选</td><td>按来源过滤：原始文档（raw/）/ 沉淀知识（wiki/）/ 全部</td></tr>
+          <tr><td>结果卡片</td><td>编号 + 标题 + 来源 badge + 摘要（关键词高亮）+ 文件路径 + 相关度</td></tr>
+          <tr><td>Cmd+K</td><td>任意页面可通过 ⌘K 快速跳转到搜索</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 11. 全局交互 ═══ -->
+      <section class="prd-section" id="s11">
+        <div class="prd-section__num">11 — GLOBAL UX</div>
+        <h2 class="prd-section__title">全局交互规范</h2>
+        <div class="prd-h3">应用 Shell</div>
+        <table class="prd-table">
+          <tr><th>元素</th><th>规格</th></tr>
+          <tr><td>Header（56px）</td><td>左侧品牌标题（宋体）+ 副标题，右侧知识库切换器 + AI 通道指示器 + ⌘K + 设置</td></tr>
+          <tr><td>Sidebar（240px）</td><td>编号化导航 01-05，下方为最近访问记录</td></tr>
+          <tr><td>Main</td><td>剩余空间，背景 --bg-page（暖米色），各模块自定义布局</td></tr>
+        </table>
+        <div class="prd-h3">导航逻辑</div>
+        <table class="prd-table">
+          <tr><th>跳转路径</th><th>触发方式</th></tr>
+          <tr><td>图谱 → 文档</td><td>点击详情抽屉中的"查看文档"</td></tr>
+          <tr><td>对话 → 文档</td><td>点击引用编号 [1][2][3]</td></tr>
+          <tr><td>搜索 → 文档</td><td>点击结果卡片的"查看 →"</td></tr>
+          <tr><td>任意 → 搜索</td><td>⌘K 快捷键</td></tr>
+          <tr><td>搜索 → 对话</td><td>顶部 banner "去对话 →"</td></tr>
+          <tr><td>文档 → 文档</td><td>点击 [[wikilink]]</td></tr>
+        </table>
+        <div class="prd-h3">设计系统</div>
+        <table class="prd-table">
+          <tr><th>类别</th><th>规范</th></tr>
+          <tr><td>配色</td><td>暖米色背景（#FAF8F3）+ 近黑主文字（#1C1917）+ 琥珀色单一强调（#B45309）</td></tr>
+          <tr><td>字体</td><td>中文标题：宋体，英文标题：Georgia，正文：系统无衬线，代码/元信息：系统等宽</td></tr>
+          <tr><td>间距</td><td>4px 基础单位，常用 8/12/16/24/32/48/64。圆角 6px</td></tr>
+          <tr><td>动效</td><td>克制为主。加载 staggered fade-in（60ms），hover 150ms，抽屉滑出 320ms</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 12. 数据模型 ═══ -->
+      <section class="prd-section" id="s12">
+        <div class="prd-section__num">12 — DATA MODEL</div>
+        <h2 class="prd-section__title">数据模型</h2>
+
+        <p>数据模型采用"<strong>数据库 schema 为权威，文件系统为快照</strong>"的架构。所有结构化数据（文档、chunks、向量、图谱边、来源）都存数据库，磁盘文件只是可重建的 raw 原文 + 可读快照。</p>
+
+        <div class="prd-h3">存储分层</div>
+        <table class="prd-table">
+          <tr><th>层</th><th>存什么</th><th>形态</th><th>可重建？</th></tr>
+          <tr>
+            <td><strong>数据库（权威 source of truth）</strong></td>
+            <td>pages / content_chunks（含向量+tsvector） / links / sources / ingest_log / users / access_tokens</td>
+            <td>PGLite（个人） / Postgres（团队）</td>
+            <td>部分（chunks/向量可从 raw 重建）</td>
+          </tr>
+          <tr>
+            <td>raw/ 文件</td>
+            <td>原始文档源文件（md/pdf/txt...）</td>
+            <td>磁盘目录</td>
+            <td>❌ 不可重建（人类创作内容）</td>
+          </tr>
+          <tr>
+            <td>manifest.json</td>
+            <td>身份证 + 引擎配置 + schema + 统计</td>
+            <td>磁盘文件</td>
+            <td>可从数据库统计重建</td>
+          </tr>
+          <tr>
+            <td>wiki/ 文件</td>
+            <td>沉淀知识（synthesis/notes）的 markdown 快照</td>
+            <td>磁盘目录</td>
+            <td>可从 pages 表导出</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">核心表 Schema</div>
+        <p>以下表结构同时跑在 PGLite 和 Postgres 上（同一套 DDL），是 BrainEngine 接口的契约基础。</p>
+
+        <div class="prd-h4">sources 表（数据源 / 权限分区）</div>
+        <div class="prd-diagram">CREATE TABLE sources (
+  id            TEXT PRIMARY KEY,        -- 如 'iap' / 'ads' / 'dingtalk'
+  name          TEXT NOT NULL,
+  kind          TEXT DEFAULT 'team',     -- team | personal | shared
+  archived      BOOLEAN DEFAULT FALSE,   -- 归档隔离（visibility 过滤）
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  stats         JSONB                    -- 缓存的统计（文档数/chunk数）
+);</div>
+
+        <div class="prd-h4">pages 表（文档 = 知识库写入/寻址最小单位）</div>
+        <p><strong>page = 一篇文档</strong>，是知识库的写入/读取/寻址最小单位（slug 唯一寻址）。原始文档、沉淀综合、笔记、实体（人/公司/概念）<strong>都是 page</strong>，靠 type 区分。注意：page 不是"检索最小单位"——检索按 chunk 匹配。</p>
+        <div class="prd-diagram">CREATE TABLE pages (
+  id              SERIAL PRIMARY KEY,
+  slug            TEXT NOT NULL,                -- 如 'iap/refund-flow'、'people/zhang-san'
+  source_id       TEXT NOT NULL REFERENCES sources(id),
+  type            TEXT NOT NULL,                -- source|synthesis|note|compiled|person|company|concept
+  title           TEXT NOT NULL,
+  body_md         TEXT,                         -- ★ 解析清洗后的 markdown 正文（非原始字节）
+  summary         TEXT,                         -- frontmatter.summary（图谱节点摘要用）
+  tags            TEXT[] DEFAULT '{}',
+  content_hash    TEXT,                         -- SHA-256，幂等检测
+  generation      INT DEFAULT 1,                -- 知识代次：原始=1 综合=2 编译=3
+  source_file     TEXT,                         -- raw/ 路径（source 类型）或 wiki/ 路径
+  search_vector   TSVECTOR,                     -- Postgres FTS（触发器维护）
+  effective_date  DATE,                         -- P5：时效 Boost
+  salience        REAL DEFAULT 0,               -- P5：显著性 Boost
+  owner_id        TEXT,                         -- 归属用户（团队权限）
+  version         BIGINT DEFAULT 1,             -- P3：乐观锁 CAS
+  deleted_at      TIMESTAMPTZ,                  -- 软删（visibility 过滤）
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  updated_at      TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (source_id, slug)
+);
+CREATE INDEX idx_pages_search ON pages USING GIN(search_vector);
+CREATE INDEX idx_pages_source ON pages(source_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_pages_effdate ON pages ((COALESCE(effective_date, updated_at)));</div>
+        <div class="prd-callout info"><strong>body_md 语义：</strong>不要把 body_md 当成 raw 文件的副本——它存的是<strong>解析清洗后的 markdown 正文</strong>（PDF 提取文本、Word 转 markdown、URL 抓取清洗后的结果）。raw/ 保留原始字节（保真存档），body_md 是可检索可渲染的统一格式。body_md 可从 raw 重建，raw 不可从 body_md 重建。</div>
+
+        <div class="prd-h4">content_chunks 表（分块 + 向量 = 检索最小单位）</div>
+        <p><strong>chunk = 检索/匹配的最小单位</strong>。一个 page 在写入时同步切成多个 chunk（1:N），向量（embedding）存在 chunk 级而非 page 级。</p>
+        <div class="prd-diagram">CREATE TABLE content_chunks (
+  id              SERIAL PRIMARY KEY,
+  page_id         INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+  chunk_index     INT NOT NULL,
+  body            TEXT NOT NULL,                -- 原始 chunk 文本（用户看到）
+  chunk_source    TEXT DEFAULT 'body',          -- body | timeline | code（区分 chunk 来源）
+  char_start      INT, char_end INT,
+  token_count     INT,
+  section_path    TEXT,                         -- 如 '## 退款流程'
+  embedding       vector(1536),                 -- pgvector 向量（嵌入时含上下文包裹）
+  search_vector   TSVECTOR,                     -- chunk 级 FTS
+  content_hash    TEXT,                         -- 幂等
+  embedding_model TEXT,                         -- 用哪个模型嵌入的
+  UNIQUE (page_id, chunk_index)
+);
+CREATE INDEX idx_chunks_embedding
+  ON content_chunks USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX idx_chunks_search
+  ON content_chunks USING GIN(search_vector);
+CREATE INDEX idx_chunks_page ON content_chunks(page_id);</div>
+
+        <div class="prd-h3">page / chunk / 文档 / 实体 四者关系</div>
+        <div class="prd-diagram">知识库 (source_id = 'iap')
+│
+└── PAGE = 写入/寻址最小单位 = 一篇文档
+    │   slug: iap/refund-flow
+    │   body_md: "# IAP退款流程\n退款必须在7天内..."  (解析后的 markdown)
+    │   raw/: iap/refund-spec.pdf  (原始字节，源头)
+    │
+    └── 写入时同步切分 1:N
+        │
+        ├── CHUNK = 检索/匹配最小单位
+        │   chunk_index: 0  chunk_source: 'body'
+        │   body: "退款必须在7天内发起"
+        │   embedding: vector(1536)  ← 向量在 chunk 级
+        │
+        ├── CHUNK
+        │   chunk_index: 1  chunk_source: 'body'
+        │   body: "系统校验订单状态..."
+        │   embedding: vector(1536)
+        │
+        └── ... (更多 chunks)
+
+  检索返回 → chunk（附 page 的 slug/title/type 元数据）
+  AI 注入  → chunk 片段（截断 ~600 字符）
+  图谱关系 → links 表（实体 page ↔ 引用 page）</div>
+        <table class="prd-table">
+          <tr><th>概念</th><th>是什么</th><th>最小单位角色</th></tr>
+          <tr><td><strong>page</strong></td><td>一篇文档（markdown 正文 + 元数据）</td><td><strong>写入/寻址最小单位</strong>（slug 唯一）</td></tr>
+          <tr><td><strong>chunk</strong></td><td>page 切分后的片段，带向量</td><td><strong>检索/匹配最小单位</strong>（向量在 chunk 级）</td></tr>
+          <tr><td>文档</td><td>= page 本身（一文档一 page）</td><td>同 page</td></tr>
+          <tr><td>实体</td><td>人/公司/概念，是独立 page（type 区分）</td><td>同 page，靠 links 表建关系</td></tr>
+        </table>
+
+        <div class="prd-h4">links 表（图谱边，有类型）</div>
+        <div class="prd-diagram">CREATE TABLE links (
+  id              SERIAL PRIMARY KEY,
+  from_page_id    INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+  to_page_id      INT NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+  link_type       TEXT NOT NULL,    -- mentions|relates_to|discussed_in|references|
+                                    -- extracted_from|works_at|authored|synthesizes
+  link_source     TEXT,             -- 提取来源：wikilink | regex | frontmatter
+  weight          REAL DEFAULT 1.0,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  UNIQUE NULLS NOT DISTINCT (from_page_id, to_page_id, link_type, link_source)
+);
+CREATE INDEX idx_links_from ON links(from_page_id);
+CREATE INDEX idx_links_to   ON links(to_page_id);</div>
+
+        <div class="prd-h4">users / access_tokens 表（团队权限，Phase 3 起）</div>
+        <div class="prd-diagram">-- 团队形态才启用，个人形态可空
+CREATE TABLE users (
+  id        TEXT PRIMARY KEY,
+  name      TEXT NOT NULL,
+  email     TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE TABLE access_tokens (
+  id          SERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  token_hash  TEXT NOT NULL,
+  source_id   TEXT REFERENCES sources(id),
+  federated_read TEXT[] DEFAULT '{}',
+  owner_id    TEXT REFERENCES users(id),
+  scopes      TEXT[] DEFAULT '{}',
+  created_at  TIMESTAMPTZ DEFAULT now()
+);</div>
+
+        <div class="prd-h3">关键索引</div>
+        <table class="prd-table">
+          <tr><th>索引</th><th>类型</th><th>加速什么</th></tr>
+          <tr><td>idx_chunks_embedding</td><td>HNSW (vector_cosine_ops)</td><td>向量 ANN 检索（余弦）</td></tr>
+          <tr><td>idx_chunks_search / idx_pages_search</td><td>GIN (tsvector)</td><td>全文检索（ts_rank）</td></tr>
+          <tr><td>idx_links_from / idx_links_to</td><td>B-tree</td><td>图谱正/反向遍历、backlink 计数</td></tr>
+          <tr><td>idx_pages_effdate</td><td>表达式索引 (COALESCE)</td><td>时效 Boost 的日期过滤</td></tr>
+          <tr><td>idx_pages_source (partial)</td><td>Partial B-tree</td><td>source 权限隔离的 WHERE 下推</td></tr>
+        </table>
+
+        <div class="prd-h3">manifest.json</div>
+        <div class="prd-diagram">{
+  "id": "kb-iap-2026",
+  "name": "IAP 支付知识库",
+  "version": "3.0.0",
+  "created": "2026-01-15",
+  "engine": {
+    "db": {
+      "personal": "pglite",
+      "team": "postgres+pgvector"
+    },
+    "embedding": {
+      "provider": "openai",
+      "model": "text-embedding-3-small",
+      "dimension": 1536
+    },
+    "chunking": {
+      "strategy": "recursive-5level",
+      "target_words": 300, "overlap_words": 50,
+      "max_words": 450, "cjk_counting": true,
+      "code_parser": "tree-sitter"
+    },
+    "retrieval": {
+      "intent_classification": true,
+      "post_fusion_boost": true,
+      "reranker": "optional",
+      "contextual_retrieval": true
+    }
+  },
+  "schema": {
+    "version": "0.1",
+    "page_types": [
+      {
+        "name": "source",
+        "path_prefixes": ["iap/", "ads/"],
+        "extractable": true,
+        "default_link_verbs": ["references", "discussed_in"]
+      },
+      {
+        "name": "person",
+        "path_prefixes": ["people/"],
+        "extractable": false,
+        "expert_routing": true
+      },
+      {
+        "name": "concept",
+        "path_prefixes": ["concepts/"],
+        "extractable": true,
+        "default_link_verbs": ["relates_to", "synthesizes"]
+      }
+    ],
+    "link_verbs": [
+      "mentions", "references", "discussed_in", "relates_to",
+      "works_at", "authored"
+    ]
+  },
+  "stats": {
+    "raw_files": 42, "pages": 55,
+    "total_chunks": 386, "graph_edges": 42
+  }
+}</div>
+
+        <div class="prd-h3">OKF 互操作层</div>
+        <p>知识库的存储分两层：<strong>运行时用 DB（高性能检索/并发/事务），导出/导入时用 OKF 格式（跨工具可移植）</strong>。OKF（Open Knowledge Format）是 Google Cloud 发布的开放规范。</p>
+
+        <div class="prd-h4">两层架构</div>
+        <div class="prd-diagram">┌─────────────────────────────────────────────┐
+│  互操作层（导出/导入时）── 兼容 OKF v0.1      │
+│                                                │
+│  导出：pages 表 → markdown 文件 + frontmatter    │
+│       links 表 → markdown 链接（[[wikilink]]）   │
+│  导入：OKF bundle → pages/links 表              │
+└──────────────────┬──────────────────────────┘
+                   │ 导出 = DB → OKF 文件
+                   │ 导入 = OKF 文件 → DB
+                   ▼
+┌─────────────────────────────────────────────┐
+│  存储层（运行时）                              │
+│  Postgres/PGLite + schema + pgvector         │
+└─────────────────────────────────────────────┘</div>
+
+        <div class="prd-h4">OKF 格式规范</div>
+        <div class="prd-diagram">一个 OKF bundle = 一个目录，里面是 markdown 文件
+每个文件 = 一个 concept
+文件路径 = concept 身份（对应 pages.slug）
+
+my-knowledge-base/
+├── iap/
+│   ├── refund-flow.md
+│   └── payment-api.md
+├── people/
+│   └── zhang-san.md
+├── index.md                        ← 可选
+└── log.md                          ← 可选
+
+# 每个文件结构（只 type 必填，其余全可选）
+---
+type: source                        # ★ 唯一必填
+title: IAP 退款流程
+description: ...
+resource: ...
+tags: [IAP, 退款]
+timestamp: 2026-06-24
+---
+（markdown 正文，concept 间用 [[...]] 互连）</div>
+
+        <div class="prd-h4">pages 表字段 → OKF frontmatter 映射</div>
+        <table class="prd-table">
+          <tr><th>pages 表字段</th><th>OKF frontmatter 字段</th><th>说明</th></tr>
+          <tr><td>type</td><td><strong>type</strong>（必填）</td><td>直接映射</td></tr>
+          <tr><td>title</td><td><strong>title</strong></td><td>直接映射</td></tr>
+          <tr><td>summary</td><td><strong>description</strong></td><td>重命名</td></tr>
+          <tr><td>source_file</td><td><strong>resource</strong></td><td>重命名</td></tr>
+          <tr><td>tags</td><td><strong>tags</strong></td><td>直接映射（数组）</td></tr>
+          <tr><td>updated_at</td><td><strong>timestamp</strong></td><td>重命名</td></tr>
+          <tr><td>body_md</td><td>（正文）</td><td>frontmatter 之后的 markdown body</td></tr>
+          <tr><td>slug</td><td>（文件路径）</td><td>slug = 文件相对路径</td></tr>
+          <tr><td>links 表</td><td>（markdown 链接）</td><td>导出为 [[wikilink]]</td></tr>
+          <tr><td><em>其余字段</em></td><td><em>x- 前缀自定义命名空间</em></td><td>OKF 允许扩展字段</td></tr>
+        </table>
+        <div class="prd-callout red"><strong>不要把 OKF 当运行时存储格式：</strong>OKF 是纯文件格式，没有索引/并发/事务。OKF 只用于<strong>导出/导入的互操作时刻</strong>，运行时永远是 DB。</div>
+
+        <div class="prd-h3">Schema Pack 设计</div>
+        <p>借鉴 GBrain schema pack 的核心思想，<strong>大幅精简</strong>。schema 是知识库的<strong>内部配置文件</strong>（语义类型系统），不是面向终端用户的"自定义目录"功能。</p>
+
+        <div class="prd-h4">schema 是什么 vs 不是什么</div>
+        <table class="prd-table">
+          <tr><th>概念</th><th>是什么</th><th>不是什么</th></tr>
+          <tr><td><strong>schema pack</strong></td><td>语义类型系统：<strong>路径前缀 → 页面类型 → 行为规则</strong></td><td>❌ Notion 式目录树/导航层级</td></tr>
+          <tr><td><strong>类比</strong></td><td>数据库的 DDL（定义表结构/字段/关系）</td><td>❌ 文件管理器的文件夹划分</td></tr>
+        </table>
+
+        <div class="prd-h4">缓存隔离：schema 指纹折进 cache key</div>
+        <div class="prd-diagram">// 搜索缓存键构成
+cacheKey = sha8(
+  query,                    // 查询文本
+  sourceId,                 // 权限分区
+  retrievalKnobsHash,       // 检索参数（top_k/阈值/权重）
+  schemaFingerprint         // ★ schema 配置的 canonical-SHA8
+)
+
+// schema 配置任何字段变动 → schemaFingerprint 变 → cacheKey 全量变化
+// → 旧缓存自然失效，无需手动失效逻辑</div>
+        <div class="prd-callout green"><strong>为何 Phase 1 就要做：</strong>缓存隔离必须在引入搜索缓存的第一天就落地。如果先裸 query 做缓存键，后续加 schema 时所有历史缓存都会"看似命中实则陈旧"。</div>
+
+        <div class="prd-h4">类型默认值继承</div>
+        <table class="prd-table">
+          <tr><th>类型</th><th>默认可抽取</th><th>默认可路由</th><th>默认链接动词</th></tr>
+          <tr><td>source</td><td>✅</td><td>❌</td><td>references / discussed_in</td></tr>
+          <tr><td>synthesis</td><td>✅</td><td>❌</td><td>synthesizes / relates_to</td></tr>
+          <tr><td>person</td><td>❌</td><td>✅</td><td>works_at / authored</td></tr>
+          <tr><td>concept</td><td>✅</td><td>❌</td><td>relates_to</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>正交分离原则：</strong>行为可继承，可见性必须显式——防止未来加"类型归类"功能时，adversary-profile 类型的可见性意外泄漏到"找专家"查询。</div>
+
+        <div class="prd-h4">推迟的能力</div>
+        <table class="prd-table">
+          <tr><th>能力</th><th>为何推迟</th><th>触发条件</th></tr>
+          <tr><td>extends 继承链</td><td>单团队类型固定</td><td>多业务线差异大时</td></tr>
+          <tr><td>7 层解析链</td><td>单库单 schema</td><td>多知识库联邦查询时</td></tr>
+          <tr><td>声明式迁移 mapping_rules</td><td>v1 schema 未定</td><td>schema 大版本升级时</td></tr>
+          <tr><td>detect/suggest 反推 schema</td><td>导入即建库</td><td>支持任意目录导入时</td></tr>
+          <tr><td>远程调用禁覆盖 schema</td><td>—</td><td><strong>Phase 3 MCP 接入时必须落</strong></td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 13. 技术架构 ═══ -->
+      <section class="prd-section" id="s13">
+        <div class="prd-section__num">13 — TECH STACK</div>
+        <h2 class="prd-section__title">技术架构</h2>
+
+        <div class="prd-h3">已确认技术决策</div>
+        <table class="prd-table">
+          <tr><th>决策项</th><th>选择</th><th>理由</th></tr>
+          <tr><td>前端框架</td><td>React / Next.js (App Router)</td><td>全栈框架，API Routes 即后端</td></tr>
+          <tr><td>后端语言</td><td>TypeScript (Next.js API Routes)</td><td>前后端统一</td></tr>
+          <tr><td>数据库（个人）</td><td><strong>PGLite</strong>（Postgres 17 WASM，嵌入式）</td><td>零配置，与团队形态同一套 SQL</td></tr>
+          <tr><td>数据库（团队）</td><td><strong>PostgreSQL + pgvector</strong></td><td>MVCC 多人并发、行级锁、跨表事务、递归 CTE</td></tr>
+          <tr><td>向量检索</td><td><strong>pgvector</strong>（HNSW + 余弦）</td><td>与关系数据同库，可 JOIN；向量 WHERE 下推保召回率</td></tr>
+          <tr><td>全文检索（BM25）</td><td><strong>Postgres tsvector + GIN + ts_rank</strong></td><td>与向量同库；中文配 zhparser 分词</td></tr>
+          <tr><td>桌面打包</td><td>Tauri</td><td>体积小（~40MB 含 PGLite WASM）</td></tr>
+          <tr><td>图谱可视化</td><td>D3.js</td><td>力导向图，支持大规模节点交互</td></tr>
+          <tr><td>流式通信</td><td>SSE</td><td>AI 对话流式输出</td></tr>
+          <tr><td>AI 集成</td><td>双通道：本地 CLI 代理 + Mini Agent</td><td>灵活适配</td></tr>
+          <tr><td>分块引擎</td><td>5 层递归分块 + Tree-sitter 代码语义分块</td><td>标题→段落→句子→子句→字符，CJK 单独计数</td></tr>
+          <tr><td>嵌入模型</td><td>双模式：在线 + 本地</td><td>在线 text-embedding-3-small / 智谱，本地 bge-m3 via Ollama</td></tr>
+          <tr><td>重排序</td><td>可选 Cross-encoder</td><td>高精度场景启用，默认关闭</td></tr>
+        </table>
+
+        <div class="prd-h3">双引擎架构：一个应用两种模式</div>
+        <p><strong>同一个 Tauri 应用的两种使用模式，不是两个产品。</strong>参考 gbrain 的 BrainEngine 设计，定义一套存储操作契约。</p>
+        <div class="prd-diagram">┌─────────────────────────────────────────────────────────────┐
+│  同一个 Tauri 应用（一个 .exe / .dmg）                          │
+│                                                                │
+│  应用层（Next.js UI / MCP server）                              │
+│  只依赖 BrainEngine 接口，不感知本地还是远程                      │
+└────────────────────────┬─────────────────────────────────────┘
+                         │  ~40 个操作（ingest/search/edit/traverse/...）
+        ┌────────────────┴────────────────┐
+        ▼  模式 B：本地连接（个人）          ▼  模式 A：远程连接（团队）
+┌───────────────────┐            ┌────────────────────────┐
+│  PgliteEngine     │            │  RemoteEngine          │
+│  （进程内）         │            │  （HTTP 客户端）         │
+│                   │            │                        │
+│  · 启用 PGLite    │            │  · 不启用本地数据库      │
+│    WASM           │            │  · 每个操作翻译成 HTTP    │
+│  · SQL 直连        │            │    请求发往服务端         │
+│  · 零配置          │            │  · 携带 access_token     │
+│  · 单人            │            │  · thin（无业务逻辑）     │
+└────────┬──────────┘            └───────────┬────────────┘
+         │                                   │ HTTP/SSE
+         ▼                                   ▼
+┌──────────────────┐            ┌─────────────────────────────┐
+│  本地数据目录      │            │  内网服务端                    │
+│  (PGLite files)  │            │  PostgresEngine + Postgres   │
+│                  │            │  + pgvector + 鉴权            │
+│  同一份 schema    │            │  同一份 schema                │
+└──────────────────┘            └─────────────────────────────┘</div>
+        <div class="prd-callout info"><strong>PGLite WASM 始终打包在应用里</strong>（~30MB 磁盘），但只有本地模式才初始化它——远程模式下 PGLite 不加载、不占运行时内存。</div>
+
+        <div class="prd-h3">两种模式的连接路径</div>
+        <div class="prd-diagram">【模式 B：本地连接（个人）】客户端进程内一体
+┌─────────────────────────────────────────────┐
+│  Tauri 桌面应用（~40MB，含 PGLite WASM）       │
+│  ┌────────────────────────────────────────┐ │
+│  │  UI + 业务逻辑（BrainEngine）            │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │  → PgliteEngine（进程内 SQL）     │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  └────────────────────────────────────────┘ │
+│         │                                    │
+│         ▼                                    │
+│   raw/ 文件（源）    PGLite 数据目录          │
+└─────────────────────────────────────────────┘
+
+【模式 A：远程连接（团队）】客户端 thin + 服务端
+┌─────────────────────────────────────────────┐
+│  内网服务器（Docker Compose）                  │
+│  ┌────────────────────────────────────────┐ │
+│  │  Next.js 服务端（API + 业务逻辑）        │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │  → PostgresEngine + 鉴权          │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  └─────────────────────┬──────────────────┘ │
+│              ┌─────────┴──────────┐          │
+│              ▼                    ▼          │
+│        PostgreSQL           raw/ 共享存储     │
+│        + pgvector                           │
+└─────────────────────────────────────────────┘
+            ▲           ▲           ▲
+            │ HTTP/SSE  │ HTTP/SSE  │ MCP
+   ┌────────┴───┐  ┌────┴─────┐  ┌──┴─────────┐
+   │ 同一个App  │  │ 同一个App │  │ IDE/MCP    │
+   │ 远程模式   │  │ 远程模式  │  │ (Cursor等) │
+   └────────────┘  └──────────┘  └─────────────┘</div>
+
+        <div class="prd-h3">部署形态</div>
+        <table class="prd-table">
+          <tr><th>形态</th><th>适用场景</th><th>技术方案</th><th>客户端模式</th></tr>
+          <tr><td>桌面应用 · 本地模式</td><td>个人积累</td><td>Tauri .exe/.dmg，启用内嵌 PGLite，无需服务端</td><td>模式 B（PgliteEngine）</td></tr>
+          <tr><td>桌面应用 · 远程模式</td><td>团队实时多人并发</td><td>同一个 Tauri 应用，配置远程连接；内网服务器 Docker Compose</td><td>模式 A（RemoteEngine）</td></tr>
+          <tr><td>IDE / MCP</td><td>开发者在 Cursor/Claude Code 中查知识库</td><td>MCP over HTTP，指向内网服务端 URL + token</td><td>—（无 UI）</td></tr>
+        </table>
+
+        <div class="prd-h3">权限模型（团队形态）</div>
+        <p>个人形态无需权限。团队形态采用 <strong>source 分区 + token 凭证</strong>模型：</p>
+        <table class="prd-table">
+          <tr><th>机制</th><th>说明</th></tr>
+          <tr><td>source 分区</td><td>每个知识库/部门一个 source_id，pages/chunks 都带 source_id</td></tr>
+          <tr><td>token 绑定 source</td><td>每个客户端发 access_token，绑定 source_id（写范围）+ federated_read[]（跨源只读）</td></tr>
+          <tr><td>WHERE 下推</td><td>所有检索 SQL 都带 AND source_id = ANY($可见集)，权限过滤下推进 HNSW/FTS</td></tr>
+          <tr><td>user 归属</td><td>pages.owner_id 记录作者</td></tr>
+          <tr><td>visibility 过滤</td><td>deleted_at（软删）/ sources.archived（归档）三层状态过滤</td></tr>
+        </table>
+
+        <div class="prd-h3">并发与冲突控制</div>
+        <table class="prd-table">
+          <tr><th>场景</th><th>机制</th><th>冲突风险</th></tr>
+          <tr><td>多人同时<strong>读</strong></td><td>Postgres MVCC</td><td>✅ 无冲突</td></tr>
+          <tr><td>多人同时<strong>写不同文档</strong></td><td>Postgres 行级锁</td><td>✅ 无冲突</td></tr>
+          <tr><td>多人同时<strong>写同一文档</strong></td><td>分两步处理</td><td>⚠️ 见下方</td></tr>
+        </table>
+
+        <div class="prd-h4">写入事务边界</div>
+        <div class="prd-diagram">事务外（无锁，可慢）─────────────────────────
+  ├── 解析 markdown / 内容验证 / 算 content_hash
+  ├── 读旧 page（getPage）
+  └── embedBatch()  ← 调 embedding API（慢！必须放事务外）
+        │
+        ▼
+事务内（BEGIN...COMMIT，毫秒级短事务）
+  ├── putPage()        INSERT...ON CONFLICT DO UPDATE
+  ├── addTag() × N
+  ├── upsertChunks()   写 content_chunks（含向量）
+  └── addLink() × N    写图谱边
+        │
+        ▼
+事务后（fail-soft）
+  └── 更新 aliases / 缓存</div>
+
+        <div class="prd-h4">同文档并发编辑冲突策略</div>
+        <table class="prd-table">
+          <tr><th>阶段</th><th>策略</th><th>机制</th></tr>
+          <tr><td><span class="phase-tag phase-p1">Phase 1</span></td><td>last-write-wins</td><td>ON CONFLICT DO UPDATE 无条件覆盖</td></tr>
+          <tr><td><span class="phase-tag phase-p3">Phase 3</span></td><td>乐观锁 CAS</td><td>pages.version + WHERE version=? 比对</td></tr>
+        </table>
+
+        <div class="prd-h3">seekdb 选型评估</div>
+        <p><strong>seekdb</strong>（OceanBase 出品，2025.11 开源）是一个完整的 AI 原生关系型数据库，在数据库能力层全面优于 pgvector。</p>
+        <table class="prd-table">
+          <tr><th>能力</th><th>pgvector（拼装）</th><th>seekdb（原生）</th></tr>
+          <tr><td>混合检索</td><td>tsvector + pgvector + 手写 RRF</td><td><strong>一条 SQL</strong></td></tr>
+          <tr><td>内置 AI 函数</td><td>❌ 应用层调 API</td><td><strong>✅ SQL 内 AI_EMBED/AI_RERANK</strong></td></tr>
+          <tr><td>中文全文搜索</td><td>zhparser（需配置）</td><td><strong>ik 分词器（国产原生）</strong></td></tr>
+          <tr><td>并发写读</td><td>Postgres MVCC</td><td><strong>async index + 两级 HNSW</strong></td></tr>
+          <tr><td>COW 沙箱</td><td>❌ 无</td><td><strong>✅ FORK/MERGE</strong></td></tr>
+        </table>
+        <div class="prd-diagram">-- seekdb 独有：COW 沙箱
+FORK DATABASE kb_main TO kb_sandbox;   -- 秒级快照
+USE kb_sandbox;
+-- 在沙箱里试验，不满意不污染主库
+MERGE TABLE kb_sandbox.pages INTO kb_main.pages;  -- 满意合并
+DROP DATABASE kb_sandbox;              -- 不满意丢弃</div>
+
+        <div class="prd-h4">seekdb 风险</div>
+        <table class="prd-table">
+          <tr><th>风险</th><th>严重性</th><th>缓解</th></tr>
+          <tr><td><strong>TS/Node SDK 缺失</strong></td><td>🔴 dealbreaker</td><td>spike 验证有无 Node 绑定</td></tr>
+          <tr><td><strong>Tauri FFI 集成</strong></td><td>🔴 dealbreaker</td><td>spike 验证 Tauri (Rust) 能否调用 C 库</td></tr>
+          <tr><td>Windows 嵌入式稳定性</td><td>🟡 高</td><td>spike 实测</td></tr>
+          <tr><td>成熟度（半年）</td><td>🟡 中</td><td>OceanBase 母体成熟</td></tr>
+        </table>
+
+        <div class="prd-callout red"><strong>选型结论：维持 pgvector 为 Phase 1 默认。</strong>seekdb 在数据库能力层全面优于 pgvector，但 <strong>TS SDK 和 Tauri 集成是 dealbreaker</strong>。Phase 1 末期做 2-4 小时 seekdb spike 验证三项（Node 集成 / Tauri FFI / Windows 稳定），三项全过则评估迁移，任一不过维持 pgvector。</div>
+      </section>
+
+      <!-- ═══ 14. 双 AI 通道 ═══ -->
+      <section class="prd-section" id="s14">
+        <div class="prd-section__num">14 — AI CHANNELS</div>
+        <h2 class="prd-section__title">双 AI 通道</h2>
+        <p>桌面客户端提供两种 AI 能力接入方式，用户可根据环境自选。</p>
+        <div class="prd-h3">通道对比</div>
+        <table class="prd-table">
+          <tr><th>维度</th><th>通道 A：本地 CLI 代理</th><th>通道 B：内置 Mini Agent</th></tr>
+          <tr><td>前置要求</td><td>本地安装 Claude Code / Gemini CLI</td><td>配置 API Key</td></tr>
+          <tr><td>AI 能力</td><td>CLI 工具自带的全部能力</td><td>专用知识库 Agent（轻量、快速）</td></tr>
+          <tr><td>MCP 集成</td><td>CLI 原生支持 MCP</td><td>Mini Agent 内置工具调用</td></tr>
+          <tr><td>Token 成本</td><td>较高（系统提示词 10k+ tokens）</td><td>较低（专用提示词 2-3k tokens）</td></tr>
+          <tr><td>适用场景</td><td>已有 CLI 环境的开发者</td><td>无 CLI 环境的用户</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 15. MCP 工具 ═══ -->
+      <section class="prd-section" id="s15">
+        <div class="prd-section__num">15 — MCP TOOLS</div>
+        <h2 class="prd-section__title">MCP 工具集成（开发者接口）</h2>
+        <p>通过 MCP 协议将知识库能力暴露给外部 AI 编程工具。仅暴露 2 个工具，保持接口精简。</p>
+
+        <div class="prd-h3">MCP 工具清单</div>
+        <div class="prd-card">
+          <div class="prd-card__title">search_wiki — 语义检索知识库（读）</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>query</td><td>string</td><td>是</td><td>自然语言查询或关键词</td></tr>
+            <tr><td>mode</td><td>enum</td><td>否</td><td>hybrid（默认）/ keyword / vector</td></tr>
+            <tr><td>top_k</td><td>number</td><td>否</td><td>返回结果数量，默认 5</td></tr>
+          </table>
+          <p style="margin-top: 8px;">返回 chunks 片段，含 title / content / source / score / file_path。</p>
+        </div>
+        <div class="prd-card">
+          <div class="prd-card__title">update_wiki — 写入沉淀（写）</div>
+          <table class="prd-table">
+            <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+            <tr><td>title</td><td>string</td><td>是</td><td>沉淀文档标题</td></tr>
+            <tr><td>content</td><td>string</td><td>是</td><td>markdown 正文</td></tr>
+            <tr><td>type</td><td>enum</td><td>否</td><td>synthesis（默认）/ note</td></tr>
+            <tr><td>tags</td><td>string[]</td><td>否</td><td>标签列表</td></tr>
+            <tr><td>original_query</td><td>string</td><td>否</td><td>溯源：触发沉淀的原始问题</td></tr>
+            <tr><td>references</td><td>string[]</td><td>否</td><td>溯源：引用的原始文档路径</td></tr>
+          </table>
+          <p style="margin-top: 8px;">写入 wiki/synthesis/（或 wiki/notes/），自动分块 + 嵌入 + 更新图谱。</p>
+        </div>
+
+        <div class="prd-h3">注册方式</div>
+        <div class="prd-diagram"># 在 Claude Code / Cursor 中注册 MCP 工具
+claude mcp add llm-wiki -- node app/dist/mcp-server.js
+
+# 环境变量指定当前知识库路径
+WIKI_KB_PATH=./knowledge/iap</div>
+
+        <div class="prd-h3">安全约束（Phase 3 必须落地）</div>
+        <div class="prd-callout red"><strong>schema 类参数只能由本地可信客户端设置。</strong>远程调用（ctx.remote === true）传入的 schema 覆盖一律拒绝。防止远程 agent 偷换 schema 规避类型/权限约束。</div>
+      </section>
+
+      <!-- ═══ 16. 检索引擎 ═══ -->
+      <section class="prd-section" id="s16">
+        <div class="prd-section__num">16 — RETRIEVAL ENGINE</div>
+        <h2 class="prd-section__title">检索引擎</h2>
+        <p>检索引擎是产品的核心能力层。全部检索 SQL 化——向量、全文、图谱、boost 都在一个 Postgres（PGLite）里用 SQL 完成。</p>
+
+        <div class="prd-h3">完整检索管线</div>
+        <div class="prd-diagram">用户查询
+  │
+  ▼
+┌───────────────────────────────────────────────────────────────┐
+│  Stage 0: 意图分类（零 LLM 调用）                              │
+│  · 关键词匹配 + 正则模式识别                                   │
+│  · 分类为 4 种意图：                                          │
+│    - entity（实体查询）：包含专有名词、产品名、人名             │
+│    - temporal（时间查询）：包含"最近""上周""2024年"等         │
+│    - event（事件查询）：包含"怎么""如何""为什么"               │
+│    - general（通用查询）：不属于以上三类                        │
+│  · 意图影响后续 Stage 的权重配置                               │
+├───────────────────────────────────────────────────────────────┤
+│  Stage 1: 双路召回（全部 SQL 化，WHERE 下推保召回）             │
+│  · 关键词检索：tsvector + GIN + ts_rank → top-30 chunks        │
+│  · 向量检索：content_chunks JOIN pages/sources                  │
+│    HNSW + 余弦（<=>），source/权限/软删 WHERE 下推进候选集       │
+│    → top-30 chunks                                             │
+├───────────────────────────────────────────────────────────────┤
+│  Stage 2: RRF 融合排序                                        │
+│  · score = 1/(k+rank_bm25) + 1/(k+rank_vec)，k=60            │
+│  · 去重 + 按分数排序                                           │
+├───────────────────────────────────────────────────────────────┤
+│  Stage 3: 后融合 Boost（分两步落地）                            │
+│  · 标题匹配 Boost ×1.25           ── Phase 3（零数据依赖）    │
+│  · 来源类型 Boost（可配置权重）    ── Phase 3（零数据依赖）    │
+│  · 显著性 Boost ×(1+0.05×sali)    ── Phase 5（需数据积累）    │
+│  · 时效性 Boost（半衰期 30 天）    ── Phase 5（需数据积累）    │
+│  · 图谱信号 Boost ×(1+0.05×log)   ── Phase 5（需数据积累）    │
+│  · 意图加权                        ── Phase 3                  │
+├───────────────────────────────────────────────────────────────┤
+│  Stage 4（可选）: Cross-encoder 重排序 ── Phase 5              │
+│  · 对 top-20 候选调用 cross-encoder                           │
+│  · 取最终 top-K（默认 8），默认关闭                           │
+├───────────────────────────────────────────────────────────────┤
+│  Stage 5: 输出                                                │
+│  · AI 对话：注入 top-K 作为上下文                              │
+│  · 全局搜索：直接返回结果                                      │
+└───────────────────────────────────────────────────────────────┘</div>
+
+        <div class="prd-h3">向量表 JOIN 关系表（核心能力）</div>
+        <p>单库方案的最大优势：向量检索时直接 JOIN 关系表，把<strong>权限/source/软删/归档</strong>等过滤下推进 HNSW 候选集，避免召回率掉。</p>
+        <div class="prd-diagram">-- 向量路：HNSW 候选集 + 关系过滤下推
+WITH hnsw_candidates AS (
+  SELECT p.slug, p.title, p.type, p.source_id,
+         cc.id AS chunk_id, cc.body,
+         1 - (cc.embedding <=> $1::vector) AS raw_score
+  FROM content_chunks cc
+  JOIN pages p   ON p.id = cc.page_id
+  JOIN sources s ON s.id = p.source_id
+  WHERE cc.embedding IS NOT NULL
+    AND p.source_id = ANY($visible_sources)      -- 权限下推
+    AND p.deleted_at IS NULL                      -- 软删下推
+    AND NOT s.archived                            -- 归档下推
+    AND p.type = ANY($types)                      -- 类型下推
+  ORDER BY cc.embedding <=> $1::vector
+  LIMIT 30
+),
+best_per_page AS (
+  SELECT DISTINCT ON (source_id, slug) *
+  FROM hnsw_candidates ORDER BY source_id, slug, raw_score DESC
+)
+SELECT * FROM best_per_page ORDER BY raw_score DESC LIMIT $top_k;</div>
+        <div class="prd-callout green"><strong>为什么这个 JOIN 重要：</strong>团队场景下，某客户端只该看自己 source 的 10% 数据。如果先向量取 top-100 再过滤，可能 90 个是别人的、过滤后只剩 10 个有效候选，召回率从 ~100% 掉到 ~10%。WHERE 下推让 HNSW 只在合格行上扫描。</div>
+
+        <div class="prd-h3">图谱遍历用 SQL 递归 CTE</div>
+        <div class="prd-diagram">-- 从 seed 页出发的 N 跳邻域（带最短路径 + 环检测）
+WITH RECURSIVE walk AS (
+  SELECT id, slug, source_id, 0::int AS depth,
+         ARRAY[id] AS visited, ARRAY[slug] AS path
+  FROM pages WHERE slug = ANY($seeds) AND deleted_at IS NULL
+  UNION ALL
+  SELECT p2.id, p2.slug, p2.source_id, w.depth + 1,
+         w.visited || p2.id, w.path || p2.slug
+  FROM walk w
+  JOIN links l ON (l.from_page_id = w.id OR l.to_page_id = w.id)
+  JOIN pages p2 ON p2.id = CASE WHEN l.from_page_id = w.id
+                                THEN l.to_page_id ELSE l.from_page_id END
+  WHERE w.depth < $max_depth
+    AND NOT (p2.id = ANY(w.visited))
+    AND p2.deleted_at IS NULL
+)
+SELECT slug, MIN(depth) AS hop,
+       array_agg(DISTINCT link_type) AS via_types
+FROM walk WHERE depth > 0
+GROUP BY slug ORDER BY hop ASC;</div>
+
+        <div class="prd-h3">意图分类规则（零 LLM 调用）</div>
+        <table class="prd-table">
+          <tr><th>意图类型</th><th>匹配模式</th><th>示例</th><th>权重调整</th></tr>
+          <tr><td>entity（实体）</td><td>包含专有名词、产品名、英文大写缩写</td><td>"IAP 退款流程" "HMAC-SHA256"</td><td>BM25 权重 ×1.3</td></tr>
+          <tr><td>temporal（时间）</td><td>包含"最近""上周""2024""Q3"等</td><td>"最近有什么变更"</td><td>时效 Boost ×1.5</td></tr>
+          <tr><td>event（事件）</td><td>包含"怎么""如何""为什么""流程"</td><td>"怎么处理退款"</td><td>默认权重</td></tr>
+          <tr><td>general（通用）</td><td>不属于以上三类</td><td>"支付系统"</td><td>向量权重 ×1.2</td></tr>
+        </table>
+
+        <div class="prd-h3">后融合 Boost 详解</div>
+        <table class="prd-table">
+          <tr><th>Boost 类型</th><th>公式</th><th>说明</th><th>上线阶段</th></tr>
+          <tr><td>标题匹配</td><td>score × 1.25</td><td>查询词命中文档标题时加分</td><td><span class="phase-tag phase-p3">Phase 3</span></td></tr>
+          <tr><td>来源类型</td><td>score × source_weight</td><td>synthesis=1.1, raw=1.0, compiled=0.9</td><td><span class="phase-tag phase-p3">Phase 3</span></td></tr>
+          <tr><td>显著性</td><td>score × (1 + 0.05 × salience)</td><td>高 salience 节点加分</td><td><span class="phase-tag phase-p5">Phase 5</span></td></tr>
+          <tr><td>时效性</td><td>score × (1 + recency_factor)</td><td>基于 effective_date 的指数衰减</td><td><span class="phase-tag phase-p5">Phase 5</span></td></tr>
+          <tr><td>图谱信号</td><td>score × (1 + 0.05 × log(1 + backlinks))</td><td>被引用次数多的文档加分</td><td><span class="phase-tag phase-p5">Phase 5</span></td></tr>
+        </table>
+
+        <div class="prd-h3">上下文检索</div>
+        <p>在嵌入（embedding）阶段，为每个 chunk 拼接文档级上下文前缀，让向量编码时包含更多语义信息。<strong>这个上下文只在嵌入时使用，不存储。</strong></p>
+        <div class="prd-diagram">嵌入时的上下文包裹格式：
+
+  "本文档: {document_title}
+   本章: {section_heading}
+   ---
+   {chunk_text}"
+
+效果：向量编码时"知道"自己属于哪个文档、哪个章节
+存储：只存原始 chunk_text，上下文前缀不写入数据库
+查询：查询文本不做上下文包裹</div>
+        <div class="prd-callout red"><strong>必须 Phase 1 一次到位：</strong>上下文检索的代码量极小，但它影响已入库向量的语义。如果后续才开启，之前所有 chunks 的向量都"过时"了，必须<strong>全量重嵌入</strong>。因此必须和分块、首次嵌入一起一次到位。</div>
+
+        <div class="prd-h3">检索模式</div>
+        <table class="prd-table">
+          <tr><th>模式</th><th>组合</th><th>适用场景</th></tr>
+          <tr><td>hybrid（默认）</td><td>BM25 + 向量 + RRF + Boost</td><td>最准，覆盖自然语言和精确术语</td></tr>
+          <tr><td>keyword</td><td>仅 BM25</td><td>精确术语检索</td></tr>
+          <tr><td>vector</td><td>仅向量</td><td>自然语言模糊提问</td></tr>
+        </table>
+
+        <div class="prd-h3">检索参数</div>
+        <table class="prd-table">
+          <tr><th>参数</th><th>默认值</th><th>说明</th></tr>
+          <tr><td>top_k</td><td>8</td><td>最终返回给 AI/用户的结果数量</td></tr>
+          <tr><td>candidate_k</td><td>30</td><td>BM25 和向量各自召回的候选数量</td></tr>
+          <tr><td>rrf_k</td><td>60</td><td>RRF 融合常数</td></tr>
+          <tr><td>min_score</td><td>0.1</td><td>低于此分数的结果不返回</td></tr>
+          <tr><td>enable_reranker</td><td>false</td><td>是否启用 cross-encoder 重排序</td></tr>
+          <tr><td>boost_title_factor</td><td>1.25</td><td>标题匹配乘数</td></tr>
+          <tr><td>boost_salience_coeff</td><td>0.05</td><td>显著性系数</td></tr>
+          <tr><td>boost_recency_half_life</td><td>30d</td><td>时效性半衰期</td></tr>
+          <tr><td>boost_graph_coeff</td><td>0.05</td><td>图谱信号系数</td></tr>
+        </table>
+      </section>
+
+      <!-- ═══ 17. 开发路线 ═══ -->
+      <section class="prd-section" id="s17">
+        <div class="prd-section__num">17 — ROADMAP</div>
+        <h2 class="prd-section__title">开发路线与验收标准</h2>
+
+        <table class="prd-table">
+          <tr>
+            <td><span class="phase-tag phase-p1" style="font-size:12px;padding:4px 8px;">PHASE 1</span><br>基础骨架 + 检索地基</td>
+            <td>第 1-3 周</td>
+            <td>
+              Next.js 骨架 + 知识库连接管理 + 文档导入 +<br>
+              <strong>5 层递归分块 + CJK 计数</strong><br>
+              <strong>内容验证管线（content_hash 幂等 + 垃圾/隐私检测）</strong><br>
+              <strong>上下文检索</strong>——嵌入时包裹文档上下文（一次到位）<br>
+              混合搜索（BM25 + 向量 + RRF）<br>
+              <strong>元数据：content_hash + generation</strong><br>
+              <strong>schema 指纹折进缓存键</strong>
+            </td>
+            <td>导入文档可搜索；分块 300 词/块；content_hash 幂等生效；嵌入向量含上下文</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p2" style="font-size:12px;padding:4px 8px;">PHASE 2</span><br>AI 对话 + 图谱</td>
+            <td>第 3-5 周</td>
+            <td>双 AI 通道 + AI 对话 + 知识图谱可视化 + <strong>8+ 种语义边类型</strong> + 沉淀机制（对话→wiki/synthesis/）</td>
+            <td>对话可回答问题并标注引用；图谱展示有类型边的文档关系；沉淀文档可被检索命中</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p3" style="font-size:12px;padding:4px 8px;">PHASE 3</span><br>检索增强 + MCP</td>
+            <td>第 5-7 周</td>
+            <td>
+              MCP 工具（search_wiki + update_wiki）+ 文档编辑 + 图谱搜索联动 +<br>
+              <strong>意图分类（零 LLM）</strong><br>
+              <strong>后融合 Boost（标题匹配 + 来源类型）</strong><br>
+              <strong>乐观锁 CAS 冲突策略</strong><br>
+              <strong>MCP schema 安全约束</strong><br>
+              <em style="color: var(--ink-faint);">[待数据积累] 显著性/时效/图谱 Boost 暂不启用</em>
+            </td>
+            <td>MCP 注册后可调用 search_wiki；意图分类准确率 &gt; 80%；Boost（标题+来源）使 P@5 提升 &gt; 10%</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p4" style="font-size:12px;padding:4px 8px;">PHASE 4</span><br>打包部署 + 代码分块</td>
+            <td>第 7-9 周</td>
+            <td>Tauri 桌面打包 + Docker 内网部署 + 知识库快照/导出/迁移 + <strong>OKF 导出/导入</strong> + <strong>代码语义分块（Tree-sitter，36 语言）</strong> + <strong>seekdb spike</strong></td>
+            <td>.exe 双击可用；Docker 一键部署；OKF 导出可被其他工具消费；代码文件可按函数级分块；seekdb spike 完成评估</td>
+          </tr>
+          <tr>
+            <td><span class="phase-tag phase-p5" style="font-size:12px;padding:4px 8px;">PHASE 5</span><br>可选增强</td>
+            <td>第 9+ 周</td>
+            <td>
+              知识编译（可选）+ <strong>Cross-encoder 重排序</strong> + 评估体系 + 溯源标记 + 健康检测 +<br>
+              <strong>完整元数据启用（salience / effective_date / last_retrieved_at）</strong> +<br>
+              <strong>后融合 Boost 完整版（显著性/时效/图谱信号）</strong> +<br>
+              schema 继承链 / 解析链（按需）
+            </td>
+            <td>编译 diff 审核可用；重排序使 P@5 &gt; 0.7；完整 Boost 管线生效</td>
+          </tr>
+        </table>
+
+        <div class="prd-h3">依赖关系图</div>
+        <div class="prd-diagram">Phase 1 地基（一次到位，避免重嵌入）
+  ├── 5层分块+CJK ──────────────┐
+  ├── 内容验证(content_hash) ───┤
+  ├── ★上下文检索 ─────────────┤  ← 必须和分块同批做
+  ├── 混合搜索(BM25+向量+RRF) ──┤
+  └── schema指纹+缓存隔离 ──────┘
+                 │
+                 ▼
+Phase 2 图谱+对话
+  └── 语义边(8+种)
+                 │
+                 ▼
+Phase 3 检索增强
+  ├── 意图分类(零LLM)
+  ├── 后融合Boost 第一步(标题+来源)
+  └── 乐观锁CAS + MCP安全约束
+                 │
+        ┌────────┴────────┐
+        ▼                 ▼
+Phase 4 打包+代码分块    [数据积累中...]
+  ├── OKF导出/导入              │
+  └── Tree-sitter + seekdb spike
+                                ▼
+Phase 5 可选增强
+  ├── 重排序(Cross-encoder)
+  ├── 后融合Boost 完整版 ← 需 salience/时效/backlinks 数据
+  └── 完整元数据 + 编译</div>
+
+        <div class="prd-h3">当前状态</div>
+        <div class="prd-callout green"><strong>原型阶段已完成</strong>：五个核心模块的 HTML 静态原型已实现。下一步进入 Phase 1 开发阶段——搭建检索地基（5 层分块 + 内容验证 + 上下文检索 + 混合搜索 + schema 指纹缓存隔离），其中<strong>上下文检索必须和分块一起做</strong>，否则后续要全量重嵌入。</div>
+
+        <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
+          <span>PRD · 工作知识库 · V3.0</span>
+          <span>2026-06-28</span>
+          <span>END OF DOCUMENT</span>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/mock-data.js"></script>
+<script src="assets/sidebar.js"></script>
+<script src="assets/settings.js"></script>
+
+</body>
+</html>
