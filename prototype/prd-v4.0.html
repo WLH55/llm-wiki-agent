@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>产品需求文档 · 工作知识库 v4.0</title>
+  <title>产品需求文档 · 工作知识库 v4.1</title>
   <link rel="stylesheet" href="assets/style.css">
   <style>
     .prd-layout { max-width: 860px; margin: 0 auto; padding: 48px 48px 120px; height: calc(100vh - 56px); overflow-y: auto; }
@@ -60,7 +60,7 @@
   <header class="app-header">
     <div class="app-header__brand">
       <span class="app-header__title">工 作 知 识 库</span>
-      <span class="app-header__subtitle">editorial · v4.0</span>
+      <span class="app-header__subtitle">editorial · v4.1</span>
     </div>
     <div class="app-header__actions">
       <a href="search.html" class="kbd-search"><kbd>⌘</kbd><kbd>K</kbd><span>搜索</span></a>
@@ -73,16 +73,17 @@
 
       <!-- ── 文档头 ── -->
       <div class="prd-header">
-        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V4.0</div>
+        <div class="text-meta">PRODUCT REQUIREMENTS DOCUMENT · V4.1</div>
         <h1 class="h1" style="margin: 8px 0 0; font-size: 32px;">工作知识库</h1>
         <p style="font-size: 15px; color: var(--ink-muted); margin-top: 8px;">知识库管理桌面客户端 — 像 Navicat 管理 MySQL 一样管理你的知识库</p>
         <div class="prd-header__meta">
-          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v4.0</div></div>
-          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-06-28</div></div>
+          <div><div class="prd-header__field-label">版本</div><div class="prd-header__field-value">v4.1</div></div>
+          <div><div class="prd-header__field-label">日期</div><div class="prd-header__field-value">2026-07-03</div></div>
           <div><div class="prd-header__field-label">状态</div><div class="prd-header__field-value">原型验证中</div></div>
           <div><div class="prd-header__field-label">目标平台</div><div class="prd-header__field-value">Windows / macOS 桌面端</div></div>
         </div>
-        <div class="prd-callout"><strong>v4.0 相对 v3.0 的变化：</strong>在 v3.0 检索地基之上，补充企业级能力（多租户 / 多知识库 / 多模型 / 会话管理），新增数据源连接、可观测性、IM 通知三个模块，<strong>文档解析升级为 Rust sidecar</strong>，<strong>MCP 工具集从 2 个扩充到 8 个</strong>。技术参考腾讯开源 WeKnora 的工程实现，但坚持桌面客户端的产品定位。</div>
+        <div class="prd-callout"><strong>v4.1 相对 v4.0 的变化：</strong>重构"团队模式"架构——明确<strong>个人模式无服务端、团队模式极薄服务端</strong>的混合部署模型；重写权限模型为<strong>三层 RBAC</strong>（空间上限 + 知识库共享权限 + 个人角色，取最小）；引入<strong>知识库（资产）vs 空间（容器）</strong>的双实体模型；新增 4 张表（knowledge_bases / workspaces / workspace_kb_grants / workspace_memberships）。共享行为采用 <strong>git push 模式</strong>：上传到团队服务器，本地保留只读快照。</div>
+        <div class="prd-callout info"><strong>v4.0 相对 v3.0 的变化（保留参考）：</strong>补充企业级能力（多租户 / 多知识库 / 多模型 / 会话管理），新增数据源连接、可观测性、IM 通知三个模块，<strong>文档解析升级为 Rust sidecar</strong>，<strong>MCP 工具集从 2 个扩充到 8 个</strong>。技术参考腾讯开源 WeKnora 的工程实现，但坚持桌面客户端的产品定位。</div>
       </div>
 
       <!-- ── 目录 ── -->
@@ -95,7 +96,7 @@
         <a href="#s4"><span class="toc-num">04</span>架构决策：检索优先</a>
         <a href="#s5"><span class="toc-num">05</span>功能架构总览</a>
         <div class="prd-toc__group">核心模块</div>
-        <a href="#s6"><span class="toc-num">06</span>模块一：知识库连接（多知识库）</a>
+        <a href="#s6"><span class="toc-num">06</span>模块一：知识库与空间连接</a>
         <a href="#s7"><span class="toc-num">07</span>模块二：文档管理（解析升级 + 异步任务）</a>
         <a href="#s8"><span class="toc-num">08</span>模块三：AI 对话（会话管理 + 多模型）</a>
         <a href="#s9"><span class="toc-num">09</span>模块四：知识图谱</a>
@@ -104,7 +105,7 @@
         <a href="#s11"><span class="toc-num">11</span>模块六：数据源连接</a>
         <a href="#s12"><span class="toc-num">12</span>模块七：可观测性</a>
         <a href="#s13"><span class="toc-num">13</span>模块八：IM 通知与集成</a>
-        <a href="#s14"><span class="toc-num">14</span>多租户与权限模型</a>
+        <a href="#s14"><span class="toc-num">14</span>多租户与权限（三层 RBAC）</a>
         <div class="prd-toc__group">技术规格</div>
         <a href="#s15"><span class="toc-num">15</span>全局交互规范</a>
         <a href="#s16"><span class="toc-num">16</span>数据模型</a>
@@ -313,37 +314,56 @@
                                                          └──────────────────────────┘</div>
       </section>
 
-      <!-- ═══ 06. 知识库连接 ═══ -->
+      <!-- ═══ 06. 知识库与空间连接 ═══ -->
       <section class="prd-section" id="s6">
         <div class="prd-section__num">06 — CONNECTION</div>
-        <h2 class="prd-section__title">模块一：知识库连接（多知识库）</h2>
-        <p>知识库连接是客户端的入口模块，类似 Navicat 的"连接管理"。同一个应用支持两种使用模式，用户在连接页面二选一；同一个应用可注册多个连接，自由切换。</p>
+        <h2 class="prd-section__title">模块一：知识库与空间连接 <span class="badge badge-changed">v4.1 重构</span></h2>
+        <p>连接模块管理用户对"知识库"和"空间"的接入。一个桌面客户端可同时挂载：多个个人知识库（本地 PGLite）+ 多个团队空间（远程团队服务器）。类似 Navicat 同时管理多个 MySQL 连接。</p>
 
-        <div class="prd-h3">两种模式对比</div>
+        <div class="prd-h3">两个核心实体</div>
         <table class="prd-table">
-          <tr><th>维度</th><th>模式 A：远程连接（团队）</th><th>模式 B：本地连接（个人）</th></tr>
-          <tr><td>数据来源</td><td>内网服务端的 Postgres</td><td>本地 PGLite（进程内嵌入式）</td></tr>
-          <tr><td>客户端胖瘦</td><td><strong>thin</strong>（只有 UI，业务逻辑在服务端）</td><td>胖（UI + 业务逻辑 + PGLite 都在客户端进程内）</td></tr>
+          <tr><th>实体</th><th>归属</th><th>物理位置</th><th>说明</th></tr>
+          <tr><td><strong>知识库（KB）</strong></td><td>个人资产，单一 owner</td><td>本地 PGLite（个人库） / 团队服务器（共享后）</td><td>用户创建并拥有的数据包，可独立存在，也可共享到空间</td></tr>
+          <tr><td><strong>空间（Workspace）</strong></td><td>团队共享容器</td><td>团队服务器</td><td>由创建者管理，挂载多个被共享的知识库，邀请成员加入</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>关键区分：</strong>知识库是"内容资产"（owner 拥有），空间是"内容可见性"（admin 管理）。一个知识库 owner 把知识库共享到空间后，空间内成员按角色访问；owner 撤销共享后，成员立即看不到。一个知识库可同时共享到多个空间。</div>
+
+        <div class="prd-h3">三种连接场景</div>
+        <table class="prd-table">
+          <tr><th>场景</th><th>连接对象</th><th>客户端胖瘦</th><th>说明</th></tr>
+          <tr><td>① 纯个人使用</td><td>本地 PGLite</td><td>胖客户端</td><td>无服务端、无网络依赖，所有数据在本地</td></tr>
+          <tr><td>② 加入团队空间</td><td>团队服务器（极薄 API + Postgres）</td><td>thin 客户端</td><td>通过 token 鉴权，看到自己有权限的空间和知识库</td></tr>
+          <tr><td>③ 共享个人库到空间</td><td>先本地 → 上传团队服务器 → 挂载到空间</td><td>胖 → thin 切换</td><td>共享后本地保留只读快照，团队服务器持有主数据</td></tr>
+        </table>
+
+        <div class="prd-h3">两种引擎模式对比</div>
+        <table class="prd-table">
+          <tr><th>维度</th><th>模式 A：远程连接（团队空间）</th><th>模式 B：本地连接（个人库）</th></tr>
+          <tr><td>数据来源</td><td>团队服务器的 Postgres</td><td>本地 PGLite（进程内嵌入式）</td></tr>
+          <tr><td>客户端胖瘦</td><td><strong>thin</strong>（UI + HTTP 客户端，不持 DB 凭据）</td><td>胖（UI + 业务逻辑 + PGLite 都在客户端进程内）</td></tr>
           <tr><td>本地数据库</td><td>不启用（PGLite 打包但不运行）</td><td>启用（PGLite WASM）</td></tr>
+          <tr><td>鉴权</td><td>user token + 三层 RBAC（见 §14）</td><td>无需</td></tr>
           <tr><td>并发</td><td>多人 MVCC + 行级锁</td><td>单人</td></tr>
-          <tr><td>权限</td><td>source 分区 + token</td><td>无需</td></tr>
           <tr><td>适用</td><td>团队协作</td><td>个人积累</td></tr>
         </table>
 
         <div class="prd-h3">功能规格</div>
         <table class="prd-table">
           <tr><th>功能</th><th>描述</th></tr>
-          <tr><td>当前连接</td><td>显示当前活跃的知识库：名称、引擎类型、source_id、统计信息</td></tr>
-          <tr><td>已注册连接列表</td><td>区分本地连接（PGLite 数据目录）和远程连接（Postgres 服务端 URL + token）</td></tr>
-          <tr><td>添加本地知识库</td><td>选择本地目录，启动 PGLite 引擎挂载数据目录</td></tr>
-          <tr><td>连接远程知识库</td><td>输入服务端 URL + access_token，thin 连接到团队 Postgres</td></tr>
-          <tr><td>切换知识库</td><td>切换当前活跃连接，所有模块自动切到新数据</td></tr>
-          <tr><td>快照（本地）</td><td>打包本地 PGLite 数据目录 + raw/ 为 .zip</td></tr>
+          <tr><td>当前活跃连接</td><td>显示当前选中的知识库或空间：名称、类型（个人/团队）、角色（如适用）、统计信息</td></tr>
+          <tr><td>连接列表分组</td><td>① 我的个人知识库（本地 PGLite 路径）；② 我加入的团队空间（远程 URL + token + 角色）</td></tr>
+          <tr><td>添加本地知识库</td><td>选择本地目录，启动 PGLite 引擎挂载数据目录，用户成为该库 owner</td></tr>
+          <tr><td>连接团队空间</td><td>输入团队服务器 URL + 账号/密码，thin 连接，看到自己有权限的空间列表</td></tr>
+          <tr><td>切换连接</td><td>在个人库和团队空间之间切换，所有模块自动切到新数据上下文</td></tr>
+          <tr><td>共享知识库到空间 <span class="badge badge-new">v4.1</span></td><td>owner 选中本地库 → 选目标空间 → 设权限（可编辑/只读）→ 上传到团队服务器（详见 §14）</td></tr>
+          <tr><td>撤销共享 <span class="badge badge-new">v4.1</span></td><td>owner 可随时撤销已共享的知识库；撤销后空间成员立即看不到该库</td></tr>
+          <tr><td>成员管理 <span class="badge badge-new">v4.1</span></td><td>空间 admin 可邀请/移除成员、修改成员角色；成员可主动退出空间</td></tr>
+          <tr><td>快照（本地库）</td><td>打包本地 PGLite 数据目录 + raw/ 为 .zip</td></tr>
           <tr><td>导出</td><td>① 完整快照（raw/ + 数据库 dump）；② OKF bundle（跨工具可移植）</td></tr>
           <tr><td>导入</td><td>从 .zip 恢复，支持完整快照和 OKF bundle 两种格式</td></tr>
-          <tr><td>本地 → 团队上传</td><td>把本地知识库 dump 上传到团队 Postgres，转为团队共享 source</td></tr>
         </table>
         <div class="prd-callout green"><strong>OKF 互操作：</strong>导出支持 OKF bundle 格式——声明兼容 Open Knowledge Format v0.1，导出的知识库能被任何 OKF 消费者读取，不被锁定在自有格式。运行时仍是 DB，OKF 仅用于导出/导入时刻。</div>
+        <div class="prd-callout"><strong>本地 → 团队共享的物理效果：</strong>共享后，知识库的主数据迁移到团队服务器；owner 本地保留只读快照（用于离线查看）。后续 owner 对本地快照的修改<strong>不会自动同步</strong>，需要显式"重新推送"（git push 模式）。</div>
       </section>
 
       <!-- ═══ 07. 文档管理 ═══ -->
@@ -688,21 +708,113 @@ POST https://oapi.dingtalk.com/robot/send?access_token={token}
         <div class="prd-callout green"><strong>为什么这样选：</strong>双向对话的 IM Bot 需要常驻服务端收消息，与桌面定位冲突。而通知推送只需一个 webhook HTTP 请求，桌面端触发即发，无需常驻。用户在桌面端或 IDE（MCP）对话，通知只是"告知有新知识"的辅助通道。</div>
       </section>
 
-      <!-- ═══ 14. 多租户与权限 ═══ -->
+      <!-- ═══ 14. 多租户与权限（v4.1 重写） ═══ -->
       <section class="prd-section" id="s14">
-        <div class="prd-section__num">14 — TENANCY</div>
-        <h2 class="prd-section__title">多租户与权限模型</h2>
-        <p>个人形态无需权限。团队形态采用 <strong>source 分区 + token 凭证</strong>模型：</p>
+        <div class="prd-section__num">14 — TENANCY & RBAC</div>
+        <h2 class="prd-section__title">多租户与权限模型 <span class="badge badge-changed">v4.1 重写</span></h2>
+        <p>个人模式无需权限（用户对自己拥有的知识库完全控制）。团队模式采用 <strong>三层 RBAC 模型</strong>：空间上限 + 知识库共享权限 + 个人角色，三者取最小作为实际权限。</p>
 
-        <div class="prd-h3">权限机制</div>
+        <div class="prd-h3">三层权限模型（核心）</div>
         <table class="prd-table">
-          <tr><th>机制</th><th>说明</th></tr>
-          <tr><td>source 分区</td><td>每个知识库/部门一个 source_id，pages/chunks 都带 source_id</td></tr>
-          <tr><td>token 绑定 source</td><td>access_token 绑定 source_id（写范围）+ federated_read[]（跨源只读）</td></tr>
-          <tr><td>WHERE 下推</td><td>所有检索 SQL 带 AND source_id = ANY($可见集)，权限过滤下推进 HNSW/FTS</td></tr>
-          <tr><td>user 归属</td><td>pages.owner_id 记录作者</td></tr>
-          <tr><td>visibility 过滤</td><td>deleted_at（软删）/ sources.archived（归档）三层过滤</td></tr>
+          <tr><th>层</th><th>设置时机</th><th>设置者</th><th>取值</th><th>说明</th></tr>
+          <tr><td><strong>L1 空间上限</strong></td><td>创建空间时</td><td>空间创建者（admin）</td><td>editable / readonly</td><td>空间内所有内容的权限天花板</td></tr>
+          <tr><td><strong>L2 共享权限</strong></td><td>共享知识库到空间时</td><td>知识库 owner</td><td>editable / readonly</td><td>该知识库在该空间中的权限上限</td></tr>
+          <tr><td><strong>L3 个人角色</strong></td><td>admin 邀请成员时</td><td>空间 admin</td><td>admin / editor / viewer</td><td>成员在该空间中的身份</td></tr>
         </table>
+        <div class="prd-callout"><strong>实际权限公式：</strong><code>effective_perm(user, kb, workspace) = min(L1, L2, L3)</code><br>权限级别量化：readonly=1，editable=2；角色量化：viewer=1，editor=2，admin=2（admin 与 editor 对内容的权限相同，admin 多管理权）。</div>
+
+        <div class="prd-h3">角色与权限映射</div>
+        <table class="prd-table">
+          <tr><th>角色</th><th>内容读</th><th>内容写</th><th>管理成员</th><th>撤销共享</th><th>说明</th></tr>
+          <tr><td><strong>admin</strong></td><td>✅</td><td>✅</td><td>✅</td><td>❌（仅 owner 可撤销）</td><td>空间创建者或被授权者；管理成员角色</td></tr>
+          <tr><td><strong>editor</strong></td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>可编辑空间内可见的内容</td></tr>
+          <tr><td><strong>viewer</strong></td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>仅检索和问答</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>owner 特权（独立于 RBAC）：</strong>知识库 owner 对自己的库<strong>始终拥有 full_control</strong>，即使共享到空间设了 readonly，owner 自己仍可写。owner 是资产的最高权威。</div>
+
+        <div class="prd-h3">权限矩阵示例</div>
+        <table class="prd-table">
+          <tr><th>用户</th><th>空间</th><th>L3 角色</th><th>知识库</th><th>L1 空间上限</th><th>L2 共享权限</th><th>实际内容权限</th></tr>
+          <tr><td>张三</td><td>—</td><td>—</td><td>K1（owner）</td><td>—</td><td>—</td><td><strong>full_control</strong></td></tr>
+          <tr><td>张三</td><td>W1</td><td>admin</td><td>K1</td><td>editable</td><td>editable</td><td>full_control（owner 优先）</td></tr>
+          <tr><td>李四</td><td>W1</td><td>editor</td><td>K1</td><td>editable</td><td>editable</td><td><strong>editable</strong></td></tr>
+          <tr><td>王五</td><td>W1</td><td>viewer</td><td>K1</td><td>editable</td><td>editable</td><td><strong>readonly</strong>（角色拉低）</td></tr>
+          <tr><td>赵六</td><td>W1</td><td>editor</td><td>K1</td><td><strong>readonly</strong></td><td>editable</td><td><strong>readonly</strong>（空间上限拉低）</td></tr>
+          <tr><td>孙七</td><td>W1</td><td>editor</td><td>K1</td><td>editable</td><td><strong>readonly</strong></td><td><strong>readonly</strong>（共享权限拉低）</td></tr>
+        </table>
+
+        <div class="prd-h3">权限校验逻辑（引擎层）</div>
+        <div class="prd-diagram">// 伪代码：计算用户对知识库的实际权限
+function computeEffectivePermission(userId, kbId, workspaceId):
+    # 1. owner 直通
+    kb = getKb(kbId)
+    if kb.owner_id == userId:
+        return 'full_control'
+
+    # 2. 查三层
+    ws        = getWorkspace(workspaceId)            # L1
+    grant     = getGrant(kbId, workspaceId)          # L2
+    membership = getMembership(userId, workspaceId)  # L3
+
+    # 3. 不在空间或未共享 → 无权限
+    if not grant or not membership:
+        return 'none'
+
+    # 4. 三层取最小
+    levels = {readonly: 1, editable: 2}
+    roles  = {viewer: 1, editor: 2, admin: 2}
+
+    eff = min(
+        levels[ws.default_permission],
+        levels[grant.permission],
+        roles[membership.role]
+    )
+    return 'editable' if eff >= 2 else 'readonly'
+
+# 管理权（独立校验，仅 admin 持有）
+function canManage(userId, workspaceId):
+    return getMembership(userId, workspaceId)?.role == 'admin'</div>
+
+        <div class="prd-h3">共享流程（owner 操作）</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step"><div class="prd-flow__step-num">01</div><div class="prd-flow__step-text">owner 在本地选中知识库 K1 → "共享到空间" → 选目标空间 W1 → 设权限（editable/readonly）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">02</div><div class="prd-flow__step-text">客户端打包 K1 数据（pages/chunks/links），POST /kb/upload 到团队服务器（带 owner token）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">03</div><div class="prd-flow__step-text">服务端校验：owner 身份 + admin 权限（owner 必须是 W1 admin，或绕过：任何 owner 都可共享到任何空间？— 默认要求 owner 必须是空间 admin）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">04</div><div class="prd-flow__step-text">服务端在 sources 表创建 source → 写入 pages/chunks/links → 创建 knowledge_bases 记录（owner=张三）→ 创建 workspace_kb_grants（W1, K1', permission）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">05</div><div class="prd-flow__step-text">客户端本地标记 K1 已共享到 W1，本地保留只读快照</div></div>
+        </div>
+
+        <div class="prd-h3">撤销共享（owner 操作）</div>
+        <div class="prd-flow">
+          <div class="prd-flow__step"><div class="prd-flow__step-num">01</div><div class="prd-flow__step-text">owner 点击"撤销 K1 在 W1 的共享" → DELETE /workspace/W1/kb/K1'</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">02</div><div class="prd-flow__step-text">服务端校验：当前用户是 K1' 的 owner（仅 owner 可撤销）</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">03</div><div class="prd-flow__step-text">删除 workspace_kb_grants（W1, K1'）→ 删除 source K1' 全部数据 → 删除 knowledge_bases 记录</div></div>
+          <div class="prd-flow__step"><div class="prd-flow__step-num">04</div><div class="prd-flow__step-text">空间成员立即看不到 K1'；owner 本地快照保留</div></div>
+        </div>
+
+        <div class="prd-h3">成员管理（admin 操作）</div>
+        <table class="prd-table">
+          <tr><th>操作</th><th>触发者</th><th>API</th><th>校验</th></tr>
+          <tr><td>邀请成员</td><td>空间 admin</td><td>POST /workspace/W1/members {email, role}</td><td>当前用户是 W1 admin；目标用户存在；role 合法</td></tr>
+          <tr><td>修改角色</td><td>空间 admin</td><td>PATCH /workspace/W1/members/{user_id} {role}</td><td>同上；不能修改自己的角色（防提权）</td></tr>
+          <tr><td>移除成员</td><td>空间 admin</td><td>DELETE /workspace/W1/members/{user_id}</td><td>同上；不能移除自己（防误操作）</td></tr>
+          <tr><td>成员主动退出</td><td>成员本人</td><td>DELETE /workspace/W1/members/self</td><td>当前用户在该空间有 membership</td></tr>
+        </table>
+
+        <div class="prd-h3">空间与知识库的多对多关系</div>
+        <div class="prd-diagram">    知识库 K1 (owner: 张三)
+       /             \
+    共享到            共享到
+    W1 (editable)    W2 (readonly)
+     |                |
+   成员:             成员:
+   - 张三 admin      - 张三 editor
+   - 李四 editor     - 王五 admin
+   - 王五 viewer
+
+  → 一个知识库可同时挂载到多个空间
+  → 不同空间可设不同共享权限
+  → owner 撤销某次共享不影响其他空间</div>
 
         <div class="prd-h3">并发与冲突控制</div>
         <table class="prd-table">
@@ -710,7 +822,11 @@ POST https://oapi.dingtalk.com/robot/send?access_token={token}
           <tr><td>多人同时读</td><td>Postgres MVCC，无冲突</td></tr>
           <tr><td>多人写不同文档</td><td>Postgres 行级锁，无冲突</td></tr>
           <tr><td>多人写同一文档</td><td>P1: last-write-wins；P3: 乐观锁 CAS（pages.version）</td></tr>
+          <tr><td>多人同时改成员角色</td><td>admin 操作串行化，最后生效</td></tr>
+          <tr><td>共享与撤销并发</td><td>owner 撤销共享时，正在进行的成员写入走"软中断"（事务回滚 + 友好提示）</td></tr>
         </table>
+
+        <div class="prd-callout red"><strong>RBAC 强度说明：</strong>当前为<strong>应用层软约束</strong>（服务端 API 强制 RBAC，但客户端不持 DB 凭据，所以比纯拓扑 A 强）。如未来需要更强合规（即使服务端被绕过也要拦），可在 Postgres 层加 RLS 策略升级为硬约束。</div>
         <div class="prd-callout info"><strong>MCP 安全约束（P3 必须落地）：</strong>schema 类参数只能由本地可信客户端设置。远程调用（ctx.remote === true）传入的 schema 覆盖一律拒绝，防止远程 agent 偷换 schema 规避权限。</div>
       </section>
 
@@ -734,10 +850,10 @@ POST https://oapi.dingtalk.com/robot/send?access_token={token}
         </table>
       </section>
 
-      <!-- ═══ 16. 数据模型 ═══ -->
+      <!-- ═══ 16. 数据模型（v4.1 扩展） ═══ -->
       <section class="prd-section" id="s16">
         <div class="prd-section__num">16 — DATA MODEL</div>
-        <h2 class="prd-section__title">数据模型</h2>
+        <h2 class="prd-section__title">数据模型 <span class="badge badge-changed">v4.1 扩展</span></h2>
         <p>数据库 schema 为权威，文件系统为快照。所有结构化数据存数据库，磁盘文件只是可重建的 raw 原文 + 可读快照。</p>
 
         <div class="prd-h3">核心表（节选，完整见 v3.0 §12）</div>
@@ -746,13 +862,69 @@ pages          -- 文档（slug, source_id, type, title, body_md, content_hash, 
 content_chunks -- 分块+向量（page_id, chunk_index, body, embedding vector(1536), search_vector...）
 links          -- 图谱边（from_page_id, to_page_id, link_type, link_source, weight）
 users          -- 用户（id, name, email）
-access_tokens  -- 凭证（token_hash, source_id, federated_read[], scopes）
+access_tokens  -- 凭证（token_hash, user_id, expires_at, scopes）
 
--- v4 新增表
+-- v4 新增表（异步任务/可观测性/数据源）
 process_spans  -- 文档处理时间线（page_id, stage, status, started_at, finished_at, error）
 search_log     -- 检索质量日志（query, mode, intent, top_chunks, feedback）
 datasources    -- 数据源连接配置（connector_type, config加密, sync_cursor, last_sync_at）
-sync_logs      -- 同步日志（datasource_id, started_at, finished_at, result）</div>
+sync_logs      -- 同步日志（datasource_id, started_at, finished_at, result）
+
+-- v4.1 新增表（三层 RBAC：知识库 / 空间 / 共享关系 / 成员关系）
+knowledge_bases         -- 知识库实体（owner 拥有的内容资产）
+workspaces              -- 共享空间（团队共享容器）
+workspace_kb_grants     -- 知识库↔空间 多对多（带共享权限）
+workspace_memberships   -- 用户↔空间 多对多（带角色）</div>
+
+        <div class="prd-h3">v4.1 新增表 DDL（三层 RBAC）</div>
+        <div class="prd-diagram">-- 知识库实体（owner 拥有，独立于 source）
+CREATE TABLE knowledge_bases (
+  id              SERIAL PRIMARY KEY,
+  owner_id        INT REFERENCES users(id) ON DELETE RESTRICT,
+  name            TEXT NOT NULL,
+  description     TEXT,
+  storage_kind    TEXT NOT NULL,         -- 'local' / 'team_server'
+  source_id       INT REFERENCES sources(id) ON DELETE RESTRICT,
+  content_hash    TEXT,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  updated_at      TIMESTAMPTZ
+);
+
+-- 共享空间（团队容器）
+CREATE TABLE workspaces (
+  id                  SERIAL PRIMARY KEY,
+  name                TEXT NOT NULL,
+  description         TEXT,
+  owner_id            INT REFERENCES users(id) ON DELETE RESTRICT,  -- 创建者=admin
+  default_permission  TEXT NOT NULL,   -- 'editable' / 'readonly' (L1 空间上限)
+  created_at          TIMESTAMPTZ DEFAULT now()
+);
+
+-- 知识库 ↔ 空间（多对多，带共享权限 L2）
+CREATE TABLE workspace_kb_grants (
+  workspace_id  INT REFERENCES workspaces(id) ON DELETE CASCADE,
+  kb_id         INT REFERENCES knowledge_bases(id) ON DELETE CASCADE,
+  permission    TEXT NOT NULL,   -- 'editable' / 'readonly'
+  granted_by    INT REFERENCES users(id),  -- 必须是 kb.owner_id
+  granted_at    TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (workspace_id, kb_id)
+);
+
+-- 用户 ↔ 空间（多对多，带角色 L3）
+CREATE TABLE workspace_memberships (
+  workspace_id  INT REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id       INT REFERENCES users(id) ON DELETE CASCADE,
+  role          TEXT NOT NULL,   -- 'admin' / 'editor' / 'viewer'
+  granted_by    INT REFERENCES users(id),  -- 必须是 workspace admin
+  granted_at    TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (workspace_id, user_id)
+);
+
+CREATE INDEX idx_grants_kb     ON workspace_kb_grants(kb_id);
+CREATE INDEX idx_grants_ws     ON workspace_kb_grants(workspace_id);
+CREATE INDEX idx_membership_u  ON workspace_memberships(user_id);
+CREATE INDEX idx_membership_ws ON workspace_memberships(workspace_id);
+CREATE INDEX idx_kb_owner      ON knowledge_bases(owner_id);</div>
 
         <div class="prd-h3">关键索引</div>
         <table class="prd-table">
@@ -761,19 +933,31 @@ sync_logs      -- 同步日志（datasource_id, started_at, finished_at, result�
           <tr><td>idx_chunks_search / idx_pages_search</td><td>GIN (tsvector)</td><td>全文检索</td></tr>
           <tr><td>idx_links_from / idx_links_to</td><td>B-tree</td><td>图谱遍历、backlink</td></tr>
           <tr><td>idx_pages_source (partial)</td><td>Partial B-tree</td><td>source 权限隔离</td></tr>
+          <tr><td>idx_grants_kb / idx_grants_ws</td><td>B-tree</td><td>三层 RBAC 的空间-知识库关系查询</td></tr>
+          <tr><td>idx_membership_u / idx_membership_ws</td><td>B-tree</td><td>三层 RBAC 的成员关系查询</td></tr>
         </table>
+
+        <div class="prd-callout info"><strong>数据模型设计要点：</strong>① <code>sources</code> 仍是物理分区（pages/chunks 带 source_id），但<strong>逻辑归属</strong>由 <code>knowledge_bases</code> 表达；② 一个 knowledge_base 对应一个 source（物理存储 1:1，逻辑可见性 N:M 通过 workspace_kb_grants 表达）；③ access_tokens 改为绑定 user_id（不再绑 source_id），权限通过 membership 动态计算。</div>
       </section>
 
-      <!-- ═══ 17. 技术架构 ═══ -->
+      <!-- ═══ 17. 技术架构（v4.1 明确混合部署） ═══ -->
       <section class="prd-section" id="s17">
         <div class="prd-section__num">17 — TECH STACK</div>
-        <h2 class="prd-section__title">技术架构</h2>
+        <h2 class="prd-section__title">技术架构 <span class="badge badge-changed">v4.1 混合部署</span></h2>
+
+        <div class="prd-h3">混合部署模型（v4.1 核心）</div>
+        <table class="prd-table">
+          <tr><th>模式</th><th>客户端</th><th>服务端</th><th>适用</th></tr>
+          <tr><td><strong>个人模式</strong></td><td>胖客户端（UI + 引擎 + PGLite）</td><td><strong>无</strong></td><td>个人积累，无网络依赖</td></tr>
+          <tr><td><strong>团队模式</strong></td><td>thin 客户端（UI + HTTP 客户端）</td><td><strong>极薄服务端 API + Postgres</strong></td><td>团队共享，多人协作</td></tr>
+        </table>
+        <div class="prd-callout"><strong>关键设计：</strong>"极薄服务端"≠ WeKnora 那种企业级 SaaS 重服务端。它只做团队场景的最小必要复杂度——鉴权 + 数据代理 + 成员管理。<strong>没有 cron 守护、WebSocket 长连接、Redis、asynq</strong>。详见下方"服务端职责边界"。</div>
 
         <div class="prd-h3">已确认技术决策</div>
         <table class="prd-table">
           <tr><th>决策项</th><th>选择</th><th>理由</th></tr>
-          <tr><td>前端框架</td><td>React / Next.js (App Router)</td><td>全栈框架，API Routes 即后端</td></tr>
-          <tr><td>后端语言</td><td>TypeScript (Next.js API Routes)</td><td>前后端统一</td></tr>
+          <tr><td>前端框架</td><td>React / Next.js (App Router)</td><td>全栈框架，桌面端 Next.js + 团队服务端 Next.js API Routes</td></tr>
+          <tr><td>后端语言</td><td>TypeScript</td><td>前后端统一，可复用引擎层代码</td></tr>
           <tr><td>文档解析</td><td><strong>Rust sidecar（v4 升级）</strong></td><td>Tauri command 调用，重解析在 Rust 线程</td></tr>
           <tr><td>数据库（个人）</td><td>PGLite（Postgres 17 WASM）</td><td>零配置，与团队形态同一套 SQL</td></tr>
           <tr><td>数据库（团队）</td><td>PostgreSQL + pgvector</td><td>MVCC 多人并发</td></tr>
@@ -782,10 +966,30 @@ sync_logs      -- 同步日志（datasource_id, started_at, finished_at, result�
           <tr><td>桌面打包</td><td>Tauri</td><td>体积小（~40MB）</td></tr>
           <tr><td>图谱可视化</td><td>D3.js</td><td>力导向图</td></tr>
           <tr><td>流式通信</td><td>SSE</td><td>AI 对话流式输出</td></tr>
-          <tr><td>异步任务</td><td>本地 SQLite 队列 / BullMQ</td><td>导入/重嵌入/图谱提取（v4 新增）</td></tr>
+          <tr><td>异步任务</td><td>本地 SQLite 队列（个人）/ 服务端 in-process 任务（团队）</td><td>导入/重嵌入/图谱提取</td></tr>
           <tr><td>分块引擎</td><td>5 层递归 + Tree-sitter 代码语义</td><td>CJK 单独计数</td></tr>
           <tr><td>嵌入模型</td><td>双模式：在线 + 本地</td><td>text-embedding-3-small / bge-m3</td></tr>
+          <tr><td>团队服务端部署 <span class="badge badge-new">v4.1</span></td><td>公司内网服务器 / Docker</td><td>数据私有不出公司</td></tr>
+          <tr><td>团队服务端形态 <span class="badge badge-new">v4.1</span></td><td>Next.js API Routes（与客户端共享引擎层）</td><td>引擎层（auth/permission/SQL）单一代码库复用</td></tr>
         </table>
+
+        <div class="prd-h3">极薄服务端职责边界 <span class="badge badge-new">v4.1 关键</span></div>
+        <table class="prd-table">
+          <tr><th>职责</th><th>做不做</th><th>说明</th></tr>
+          <tr><td>用户鉴权（token 验证）</td><td>✅ 做</td><td>每次请求验证 Authorization header</td></tr>
+          <tr><td>三层 RBAC 校验</td><td>✅ 做</td><td>每个操作前计算 effective_permission</td></tr>
+          <tr><td>知识库上传接收</td><td>✅ 做</td><td>POST /kb/upload 接收 owner 推送的数据</td></tr>
+          <tr><td>查询/写入代理</td><td>✅ 做</td><td>客户端不持 DB 凭据，服务端转发 SQL</td></tr>
+          <tr><td>成员管理 API</td><td>✅ 做</td><td>邀请/移除/改角色/退出</td></tr>
+          <tr><td>共享/撤销共享 API</td><td>✅ 做</td><td>管理 workspace_kb_grants</td></tr>
+          <tr><td>异常日志</td><td>✅ 做</td><td>本地文件日志（不接 Sentry/Langfuse）</td></tr>
+          <tr><td><strong>cron 守护进程</strong></td><td>❌ 不做</td><td>数据源同步用客户端定时器（应用启动 + setInterval）</td></tr>
+          <tr><td><strong>WebSocket 长连接</strong></td><td>❌ 不做</td><td>IM 通知走单向 webhook，不需要常驻连接</td></tr>
+          <tr><td><strong>Redis / 领导选举</strong></td><td>❌ 不做</td><td>单进程服务端，无分布式需求</td></tr>
+          <tr><td><strong>asynq 分布式任务队列</strong></td><td>❌ 不做</td><td>用 in-process 队列（async worker）</td></tr>
+          <tr><td><strong>跨进程 trace 传播</strong></td><td>❌ 不做</td><td>单进程，本地日志即可</td></tr>
+        </table>
+        <div class="prd-callout green"><strong>能力对齐，定位不漂：</strong>v4.1 的混合部署让你获得企业级能力（多用户、多空间、三层 RBAC、共享协作），同时保持桌面客户端的轻量定位。服务端只在"团队场景"才需要——个人用户永远不需要部署服务器。</div>
 
         <div class="prd-h3">双引擎架构</div>
         <div class="prd-diagram">┌─────────────────────────────────────────────────────────────┐
@@ -796,17 +1000,42 @@ sync_logs      -- 同步日志（datasource_id, started_at, finished_at, result�
 └────────────────────────┬─────────────────────────────────────┘
                          │
         ┌────────────────┴────────────────┐
-        ▼  模式 B：本地（个人）             ▼  模式 A：远程（团队）
-┌───────────────────┐            ┌────────────────────────┐
-│  PgliteEngine     │            │  RemoteEngine          │
-│  · PGLite WASM    │            │  · HTTP 客户端          │
-│  · SQL 直连        │            │  · 每个操作翻译成 HTTP  │
-│  · 零配置          │            │  · 携带 access_token   │
-└────────┬──────────┘            └───────────┬────────────┘
+        ▼  模式 B：本地（个人）             ▼  模式 A：远程（团队空间）
+┌───────────────────┐            ┌─────────────────────────────┐
+│  PgliteEngine     │            │  RemoteEngine               │
+│  · PGLite WASM    │            │  · HTTP 客户端              │
+│  · SQL 直连        │            │  · 携带 user token          │
+│  · 零配置          │            │  · 三层 RBAC 服务端校验      │
+└────────┬──────────┘            └───────────┬─────────────────┘
          │                                   │
          ▼                                   ▼
-   本地数据目录                      内网服务端 Postgres
-   + Rust sidecar 解析              + Rust/Python docreader</div>
+   本地数据目录                      ┌────────────────────────┐
+   + Rust sidecar 解析              │  公司内网团队服务器       │
+                                    │  ┌──────────────────┐   │
+                                    │  │ 极薄服务端 API     │   │
+                                    │  │  · /auth          │   │
+                                    │  │  · /kb/upload     │   │
+                                    │  │  · /kb/query      │   │
+                                    │  │  · /workspace/*   │   │
+                                    │  │  · /member/*      │   │
+                                    │  └────────┬─────────┘   │
+                                    │           ▼              │
+                                    │  ┌──────────────────┐   │
+                                    │  │ Postgres + RLS    │   │
+                                    │  │ （可选 P3 升级）    │   │
+                                    │  └──────────────────┘   │
+                                    └────────────────────────┘</div>
+
+        <div class="prd-h3">引擎层代码复用</div>
+        <p>桌面客户端和团队服务端<strong>共享同一份引擎层代码</strong>（TypeScript），仅"执行入口"不同：</p>
+        <table class="prd-table">
+          <tr><th>引擎模块</th><th>桌面客户端（个人模式）</th><th>团队服务端</th></tr>
+          <tr><td>auth</td><td>本地无鉴权（直接放行）</td><td>验证 token → userId</td></tr>
+          <tr><td>permission</td><td>owner 直通</td><td>三层 RBAC 校验</td></tr>
+          <tr><td>executeQuery</td><td>PGLite 直执行</td><td>Postgres 执行</td></tr>
+          <tr><td>kb/write</td><td>本地写入</td><td>带权限校验的写入</td></tr>
+        </table>
+        <div class="prd-callout info"><strong>开发模式：</strong>引擎层打成 npm 包，桌面客户端和团队服务端都依赖它。90% 业务逻辑复用，10% 是部署形态差异（个人用 PGLite，团队用 Postgres + HTTP）。</div>
       </section>
 
       <!-- ═══ 18. 双 AI 通道 ═══ -->
@@ -1091,8 +1320,8 @@ SELECT * FROM hnsw_candidates ORDER BY raw_score DESC LIMIT $top_k;</div>
         <div class="prd-callout"><strong>坚持的定位：</strong>v4.0 吸收 WeKnora 的工程能力，但不抄服务端常驻运行模型。能力对齐企业级，定位仍是桌面客户端——数据私有、可迁移、检索优先。</div>
 
         <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);">
-          <span>PRD · 工作知识库 · V4.0</span>
-          <span>2026-06-28</span>
+          <span>PRD · 工作知识库 · V4.1</span>
+          <span>2026-07-03</span>
           <span>END OF DOCUMENT</span>
         </div>
       </section>
