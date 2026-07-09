@@ -19,9 +19,11 @@
 把产品定位从"Navicat 风格的桌面客户端"重新调整为**"一个 docker-compose up 即可让团队拥有自己的 Web 知识库服务"**：
 
 - **单一 Web 部署模型**：弃用 PGLite/Tauri，统一为 Docker（Postgres + pgvector + MinIO + Next.js + Rust sidecar）。个人也跑同一个镜像，团队再多人共用一份。
-- **Wiki / RAG 双路径分离**（WeKnora 模式）：
-  - **RAG 路径**：原始文档 → 多种分块策略 → pgvector 向量检索 + PG 全文双路混合；
-  - **Wiki 路径**：LLM 抽取实体 / 概念 / 综述 → `wiki_pages` 表（PG 全文 + 双向链接），可手动编辑、版本化、整库导出 MD。
+- **双路径分离**（WeKnora 模式，详见 [ADR-0009](mydocs/context/docs/adr/0009-retrieval-architecture.md)）：
+  - **路径 A：wiki_search**——`wiki_pages` 表 + POSIX 正则 `~*` + 字段权重排序（title=4 / slug=3 / summary=2 / content=1）；独立检索，不走向量/BM25。
+  - **路径 B：knowledge_search**——`content_chunks` 表 + 向量（pgvector）+ BM25 + RRF 融合；wiki 页面**也切块向量化进此表**（`chunk_type='wiki_page'`），普通检索时这些 wiki chunk 参与召回且在 CHUNK_RERANK 阶段被 × 1.3 加权。
+  - **IndexingStrategy 四开关**（KB 级配置）：`vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled`；MVP 默认混合（前三个 true，graph 关）。
+  - **不做 query 级别模式切换 / 不做意图分类**：KB 配置决定能力，Agent 显式选检索工具。
 - **实体即页面**：实体不是字符串标签，而是 `wiki_pages` 中 `page_type=entity` 的行，可与任意页面（概念 / 综述 / 日志）通过 markdown `[[xxx]]` wikilink 建立双向链接图边（无类型有向）。
 - **KB 级可配置**：每个知识库创建时选定分块策略（默认 CJK 300 词；父子分块作为高级可选）、嵌入模型、向量库类型（pgvector 默认，Milvus/Qdrant 可插拔）。
 - **多源挂载**：一个 KB 可同时挂 manual / RSS / Yuque / Feishu 多个源，所有 chunks 共享同一 `kb_id`。
@@ -37,9 +39,9 @@
 4. 作为**知识库创建者**，我希望在创建 KB 时能选择嵌入模型（如 bge-m3、text-embedding-3-large 等），以便 KB 内所有 chunks 维度一致。
 5. 作为**知识库创建者**，我希望在创建 KB 时能选择向量库后端（pgvector 默认 / Milvus / Qdrant），以便后期切换不必重写应用层。
 6. 作为**文档贡献者**，我希望在一个 KB 下同时挂载 manual 上传、RSS 订阅、Yuque 同步、Feishu 同步多个源，以便所有来源的 chunks 共享同一检索入口。
-7. 作为**检索用户**，我希望搜索结果同时覆盖 RAG 路径（原始文档切片）和 Wiki 路径（LLM 生成的实体/概念页），以便一次搜索拿到原始证据 + 结构化总结。
+7. 作为**检索用户**，我希望系统通过 **IndexingStrategy KB 级配置**决定检索能力——混合 KB（默认）下普通搜索（`knowledge_search`）同时召回原文 chunk 和 wiki chunk（后者 × 1.3 加权），独立的 `wiki_search` 走 POSIX 正则 + 字段权重排序精确匹配 wiki 页面——以便我既能在普通 chat 中自动利用 wiki 知识，也能在需要时显式走 wiki 精确检索（详见 [ADR-0009](mydocs/context/docs/adr/0009-retrieval-architecture.md)）。
 8. 作为**检索用户**，我希望在阅读 Wiki 页面时，每段文字能溯源到具体的原始 chunk（`chunk_refs`），以便我验证 AI 生成内容是否忠于原文。
-9. 作为**AI 对话用户**，我希望对话回答附带引用，引用回链到 `content_chunks` 的具体 chunk，以便我快速跳转原始上下文。
+9. 作为**AI 对话用户**，我希望对话回答附带引用，引用回链到 `content_chunks` 的具体 chunk，以便我快速跳转原始上下文。**对话走双 AI 通道**（内置 Agent / 外部 MCP，见 [ADR-0006](mydocs/context/docs/adr/0006-agent-runtime-byok.md)），**LLM 调用用我自己的 BYOK key**（加密存储），没 key 时 chat 禁用并向我提示去个人设置填 key。
 10. 作为**知识工作者**，我希望 wiki 页面有 7 种明确类型——自动生成 5 种（`summary` 文档摘要 / `entity` 实体 / `concept` 概念 / `index` 系统索引 / `log` 系统日志）+ Agent 手建 2 种（`synthesis` 综合分析 / `comparison` 对比）——以便不同生成路径产出的页面在 schema 层就有清晰区分，且 `index`/`log` 系统页排除在用户目录之外。
 11. 作为**知识工作者**，我希望页面之间用 markdown `[[xxx]]` wikilink 自动建立双向链接（无类型有向边，存在 `in_links`/`out_links` 数组），并辅以 `folder_id`+`parent_slug` 目录树归档和 `source_refs`+`chunk_refs` 原文溯源三套边并存，以便图谱可视化/目录树/原文回看各自有清晰语义，避免类型化边被 LLM 抽成"垃圾桶"（详见 [ADR-0003](mydocs/context/docs/adr/0003-three-edge-model.md)）。
 12. 作为**Wiki 编辑者**，我希望手动编辑 wiki 页面时使用 last-write-wins + 乐观锁（`version` 字段），以便多人并发编辑不会互相覆盖且无需复杂合并。
@@ -65,8 +67,11 @@
 32. 作为**内容治理者**，我希望导入时跑内容验证管线（`content_hash` 幂等 + 垃圾/隐私检测），以便避免重复入库和敏感数据泄漏。
 33. 作为**团队管理员**，我希望 Phase 5 支持 IM 通知（飞书 / 钉钉 webhook），以便知识库更新能推到群。
 34. 作为**团队管理员**，我希望 Phase 5+ 支持语雀数据源连接，以便团队既有的语雀知识能增量同步进来。
-35. 作为**AI 应用开发者**，我希望意图分类走零 LLM 路径（关键词/规则），以便分类延迟低、可解释。
+35. ~~作为**AI 应用开发者**，我希望意图分类走零 LLM 路径~~（**已弃用 2026-07-09**）——改为 IndexingStrategy KB 级配置 + Agent 显式选检索工具（`knowledge_search` / `wiki_search`），不再做关键词自动路由。详见 [ADR-0009](mydocs/context/docs/adr/0009-retrieval-architecture.md) §「KB 类型推断（替代意图分类）」。
 36. 作为**评估者**，我希望 Phase 5 引入 Cross-encoder 重排序 + 评估体系，以便 P@5 持续可量化提升。
+37. 作为**新用户**，我希望通过邮箱+密码**自注册账户**（无需管理员介入），注册后自动获得一个**个人 tenant**（独占，可立即开始创建 KB / 上传文档），以便产品对个人用户零门槛。
+38. 作为**组织 admin**，我希望生成**邀请链接**（带 token，默认 7 天有效、一次性、可主动撤回）发给同事，他们打开链接即可加入我的 organization（已登录则直接加入；未登录则先注册再加入），无需我手动开账户或运维介入。
+39. 作为**同时属于多个空间的用户**（1 个自家 tenant + N 个 organization），我希望登录后能**切换当前 workspace context**（顶部下拉选空间），所有页面/检索/对话都明确落在当前 context 内，以便我不会在 A 空间的对话里意外引用到 B 空间的私有文档。
 
 ## Implementation Decisions
 
@@ -78,9 +83,13 @@
 
 ### 双路径分离（核心架构决策）
 
-- **RAG 路径**：原始文档 → 解析 → 分块 → `content_chunks`（带 embedding）→ pgvector 检索。
-- **Wiki 路径**：LLM 抽取 / 人工编辑 / MCP 沉淀 → `wiki_pages`（PG 全文）→ 双向链接图边（`in_links` / `out_links` 数组，无类型有向，详见 [ADR-0003](mydocs/context/docs/adr/0003-three-edge-model.md)）。
-- 两路径共享同一 `kb_id`，检索时可分别 Boost 也可联合排序。
+详见 [ADR-0009](mydocs/context/docs/adr/0009-retrieval-architecture.md)。要点：
+
+- **路径 A（wiki_search）**：`wiki_pages` 表 + POSIX 正则 `~*` + 字段权重排序（title=4 / slug=3 / summary=2 / content=1）；不走向量/BM25/RRF；独立检索端点。
+- **路径 B（knowledge_search）**：`content_chunks` 表 + 向量（pgvector）+ BM25 + RRF 融合；wiki 页面也切块向量化进此表（`chunk_type='wiki_page'`），普通检索时这些 wiki chunk 参与召回，且在 CHUNK_RERANK 阶段被 × 1.3 加权。
+- **IndexingStrategy KB 级配置**：4 个独立布尔开关（`vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled`），决定该 KB 的检索能力。三种典型配置：纯 RAG / 纯 wiki / 混合（MVP 默认）。
+- **不做 query 级别模式切换**：用户不在搜索时切 RAG/Wiki；KB 配置决定能力，Agent 显式选检索工具。
+- **不做意图分类**：原 [ADR-0006](mydocs/context/docs/adr/0006-agent-runtime-byok.md) §「意图分类」已弃用——KB 类型由 IndexingStrategy 推断。
 - **Wiki 路径才消耗 LLM token**（实体抽取、综述生成）；RAG 路径在导入时除了嵌入不调 LLM。
 
 ### 分块策略
@@ -100,9 +109,14 @@
 
 ### 多源挂载
 
-- `sources` 表保留 `kb_id` 外键，一个 KB 可挂多个 source（manual / RSS / Yuque / Feishu 等）。
-- 每个 source 有自己的同步状态、增量游标。
-- 所有 source 的 chunks 共享 `kb_id`，检索时不分源。
+详细决策与各 source_type 的 config/sync_cursor 见 [ADR-0007](mydocs/context/docs/adr/0007-multi-source-mounting.md)。要点：
+
+- **统一 `sources` 表**：`source_type` + `config JSONB` + `sync_cursor JSONB` + `sync_status` + `last_synced_at`；所有类型共享 schema。
+- **SourceAdapter 抽象**：每种 source_type 一个 adapter 实现（`validate_config` / `fetch_incremental` / `normalize`）；P1 只做 manual，P4-P6 逐步加 RSS / local_dir / Yuque / Feishu / Notion。
+- **所有 source 平等**：无检索 boost 加权、无更新覆盖优先级；chunks 按内容相关性排序。
+- **冲突处理**：同 source 内文档更新 → 旧 chunks 软删除 + 新 chunks 重嵌入；跨 source 同标题不冲突（`doc_id` 全局 UUID）。
+- **删除 source**：软删除 source + 该 source 所有 chunks 软删除 + wiki_pages `source_refs` 自动清理。
+- **RBAC**：source 继承 KB 权限（读 KB → 读所有 source chunks；写 KB → 管理 source）。
 
 ### 两层 RBAC + 共享语义
 
@@ -117,6 +131,30 @@
   3. 通过 agent 共享间接可见 → Viewer。
   4. 否则 → 403 Forbidden。
 - **不在产品里实现 Postgres RLS**：自注册 + 邀请制场景下应用层 RBAC 已够；RLS 留作未来企业版升级路径。
+
+### 账户体系（自注册 + 邀请制）
+
+详细流程与 schema 见 [ADR-0005](mydocs/context/docs/adr/0005-self-signup-and-invitation.md)。要点：
+
+- **自注册**：任何人访问 URL → 邮箱+密码注册 → 创建 user + **自动创建一个自家 tenant**（owner=自己，独占）。无 bootstrap owner——第一个注册的 user 与后续 user 等价。
+- **创建 organization**：任何已注册 user 都可创建 org（共享空间），创建者是 owner；可创建多个（默认上限 10 个防滥用）。
+- **邀请 token 生命周期**：默认 7 天有效、一次性使用、可主动撤回；同 org+email 重复邀请复用旧 token。
+- **多空间归属**：一个 user 可属于 1 个自家 tenant + N 个 organization（被邀请加入的）。
+- **Workspace context 切换**：登录后必须选当前 context（自家 tenant / 某 org），所有 API 调用带 `X-Workspace-Context` header；无 context 一律 400。
+- **鉴权**：JWT（HS256，24h）放 `Authorization: Bearer` header + Refresh token（7d）放 HttpOnly cookie；密码用 argon2id 哈希。
+- **不做 SSO/SAML/OIDC**：v4.2 自部署场景下自注册已够；企业 SSO 留作企业版升级路径。
+
+### Agent Runtime + BYOK + 双 AI 通道
+
+详细决策与 schema 见 [ADR-0006](mydocs/context/docs/adr/0006-agent-runtime-byok.md)。要点：
+
+- **双 AI 通道**：① 内置 Agent Runtime（Web UI 对话，JWT session 鉴权）+ ② 外部 MCP（HTTP MCP `/chat` 工具，API Key 鉴权）；两条通路最终都走同一个 `LLMClient` 抽象 + BYOK。
+- **BYOK**：每个 user 在个人设置填自己的 LLM API Key（Fernet 加密存储）；共享 KB 查询时由查询者 key 计费；产品不介入 token 采购/分配/报销。
+- **嵌入模型 vs LLM 模型分离**：KB 创建时绑定嵌入模型（导入者 key）；对话/抽取时用 LLM 模型（查询者 key）；query embedding 用查询者 key。
+- **LLM Provider Registry**：admin 维护 `llm_providers` 表，默认预置 8 个 provider（OpenAI / Azure / DeepSeek / Qwen / GLM / Kimi / Anthropic / Google）；支持自部署模型（vLLM / Ollama，OpenAI 协议兼容）。
+- **Agent Runtime 内部工具集**（不同于 MCP 工具）：5 个 Python 函数直接调用——`search_kb` / `traverse_graph` / `read_page` / `read_chunks` / `write_wiki_page`；**不能调用 MCP 工具**（避免循环）。
+- ~~**意图分类（零 LLM）**：5 类路由~~ → **已弃用**（2026-07-09），改为 IndexingStrategy KB 级配置 + Agent 显式选检索工具，详见 [ADR-0009](mydocs/context/docs/adr/0009-retrieval-architecture.md)。
+- **没 key 兜底**：用户没填任何 BYOK key → 向量检索降级为 BM25 关键词检索；chat / 抽取 / 综述功能禁用。
 
 ### 页面与图谱模型
 
@@ -215,12 +253,50 @@ FastAPI 服务在 `/mcp` 端点暴露 **HTTP MCP server**（Streamable HTTP 协�
 
 ### Phase 划分（高层）
 
-- **P1**：Docker Compose 起服；KB 创建（含分块/模型/向量库选择）；多源挂载；RAG 默认分块 + 父子分块可选；Wiki 基础表；halfvec 不带 N + partial HNSW 多维度共存（[ADR-0001](mydocs/context/docs/adr/0001-halfvec-multi-dim.md)）；Python worker + Redis 队列做 PDF 解析（替代 Rust sidecar）。
-- **P2**：双 AI 通道；AI 对话；7 种页面类型 + 实体/概念 LLM 抽取；三套边模型（链接图 / 目录树 / 溯源）；Wiki 手动编辑 + last-write-wins；MCP 工具手动沉淀。
-- **P3**：两层 RBAC（tenant + organization + kb_shares + fall-through 合并）；Wiki MD 导出（单页 + 整库）；MCP 工具集；意图分类零 LLM；后融合 Boost；search_log；process_spans UI。
-- **P4**：向量库可插拔（Milvus / Qdrant）；本地目录监控 + RSS 数据源；Tree-sitter 代码分块；VLM OCR + Caption。
-- **P5**：知识编译（可选）；Cross-encoder 重排序；评估体系；完整后融合 Boost；IM 通知；语雀数据源。
-- **P6**：飞书文档同步；Notion 连接；跨会话记忆（Agent Memory）。
+#### MVP（P1）—— 双路径核心闭环
+
+详见 [ADR-0008](mydocs/context/docs/adr/0008-mvp-scope.md)。
+
+- **基础设施**：Docker Compose（Postgres + pgvector + MinIO + FastAPI + Redis + worker）。
+- **鉴权极简**：bootstrap owner（env var 配置第一个 user）+ JWT session（无 refresh token，过期重登）；系统兜底 LLM key（env var）；**不做自注册 / 邀请制 / workspace context 切换 / 多 user / 多 provider / BYOK 强制**。
+- **KB 创建**：默认绑定 bge-m3 嵌入模型（1024 维），用户无需选；halfvec schema 按 [ADR-0001](mydocs/context/docs/adr/0001-halfvec-multi-dim.md) 设计（不带 N + partial HNSW，未来开放多模型无需 migration）。
+- **文档上传**（manual only）：Python worker + Redis 队列解析 PDF / MD / Word；默认 CJK 300 词分块；嵌入用系统兜底 key。
+- **路径 B（knowledge_search）**：content_chunks + 向量检索（pgvector）+ BM25 + RRF 融合 + **wiki chunk boost 1.3**（CHUNK_RERANK 阶段加权 `chunk_type='wiki_page'`）——**MVP 的核心模块，工程质量要做到位**（混合搜索稳定性 + 中英混排 + boost 触发条件正确）。
+- **路径 A（wiki_search）**：wiki_pages + POSIX 正则 `~*` + 字段权重排序（title=4 / slug=3 / summary=2 / content=1）——独立检索端点 `GET /api/v1/kb/{id}/wiki/search`，不走向量/BM25。
+- **IndexingStrategy**：MVP 默认混合（`vector=true, keyword=true, wiki=true`）；用户可在 KB 创建时关 `wiki_enabled` 改为纯 RAG；纯 wiki 配置 MVP 不开放（无向量库的退化场景）。
+- **Wiki 抽取流程**：LLM 抽取实体/概念 → 写 wiki_pages + **额外切块向量化进 content_chunks（`chunk_type='wiki_page'`）** + `[[xxx]]` 链接图边（[ADR-0003](mydocs/context/docs/adr/0003-three-edge-model.md)）；**目录树（folder_id + 物化路径缓存）留到 P2**；**chunk_refs 溯源边 MVP 必须有**（chat 引用回链核心）。
+- **LLM chat**：内置 Agent Runtime，单 provider（admin env var 配置，如 GLM）；引用回链 chunks；**MVP 做 SSE 流式返回**；**不做 MCP /chat / 双 AI 通道**。
+- **Wiki 手动编辑**：last-write-wins + version 字段乐观锁（[ADR-0003](mydocs/context/docs/adr/0003-three-edge-model.md) 并发控制部分）。
+
+**MVP 不做但 schema 预留**（避免未来 migration）：`tenant_id` 列（所有业务表）+ `organizations` / `org_members` / `kb_shares` 表（空表 ready）+ `sources.source_type` 列（只实现 manual adapter）+ `llm_providers` / `user_llm_keys` 表（空表 ready）。
+
+#### P2（MVP 完成后迭代）
+
+- **多 user + 邀请制**：[ADR-0005](mydocs/context/docs/adr/0005-self-signup-and-invitation.md) 完整版（自注册 + 邀请 token + workspace context 切换）。
+- **两层 RBAC**：[ADR-0002](mydocs/context/docs/adr/0002-tenant-org-rbac.md) 完整版（tenant + organization + kb_shares + fall-through 合并）。
+- **多嵌入模型 + 多 LLM provider**：[ADR-0001](mydocs/context/docs/adr/0001-halfvec-multi-dim.md) + [ADR-0006](mydocs/context/docs/adr/0006-agent-runtime-byok.md) 完整版（用户选模型 / BYOK / 8 个预置 provider + 自部署 vLLM/Ollama）。
+- **目录树**：[ADR-0003](mydocs/context/docs/adr/0003-three-edge-model.md) 目录树边部分（folder_id + 物化路径缓存，深度 3 层）。
+- **后融合 Boost 调参**（A/B 评估 wiki chunk boost factor 是否仍为 1.3）+ search_log + process_spans UI + Agent 类型预设（`wiki-qa` / `hybrid-rag-wiki` 工具白名单）。
+
+#### P3（外部接入 + 导出）
+
+- **HTTP MCP server**：[ADR-0004](mydocs/context/docs/adr/0004-http-mcp-server.md) 完整版（8 个工具 + API Key 鉴权 + mcp-remote 桥接指南）。
+- **Wiki MD 导出**（单页 + 整库，YAML frontmatter 含 page_type / slug / chunk_refs / folder_path）。
+- **多源挂载扩展**：[ADR-0007](mydocs/context/docs/adr/0007-multi-source-mounting.md) RSS / local_dir adapter。
+
+#### P4（高级检索 + 多模态）
+
+- 向量库可插拔（Milvus / Qdrant）。
+- Tree-sitter 代码语义分块。
+- VLM OCR + Caption（图片 chunk）。
+
+#### P5（评估 + IM + 语雀）
+
+- 知识编译（可选）；Cross-encoder 重排序；评估体系；完整后融合 Boost；IM 通知（飞书 / 钉钉 webhook）；语雀数据源。
+
+#### P6（飞书 / Notion / Agent Memory）
+
+- 飞书文档同步；Notion 连接；跨会话记忆（Agent Memory）。
 
 ## Testing Decisions
 
@@ -243,12 +319,20 @@ FastAPI 服务在 `/mcp` 端点暴露 **HTTP MCP server**（Streamable HTTP 协�
 - **halfvec 多维度共存**：DB 测试，见 [ADR-0001](mydocs/context/docs/adr/0001-halfvec-multi-dim.md)。在同一 KB 写入 1024 维 chunk、另一 KB 写入 3072 维 chunk，断言：① 各自的 partial HNSW 索引被命中（`EXPLAIN` 无全表扫）；② 查询时 `embedding::halfvec(N)` cast 不带维度会静默退化全表扫（验证应用层 SQL 必须 cast）；③ 不同维度间不做比较（跨 KB 检索不返回相似度）。
 - **三套边模型（链接图 / 目录树 / 溯源）**：见 [ADR-0003](mydocs/context/docs/adr/0003-three-edge-model.md)。API 测试覆盖：① 链接图边——POST 含 `[[B]]` wikilink 的 A 页面，断言 A.out_links 和 B.in_links 双向更新；② 目录树边——POST 一个 folder_id 链 3 层深的页面，断言 category_path/depth/wiki_path 缓存正确物化，且第 4 层被 400 拒绝；③ 溯源边——POST entity 页带 chunk_refs，删除被引用的原文档后断言对应 chunk_ref 被清掉。
 - **页面类型**：API 测试，POST 7 种 page_type 各一条，断言 index/log 被 `wikiIndexContentPageTypes` 排除在用户目录之外；POST 用户尝试创建 slug=`index` 的页面应被 400 拒绝（系统页保留）。
-- **多源挂载**：API 测试，给一个 KB 挂 manual + RSS 两个 source，导入后断言 chunks 都在同一 kb_id 下。
+- **多源挂载**：API 测试，给一个 KB 挂 manual + RSS 两个 source，导入后断言 chunks 都在同一 kb_id 下；详见 [ADR-0007](mydocs/context/docs/adr/0007-multi-source-mounting.md)。覆盖：① 跨 source 同标题文档不冲突（doc_id 全局唯一）；② 删除 source 后该 source chunks 软删除 + wiki_pages.source_refs 清理；③ adapter 注册机制（新加 source_type 不改核心代码）。
 - **向量库可插拔**：适配层接口测试，给定一个 IVectorStore mock，断言应用层不感知后端切换。
 - **MCP 溯源**：MCP `update` 工具测试，调用 update 带 `chunk_refs: []` 应被接受，且 `process_log` 生成一条"无溯源"标记；调用 update 带 `chunk_refs: ["<chunk_uuid>"]` 应被接受，且 `wiki_pages.chunk_refs` 写入对应值（详见 [ADR-0004](mydocs/context/docs/adr/0004-http-mcp-server.md)）。
 - **PDF 解析异步队列**：契约测试，提交一个 PDF 文件触发异步任务，断言 Redis 队列收到任务 + Python worker 消费后返回的 JSON 结构（含 chunk 列表 / process_spans 时间线 / 失败重试）。
 - **search_log**：DB 集成测试，断言每次 search 都生成一条 log，含查询、命中 top-k、用户 id。
 - **Docker 部署**：CI 中跑一次 `docker-compose up`，等待健康检查，跑一遍 E2E 冒烟。
+- **自注册 + tenant 自动创建**：API 测试，POST `/api/auth/register { email, password }` → 断言 user 创建 + 同事务创建 tenant（owner_id = user.id）+ 返回 JWT + refresh cookie；用 JWT 调 `/api/me/workspaces` 应返回 1 个 workspace（自家 tenant）。详见 [ADR-0005](mydocs/context/docs/adr/0005-self-signup-and-invitation.md)。
+- **邀请 token 生命周期**：API 测试，覆盖：① 生成邀请 → 受邀者 accept → token 标记 accepted + 加入 org_members；② 同 token 第二次 accept 返回 410（已使用）；③ 超过 7 天的 token 返回 410（已过期）；④ admin DELETE 撤回 token → accept 返回 410。
+- **workspace context 切换**：API 测试，覆盖：① 不带 `X-Workspace-Context` header 调任何业务 API 返回 400；② 带 `tenant:{id}` 但 caller 不是该 tenant 的 owner 返回 403；③ 带 `org:{id}` 但 caller 不在 org_members 返回 403；④ 正确 context 下走 fall-through 三步短路（见 [ADR-0002](mydocs/context/docs/adr/0002-tenant-org-rbac.md)）。
+- **JWT / Refresh token**：API 测试，覆盖：① JWT 过期（24h 后）调业务 API 返回 401；② POST `/api/auth/refresh` 用有效 refresh cookie 换新 JWT；③ refresh cookie 被篡改返回 401；④ logout 后 refresh cookie 失效。
+- **BYOK 加密存储 + 调用**：DB 测试，覆盖：① 写入 `user_llm_keys.encrypted_key` 是密文（用 Fernet 加密）；② DB 被攻破时无法解出明文 key（无 env var 密钥）；③ 调用 LLM 时从 DB 取密文 → 解密 → 用完即丢（不缓存明文）；④ 共享 KB 查询时用查询者 key（不是 KB owner key）。详见 [ADR-0006](mydocs/context/docs/adr/0006-agent-runtime-byok.md)。
+- **没 key 兜底**：API 测试，覆盖：① 用户没填任何 BYOK key 时调 `/api/chat` 返回 403 + 提示"请填 key"；② 调 `/api/search` 时向量检索降级为 BM25（不调 query embedding）；③ 用户填了 key 但余额耗尽返回 502/503 + 提示"key 失效"。
+- **双 AI 通道鉴权一致性**：API 测试，覆盖：① 同一 user 用 JWT 调内置 Agent chat 与用 MCP API Key 调 MCP /chat 工具，最终走同一个 LLMClient + 同一个 BYOK key；② MCP API Key 绑定的 workspace context 与 JWT session 当前 context 一致时结果一致。
+- **双路径检索 + IndexingStrategy**：API 测试，覆盖：① 纯 RAG KB（`wiki_enabled=false`）调 `wiki_search` 返回 400 + 提示"此 KB 未启用 wiki 摄入"；② 纯 wiki KB（`vector_enabled=false`）调 `knowledge_search` 返回 400 + 提示"此 KB 未启用向量检索"；③ 混合 KB 两工具都可用；④ `wiki_search` 字段权重排序正确（title 命中排在 content 命中之前，如同一个 KB 里搜"王新"，标题叫"王新"的页面排在正文提及王新的"华为"页面之前）；⑤ 路径 B 检索结果含 `wiki_page` chunk 时被 × 1.3 加权（同分 wiki chunk 排在 document chunk 之前）；⑥ boost 不在纯 RAG KB 触发（`wiki_enabled=false` 时 wiki chunk 根本不存在）；⑦ wiki 页面更新时旧 wiki chunks 软删除 + 新 chunks 重嵌入。详见 [ADR-0009](mydocs/context/docs/adr/0009-retrieval-architecture.md)。
 
 ### Prior art
 
