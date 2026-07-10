@@ -1,0 +1,127 @@
+version: "3.9"
+
+services:
+  postgres:
+    build:
+      context: ./postgres
+    container_name: llm-wiki-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-llmwiki}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmwiki}
+      POSTGRES_DB: ${POSTGRES_DB:-llmwiki}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmwiki}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - llm-wiki-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: llm-wiki-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - llm-wiki-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: llm-wiki-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-llmwiki}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-llmwiki123}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - llm-wiki-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: llm-wiki-backend
+    environment:
+      ENVIRONMENT: production
+      POSTGRES_DSN: postgresql+asyncpg://${POSTGRES_USER:-llmwiki}:${POSTGRES_PASSWORD:-llmwiki}@postgres:5432/${POSTGRES_DB:-llmwiki}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-llmwiki}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-llmwiki123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-llm-wiki}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
+      JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-24}
+      BOOTSTRAP_OWNER_EMAIL: ${BOOTSTRAP_OWNER_EMAIL:-owner@local}
+      BOOTSTRAP_OWNER_PASSWORD: ${BOOTSTRAP_OWNER_PASSWORD:-change-me}
+      EMBEDDING_API_BASE: ${EMBEDDING_API_BASE:-https://api.siliconflow.cn/v1}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-m3}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - llm-wiki-net
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: llm-wiki-worker
+    command: sh -c "alembic upgrade head && python -m app.workers.worker"
+    environment:
+      ENVIRONMENT: production
+      POSTGRES_DSN: postgresql+asyncpg://${POSTGRES_USER:-llmwiki}:${POSTGRES_PASSWORD:-llmwiki}@postgres:5432/${POSTGRES_DB:-llmwiki}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-llmwiki}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-llmwiki123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-llm-wiki}
+      EMBEDDING_API_BASE: ${EMBEDDING_API_BASE:-https://api.siliconflow.cn/v1}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-m3}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - llm-wiki-net
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  llm-wiki-net:
+    driver: bridge
