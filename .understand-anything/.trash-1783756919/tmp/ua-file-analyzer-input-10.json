@@ -1,0 +1,22 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "mydocs/GBrain知识库设计剖析.md", "language": "markdown", "sizeLines": 350, "fileCategory": "docs"},
+    {"path": "mydocs/kb-architecture.md", "language": "markdown", "sizeLines": 414, "fileCategory": "docs"},
+    {"path": "mydocs/multi-tenant-architecture.md", "language": "markdown", "sizeLines": 918, "fileCategory": "docs"},
+    {"path": "mydocs/prd-v4.2.md", "language": "markdown", "sizeLines": 357, "fileCategory": "docs"},
+    {"path": "mydocs/rag-architecture.md", "language": "markdown", "sizeLines": 514, "fileCategory": "docs"},
+    {"path": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md", "language": "markdown", "sizeLines": 1689, "fileCategory": "docs"},
+    {"path": "mydocs/wiki-architecture.md", "language": "markdown", "sizeLines": 800, "fileCategory": "docs"}
+  ],
+  "batchImportData": {
+    "mydocs/GBrain知识库设计剖析.md": [],
+    "mydocs/kb-architecture.md": [],
+    "mydocs/multi-tenant-architecture.md": [],
+    "mydocs/prd-v4.2.md": [],
+    "mydocs/rag-architecture.md": [],
+    "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md": [],
+    "mydocs/wiki-architecture.md": []
+  },
+  "neighborMap": {}
+}

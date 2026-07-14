@@ -1,0 +1,16 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": ".env.example", "language": "config", "sizeLines": 26, "fileCategory": "config"},
+    {"path": "Makefile", "language": "makefile", "sizeLines": 24, "fileCategory": "script"},
+    {"path": "README.md", "language": "markdown", "sizeLines": 70, "fileCategory": "docs"},
+    {"path": "docker-compose.yml", "language": "yaml", "sizeLines": 108, "fileCategory": "infra"}
+  ],
+  "batchImportData": {
+    ".env.example": [],
+    "Makefile": [],
+    "README.md": [],
+    "docker-compose.yml": []
+  },
+  "neighborMap": {}
+}

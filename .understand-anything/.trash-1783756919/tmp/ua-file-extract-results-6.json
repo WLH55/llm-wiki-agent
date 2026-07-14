@@ -1,0 +1,127 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 1,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "backend/Dockerfile",
+      "language": "dockerfile",
+      "fileCategory": "infra",
+      "totalLines": 45,
+      "nonEmptyLines": 31,
+      "services": [
+        {
+          "name": "frontend-build",
+          "image": "node:20-alpine",
+          "ports": [],
+          "startLine": 2,
+          "endLine": 15
+        },
+        {
+          "name": "python",
+          "image": "python:3.11-slim",
+          "ports": [
+            8000
+          ],
+          "startLine": 16,
+          "endLine": 46
+        }
+      ],
+      "steps": [
+        {
+          "name": "FROM node:20-alpine AS frontend-build",
+          "startLine": 2,
+          "endLine": 2
+        },
+        {
+          "name": "WORKDIR /build",
+          "startLine": 4,
+          "endLine": 4
+        },
+        {
+          "name": "COPY frontend/package.json frontend/package-lock.json* ./",
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "RUN npm ci || npm install",
+          "startLine": 8,
+          "endLine": 8
+        },
+        {
+          "name": "COPY frontend/ ./",
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "RUN npm run build",
+          "startLine": 12,
+          "endLine": 12
+        },
+        {
+          "name": "FROM python:3.11-slim",
+          "startLine": 16,
+          "endLine": 16
+        },
+        {
+          "name": "WORKDIR /app",
+          "startLine": 18,
+          "endLine": 18
+        },
+        {
+          "name": "RUN apt-get update && apt-get install -y \\",
+          "startLine": 20,
+          "endLine": 20
+        },
+        {
+          "name": "COPY backend/pyproject.toml ./",
+          "startLine": 27,
+          "endLine": 27
+        },
+        {
+          "name": "COPY backend/app/ ./app/",
+          "startLine": 30,
+          "endLine": 30
+        },
+        {
+          "name": "COPY --from=frontend-build /build/dist/ ./static/dist/",
+          "startLine": 33,
+          "endLine": 33
+        },
+        {
+          "name": "RUN pip install --no-cache-dir .",
+          "startLine": 36,
+          "endLine": 36
+        },
+        {
+          "name": "COPY backend/alembic.ini ./",
+          "startLine": 39,
+          "endLine": 39
+        },
+        {
+          "name": "COPY backend/alembic/ ./alembic/",
+          "startLine": 40,
+          "endLine": 40
+        },
+        {
+          "name": "EXPOSE 8000",
+          "startLine": 42,
+          "endLine": 42
+        },
+        {
+          "name": "CMD [\"sh\", \"-c\", \"alembic upgrade head && uvicorn app.main:app -",
+          "startLine": 45,
+          "endLine": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "serviceCount": 2,
+        "stepCount": 17
+      }
+    }
+  ]
+}

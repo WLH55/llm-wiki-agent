@@ -1,0 +1,554 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 9,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "backend/alembic/env.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 73,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "run_migrations_offline",
+          "startLine": 35,
+          "endLine": 45,
+          "params": []
+        },
+        {
+          "name": "do_run_migrations",
+          "startLine": 48,
+          "endLine": 51,
+          "params": [
+            "connection"
+          ]
+        },
+        {
+          "name": "run_async_migrations",
+          "startLine": 54,
+          "endLine": 63,
+          "params": []
+        },
+        {
+          "name": "run_migrations_online",
+          "startLine": 66,
+          "endLine": 67,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "run_migrations_offline",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "do_run_migrations",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "run_async_migrations",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "run_migrations_online",
+          "line": 66,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "run_migrations_offline",
+          "callee": "config.get_main_option",
+          "lineNumber": 37
+        },
+        {
+          "caller": "run_migrations_offline",
+          "callee": "context.configure",
+          "lineNumber": 38
+        },
+        {
+          "caller": "run_migrations_offline",
+          "callee": "context.begin_transaction",
+          "lineNumber": 44
+        },
+        {
+          "caller": "run_migrations_offline",
+          "callee": "context.run_migrations",
+          "lineNumber": 45
+        },
+        {
+          "caller": "do_run_migrations",
+          "callee": "context.configure",
+          "lineNumber": 49
+        },
+        {
+          "caller": "do_run_migrations",
+          "callee": "context.begin_transaction",
+          "lineNumber": 50
+        },
+        {
+          "caller": "do_run_migrations",
+          "callee": "context.run_migrations",
+          "lineNumber": 51
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "async_engine_from_config",
+          "lineNumber": 56
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "config.get_section",
+          "lineNumber": 57
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "connectable.connect",
+          "lineNumber": 61
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "connection.run_sync",
+          "lineNumber": 62
+        },
+        {
+          "caller": "run_async_migrations",
+          "callee": "connectable.dispose",
+          "lineNumber": 63
+        },
+        {
+          "caller": "run_migrations_online",
+          "callee": "asyncio.run",
+          "lineNumber": 67
+        },
+        {
+          "caller": "run_migrations_online",
+          "callee": "run_async_migrations",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 10,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/models/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 38,
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/models/base.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 44,
+      "nonEmptyLines": 34,
+      "classes": [
+        {
+          "name": "Base",
+          "startLine": 15,
+          "endLine": 17,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "TimestampMixin",
+          "startLine": 20,
+          "endLine": 38,
+          "methods": [],
+          "properties": [
+            "created_at",
+            "updated_at",
+            "deleted_at"
+          ]
+        },
+        {
+          "name": "TenantMixin",
+          "startLine": 41,
+          "endLine": 44,
+          "methods": [],
+          "properties": [
+            "tenant_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Base",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "TimestampMixin",
+          "line": 20,
+          "isDefault": false
+        },
+        {
+          "name": "TenantMixin",
+          "line": 41,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 0,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "backend/app/models/chunk.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 29,
+      "classes": [
+        {
+          "name": "ContentChunk",
+          "startLine": 21,
+          "endLine": 40,
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "doc_id",
+            "source_id",
+            "chunk_type",
+            "text",
+            "embedding_dim",
+            "wiki_page_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ContentChunk",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "backend/app/models/document.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 28,
+      "classes": [
+        {
+          "name": "Document",
+          "startLine": 17,
+          "endLine": 37,
+          "methods": [],
+          "properties": [
+            "id",
+            "doc_id",
+            "kb_id",
+            "source_id",
+            "original_filename",
+            "minio_key",
+            "status",
+            "error_message",
+            "processed_at"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Document",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "backend/app/models/kb.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 28,
+      "nonEmptyLines": 21,
+      "classes": [
+        {
+          "name": "KnowledgeBase",
+          "startLine": 12,
+          "endLine": 28,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "description",
+            "embedding_model",
+            "embedding_dim",
+            "vector_enabled",
+            "keyword_enabled",
+            "wiki_enabled",
+            "graph_enabled"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "KnowledgeBase",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "backend/app/models/reserved.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 85,
+      "nonEmptyLines": 60,
+      "classes": [
+        {
+          "name": "Organization",
+          "startLine": 14,
+          "endLine": 20,
+          "methods": [],
+          "properties": [
+            "id",
+            "tenant_id",
+            "name"
+          ]
+        },
+        {
+          "name": "OrgMember",
+          "startLine": 23,
+          "endLine": 30,
+          "methods": [],
+          "properties": [
+            "id",
+            "org_id",
+            "user_id",
+            "role"
+          ]
+        },
+        {
+          "name": "KBShare",
+          "startLine": 33,
+          "endLine": 40,
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "org_id",
+            "permission"
+          ]
+        },
+        {
+          "name": "LLMProvider",
+          "startLine": 43,
+          "endLine": 49,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "api_base"
+          ]
+        },
+        {
+          "name": "UserLLMKey",
+          "startLine": 52,
+          "endLine": 59,
+          "methods": [],
+          "properties": [
+            "id",
+            "user_id",
+            "provider_id",
+            "encrypted_key"
+          ]
+        },
+        {
+          "name": "WikiFolder",
+          "startLine": 62,
+          "endLine": 70,
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "parent_id",
+            "name",
+            "materialized_path"
+          ]
+        },
+        {
+          "name": "WikiPage",
+          "startLine": 73,
+          "endLine": 85,
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "folder_id",
+            "page_type",
+            "title",
+            "content"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Organization",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "OrgMember",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "KBShare",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "LLMProvider",
+          "line": 43,
+          "isDefault": false
+        },
+        {
+          "name": "UserLLMKey",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "WikiFolder",
+          "line": 62,
+          "isDefault": false
+        },
+        {
+          "name": "WikiPage",
+          "line": 73,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 7,
+        "functionCount": 0,
+        "classCount": 7
+      }
+    },
+    {
+      "path": "backend/app/models/source.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 18,
+      "classes": [
+        {
+          "name": "Source",
+          "startLine": 12,
+          "endLine": 23,
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "source_type",
+            "name",
+            "config",
+            "sync_cursor"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Source",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "backend/app/models/user.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 27,
+      "nonEmptyLines": 20,
+      "classes": [
+        {
+          "name": "Tenant",
+          "startLine": 10,
+          "endLine": 15,
+          "methods": [],
+          "properties": [
+            "id",
+            "name"
+          ]
+        },
+        {
+          "name": "User",
+          "startLine": 18,
+          "endLine": 27,
+          "methods": [],
+          "properties": [
+            "id",
+            "tenant_id",
+            "email",
+            "password_hash",
+            "role",
+            "is_active"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "Tenant",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "User",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    }
+  ]
+}

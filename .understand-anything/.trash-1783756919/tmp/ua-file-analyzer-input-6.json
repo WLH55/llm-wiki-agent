@@ -1,0 +1,10 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "backend/Dockerfile", "language": "dockerfile", "sizeLines": 39, "fileCategory": "infra"}
+  ],
+  "batchImportData": {
+    "backend/Dockerfile": []
+  },
+  "neighborMap": {}
+}

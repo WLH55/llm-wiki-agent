@@ -1,0 +1,4059 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "b2440a37643e0c5768f4b43ba2c12dfb071b3d32",
+  "generatedAt": "2026-07-11T08:01:47.722Z",
+  "files": {
+    ".env.example": {
+      "filePath": ".env.example",
+      "contentHash": "d885101a3250cd930faa8b569c1e17ea4980afe1671335329dd98b5288cbef80",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "59d80004a6eec7a26721652b01f627a44a37e708bcc3dcd9ddae61bc0a1234d7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 77,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/intermediate/scan-result.json": {
+      "filePath": ".understand-anything/intermediate/scan-result.json",
+      "contentHash": "5be102659e89e68320162133324582ec376ef831b5b9f5327ac5dbdfe3071c23",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 933,
+      "hasStructuralAnalysis": true
+    },
+    "backend/alembic.ini": {
+      "filePath": "backend/alembic.ini",
+      "contentHash": "ebb528792efc82fe55b0fbc1c404ec76cf2d3c37ccfa5db26b8150227f059b3c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": false
+    },
+    "backend/alembic/env.py": {
+      "filePath": "backend/alembic/env.py",
+      "contentHash": "7a558789239f107550ce0b10ed90e646a8384026b3fe1c31a60e8546bf794d08",
+      "functions": [
+        {
+          "name": "run_migrations_offline",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "do_run_migrations",
+          "params": [
+            "connection"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "run_async_migrations",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "run_migrations_online",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging.config",
+          "specifiers": [
+            "fileConfig"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "context"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "pool"
+          ]
+        },
+        {
+          "source": "sqlalchemy.engine",
+          "specifiers": [
+            "Connection"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "async_engine_from_config"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        },
+        {
+          "source": "app.models",
+          "specifiers": [
+            "chunk",
+            "document",
+            "kb",
+            "reserved",
+            "source",
+            "user"
+          ]
+        },
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base"
+          ]
+        }
+      ],
+      "exports": [
+        "run_migrations_offline",
+        "do_run_migrations",
+        "run_async_migrations",
+        "run_migrations_online"
+      ],
+      "totalLines": 74,
+      "hasStructuralAnalysis": true
+    },
+    "backend/alembic/script.py.mako": {
+      "filePath": "backend/alembic/script.py.mako",
+      "contentHash": "7751187956408f7a64742e0bf746d0684d24013bfe11d1895d936d6757da1766",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": false
+    },
+    "backend/alembic/versions/.gitkeep": {
+      "filePath": "backend/alembic/versions/.gitkeep",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    "backend/alembic/versions/001_initial.py": {
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "contentHash": "ca1a31020b8f83a681053c836c461bb90dba87d05b6f3f042b2ac6ce73781927",
+      "functions": [
+        {
+          "name": "upgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 258
+        },
+        {
+          "name": "downgrade",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 26
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Sequence",
+            "Union"
+          ]
+        },
+        {
+          "source": "alembic",
+          "specifiers": [
+            "op"
+          ]
+        }
+      ],
+      "exports": [
+        "upgrade",
+        "downgrade"
+      ],
+      "totalLines": 314,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/__init__.py": {
+      "filePath": "backend/app/__init__.py",
+      "contentHash": "d9b3bbfaefa6b1df01c60336ee2ce00a8549095a4e9051341f5ec31467dadf93",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/auth/__init__.py": {
+      "filePath": "backend/app/auth/__init__.py",
+      "contentHash": "08b3b70ba3ec02abe6881fbe79ad179157ed7ddd1c2523c215d83b872799986a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/auth/bootstrap.py": {
+      "filePath": "backend/app/auth/bootstrap.py",
+      "contentHash": "ce5e035441aeee771b3be9eab84cfa034ae10a6661344501094f4fc054beaa57",
+      "functions": [
+        {
+          "name": "ensure_bootstrap_owner",
+          "params": [
+            "db"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 33
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.auth.password",
+          "specifiers": [
+            "hash_password"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "Tenant",
+            "User"
+          ]
+        }
+      ],
+      "exports": [
+        "ensure_bootstrap_owner"
+      ],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/auth/jwt_handler.py": {
+      "filePath": "backend/app/auth/jwt_handler.py",
+      "contentHash": "50933ed3c8ab62fcd552320caecc600b6b9617a76be8b6228e2d0d31c304423d",
+      "functions": [
+        {
+          "name": "create_access_token",
+          "params": [
+            "user_id"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "decode_token",
+          "params": [
+            "token"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "get_user_id_from_token",
+          "params": [
+            "token"
+          ],
+          "returnType": "Optional[int]",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta",
+            "timezone"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "jose",
+          "specifiers": [
+            "JWTError",
+            "jwt"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        }
+      ],
+      "exports": [
+        "create_access_token",
+        "decode_token",
+        "get_user_id_from_token"
+      ],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/auth/password.py": {
+      "filePath": "backend/app/auth/password.py",
+      "contentHash": "a33571a69ef7c39a08952a5f760d4cbf51e4f4ed45999c7f6a5bc9b3f07dac36",
+      "functions": [
+        {
+          "name": "hash_password",
+          "params": [
+            "raw"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "verify_password",
+          "params": [
+            "raw",
+            "hashed"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "passlib.context",
+          "specifiers": [
+            "CryptContext"
+          ]
+        }
+      ],
+      "exports": [
+        "hash_password",
+        "verify_password"
+      ],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/auth/routes.py": {
+      "filePath": "backend/app/auth/routes.py",
+      "contentHash": "57bc3e37936b279dd29d2915735fd774f4b9879fd412d2bb3865ad4093264aa6",
+      "functions": [
+        {
+          "name": "login",
+          "params": [
+            "payload",
+            "db"
+          ],
+          "returnType": "ApiResponse[TokenResponse]",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "get_me",
+          "params": [
+            "user"
+          ],
+          "returnType": "ApiResponse[UserResponse]",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.auth.jwt_handler",
+          "specifiers": [
+            "create_access_token"
+          ]
+        },
+        {
+          "source": "app.auth.password",
+          "specifiers": [
+            "verify_password"
+          ]
+        },
+        {
+          "source": "app.config.exceptions",
+          "specifiers": [
+            "BusinessValidationException"
+          ]
+        },
+        {
+          "source": "app.config.schemas",
+          "specifiers": [
+            "ApiResponse"
+          ]
+        },
+        {
+          "source": "app.deps",
+          "specifiers": [
+            "CurrentUserDep",
+            "DbDep"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User"
+          ]
+        },
+        {
+          "source": "app.schemas.auth",
+          "specifiers": [
+            "LoginRequest",
+            "TokenResponse",
+            "UserResponse"
+          ]
+        }
+      ],
+      "exports": [
+        "login",
+        "get_me"
+      ],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/config/__init__.py": {
+      "filePath": "backend/app/config/__init__.py",
+      "contentHash": "d7186b351d90633bab9e21d89f31ba88af00da749bd1022bc4b7568d8a0b1e90",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "app.config.settings",
+          "specifiers": [
+            "settings"
+          ]
+        },
+        {
+          "source": "app.config.logger_config",
+          "specifiers": [
+            "setup_logging"
+          ]
+        },
+        {
+          "source": "app.config.exceptions",
+          "specifiers": [
+            "BusinessValidationException",
+            "ResourceNotFoundException",
+            "register_exception_handlers"
+          ]
+        },
+        {
+          "source": "app.config.schemas",
+          "specifiers": [
+            "ApiResponse",
+            "PageResponse",
+            "ResponseCode"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/config/dependencies.py": {
+      "filePath": "backend/app/config/dependencies.py",
+      "contentHash": "dc23ec567dd730e7bfce0a21147ae32b13e191307366a82e08aaecbc68797188",
+      "functions": [
+        {
+          "name": "get_db",
+          "params": [],
+          "returnType": "AsyncIterator[AsyncSession]",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "get_current_user",
+          "params": [
+            "token",
+            "db"
+          ],
+          "returnType": "User",
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Annotated",
+            "AsyncIterator",
+            "Optional"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "Depends",
+            "HTTPException",
+            "status"
+          ]
+        },
+        {
+          "source": "fastapi.security",
+          "specifiers": [
+            "OAuth2PasswordBearer"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.auth.jwt_handler",
+          "specifiers": [
+            "decode_token"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        },
+        {
+          "source": "app.database",
+          "specifiers": [
+            "async_session_factory"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User"
+          ]
+        }
+      ],
+      "exports": [
+        "get_db",
+        "get_current_user"
+      ],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/config/exceptions.py": {
+      "filePath": "backend/app/config/exceptions.py",
+      "contentHash": "7f4ccd3c264432d2b187cf2270683fe005b5a69d89102db03b0d41f8842b61a0",
+      "functions": [
+        {
+          "name": "_log_exception",
+          "params": [
+            "request",
+            "exc",
+            "level",
+            "include_stacktrace"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "general_exception_handler",
+          "params": [
+            "request",
+            "exc"
+          ],
+          "returnType": "JSONResponse",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "validation_exception_handler",
+          "params": [
+            "request",
+            "exc"
+          ],
+          "returnType": "JSONResponse",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "register_exception_handlers",
+          "params": [
+            "app"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "BusinessValidationException",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "ResourceNotFoundException",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "Request",
+            "status"
+          ]
+        },
+        {
+          "source": "starlette.responses",
+          "specifiers": [
+            "JSONResponse"
+          ]
+        },
+        {
+          "source": "app.config.schemas",
+          "specifiers": [
+            "ApiResponse",
+            "ResponseCode"
+          ]
+        }
+      ],
+      "exports": [
+        "_log_exception",
+        "BusinessValidationException",
+        "ResourceNotFoundException",
+        "general_exception_handler",
+        "validation_exception_handler",
+        "register_exception_handlers"
+      ],
+      "totalLines": 112,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/config/logger_config.py": {
+      "filePath": "backend/app/config/logger_config.py",
+      "contentHash": "38a4d88cb8b0b85297d92bc671b96aa180d56d3970ee80061d0a5198a50922bd",
+      "functions": [
+        {
+          "name": "setup_logging",
+          "params": [],
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "_rotator",
+          "params": [
+            "source",
+            "dest"
+          ],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "_cleanup_old_logs",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "logging.handlers",
+          "specifiers": [
+            "logging.handlers"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "app.config.settings",
+          "specifiers": [
+            "settings"
+          ]
+        }
+      ],
+      "exports": [
+        "setup_logging",
+        "_rotator",
+        "_cleanup_old_logs"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/config/schemas.py": {
+      "filePath": "backend/app/config/schemas.py",
+      "contentHash": "213f2b9c3391d05d889c319b121c5873943a25bd59f06824f825fe3b4c049c43",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ApiResponse",
+          "methods": [
+            "success",
+            "error"
+          ],
+          "properties": [
+            "code",
+            "message",
+            "data"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "PageResponse",
+          "methods": [
+            "create"
+          ],
+          "properties": [
+            "items",
+            "total",
+            "page",
+            "page_size",
+            "total_pages"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "ResponseCode",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional",
+            "Any",
+            "TypeVar",
+            "Generic"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "Field"
+          ]
+        }
+      ],
+      "exports": [
+        "ApiResponse",
+        "PageResponse",
+        "ResponseCode"
+      ],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/config/settings.py": {
+      "filePath": "backend/app/config/settings.py",
+      "contentHash": "4180fe8809ca88c113b501a17a84ca82b921d38d2ffac93b1b585b2914305307",
+      "functions": [
+        {
+          "name": "get_env_file",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "Settings",
+          "methods": [],
+          "properties": [
+            "ENVIRONMENT",
+            "APP_NAME",
+            "APP_VERSION",
+            "API_PREFIX",
+            "DEBUG",
+            "HOST",
+            "PORT",
+            "HTTP_TIMEOUT",
+            "ALLOW_ORIGINS",
+            "ALLOW_CREDENTIALS",
+            "ALLOW_METHODS",
+            "ALLOW_HEADERS",
+            "LOG_LEVEL",
+            "STORAGE_DIR",
+            "LOGS_DIR",
+            "LOG_RETENTION_DAYS",
+            "POSTGRES_DSN",
+            "REDIS_URL",
+            "MINIO_ENDPOINT",
+            "MINIO_ACCESS_KEY",
+            "MINIO_SECRET_KEY",
+            "MINIO_BUCKET",
+            "MINIO_SECURE",
+            "JWT_SECRET",
+            "JWT_ALGORITHM",
+            "JWT_EXPIRE_HOURS",
+            "BOOTSTRAP_OWNER_EMAIL",
+            "BOOTSTRAP_OWNER_PASSWORD",
+            "EMBEDDING_API_BASE",
+            "EMBEDDING_API_KEY",
+            "EMBEDDING_MODEL",
+            "EMBEDDING_DIM",
+            "RAG_TOP_K_EACH",
+            "RAG_RRF_K",
+            "FRONTEND_DIST_DIR"
+          ],
+          "exported": true,
+          "lineCount": 73
+        }
+      ],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List"
+          ]
+        },
+        {
+          "source": "pydantic_settings",
+          "specifiers": [
+            "BaseSettings",
+            "SettingsConfigDict"
+          ]
+        }
+      ],
+      "exports": [
+        "get_env_file",
+        "Settings"
+      ],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/database.py": {
+      "filePath": "backend/app/database.py",
+      "contentHash": "c713c6910f20a265905adf5481dbde45696c07bd6507f8dba56a6a03b92efa86",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession",
+            "async_sessionmaker",
+            "create_async_engine"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/deps.py": {
+      "filePath": "backend/app/deps.py",
+      "contentHash": "22f741f27ec3a18f0df914dcb802872b3e0d41710574ae13624ddf0b7389c8c0",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "app.config.dependencies",
+          "specifiers": [
+            "CurrentUserDep",
+            "DbDep",
+            "get_current_user",
+            "get_db"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/main.py": {
+      "filePath": "backend/app/main.py",
+      "contentHash": "4fd41e759096e23b827a285990c74124e2c103cbc139fefad2abbd5bf4c2000a",
+      "functions": [
+        {
+          "name": "lifespan",
+          "params": [
+            "app"
+          ],
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "create_app",
+          "params": [],
+          "returnType": "FastAPI",
+          "exported": true,
+          "lineCount": 74
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "asynccontextmanager"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "FastAPI",
+            "HTTPException",
+            "Request"
+          ]
+        },
+        {
+          "source": "fastapi.middleware.cors",
+          "specifiers": [
+            "CORSMiddleware"
+          ]
+        },
+        {
+          "source": "fastapi.responses",
+          "specifiers": [
+            "FileResponse"
+          ]
+        },
+        {
+          "source": "fastapi.staticfiles",
+          "specifiers": [
+            "StaticFiles"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings",
+            "setup_logging"
+          ]
+        },
+        {
+          "source": "app.config.exceptions",
+          "specifiers": [
+            "register_exception_handlers"
+          ]
+        }
+      ],
+      "exports": [
+        "lifespan",
+        "create_app"
+      ],
+      "totalLines": 137,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/__init__.py": {
+      "filePath": "backend/app/models/__init__.py",
+      "contentHash": "fbc0c63178f641cb4bae3d2c57fe829d7e92cc504dfea00a81acb9d819db237d",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base",
+            "TenantMixin",
+            "TimestampMixin"
+          ]
+        },
+        {
+          "source": "app.models.chunk",
+          "specifiers": [
+            "ContentChunk"
+          ]
+        },
+        {
+          "source": "app.models.document",
+          "specifiers": [
+            "Document"
+          ]
+        },
+        {
+          "source": "app.models.kb",
+          "specifiers": [
+            "KnowledgeBase"
+          ]
+        },
+        {
+          "source": "app.models.reserved",
+          "specifiers": [
+            "KBShare",
+            "LLMProvider",
+            "Organization",
+            "OrgMember",
+            "UserLLMKey",
+            "WikiFolder",
+            "WikiPage"
+          ]
+        },
+        {
+          "source": "app.models.source",
+          "specifiers": [
+            "Source"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "Tenant",
+            "User"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/base.py": {
+      "filePath": "backend/app/models/base.py",
+      "contentHash": "e36554dea54bf9e566ab18c0bddde5bdb2158fb6ea116424c46461d1c627a810",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Base",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "TimestampMixin",
+          "methods": [],
+          "properties": [
+            "created_at",
+            "updated_at",
+            "deleted_at"
+          ],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "TenantMixin",
+          "methods": [],
+          "properties": [
+            "tenant_id"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "DateTime",
+            "Integer",
+            "func"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "DeclarativeBase",
+            "Mapped",
+            "mapped_column"
+          ]
+        }
+      ],
+      "exports": [
+        "Base",
+        "TimestampMixin",
+        "TenantMixin"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/chunk.py": {
+      "filePath": "backend/app/models/chunk.py",
+      "contentHash": "356c2cd7d63692c95e75e47bb188ad8364f4afb7ac1e9c7be9890780aa575a88",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ContentChunk",
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "doc_id",
+            "source_id",
+            "chunk_type",
+            "text",
+            "embedding_dim",
+            "wiki_page_id"
+          ],
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "Integer",
+            "String",
+            "Text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column"
+          ]
+        },
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base",
+            "TenantMixin",
+            "TimestampMixin"
+          ]
+        }
+      ],
+      "exports": [
+        "ContentChunk"
+      ],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/document.py": {
+      "filePath": "backend/app/models/document.py",
+      "contentHash": "c1aa39cab1a475ce683baf48452f5f3734fd008005f989ca6f91f6c4e0556c35",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Document",
+          "methods": [],
+          "properties": [
+            "id",
+            "doc_id",
+            "kb_id",
+            "source_id",
+            "original_filename",
+            "minio_key",
+            "status",
+            "error_message",
+            "processed_at"
+          ],
+          "exported": true,
+          "lineCount": 21
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID",
+            "uuid4"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "DateTime",
+            "String"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column"
+          ]
+        },
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base",
+            "TenantMixin",
+            "TimestampMixin"
+          ]
+        }
+      ],
+      "exports": [
+        "Document"
+      ],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/kb.py": {
+      "filePath": "backend/app/models/kb.py",
+      "contentHash": "656762e19001c245c2bab6e47d829fc2e874612766f10f840ac1fc12e1c4cd57",
+      "functions": [],
+      "classes": [
+        {
+          "name": "KnowledgeBase",
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "description",
+            "embedding_model",
+            "embedding_dim",
+            "vector_enabled",
+            "keyword_enabled",
+            "wiki_enabled",
+            "graph_enabled"
+          ],
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "imports": [
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "Boolean",
+            "Integer",
+            "String"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column"
+          ]
+        },
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base",
+            "TenantMixin",
+            "TimestampMixin"
+          ]
+        }
+      ],
+      "exports": [
+        "KnowledgeBase"
+      ],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/reserved.py": {
+      "filePath": "backend/app/models/reserved.py",
+      "contentHash": "b532f47d7256499b46ffbbfb331d8a6fb8caf5d712cfee284a87d176c1913acf",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Organization",
+          "methods": [],
+          "properties": [
+            "id",
+            "tenant_id",
+            "name"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "OrgMember",
+          "methods": [],
+          "properties": [
+            "id",
+            "org_id",
+            "user_id",
+            "role"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "KBShare",
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "org_id",
+            "permission"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "LLMProvider",
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "api_base"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "UserLLMKey",
+          "methods": [],
+          "properties": [
+            "id",
+            "user_id",
+            "provider_id",
+            "encrypted_key"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "WikiFolder",
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "parent_id",
+            "name",
+            "materialized_path"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "WikiPage",
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "folder_id",
+            "page_type",
+            "title",
+            "content"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "imports": [
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "Integer",
+            "String",
+            "Text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column"
+          ]
+        },
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base",
+            "TimestampMixin"
+          ]
+        }
+      ],
+      "exports": [
+        "Organization",
+        "OrgMember",
+        "KBShare",
+        "LLMProvider",
+        "UserLLMKey",
+        "WikiFolder",
+        "WikiPage"
+      ],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/source.py": {
+      "filePath": "backend/app/models/source.py",
+      "contentHash": "91e027966c0b5d34f5ae3defb9a333cde186c5db6f9546af8064c9766ba60994",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Source",
+          "methods": [],
+          "properties": [
+            "id",
+            "kb_id",
+            "source_type",
+            "name",
+            "config",
+            "sync_cursor"
+          ],
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "imports": [
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "JSON",
+            "String"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column"
+          ]
+        },
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base",
+            "TenantMixin",
+            "TimestampMixin"
+          ]
+        }
+      ],
+      "exports": [
+        "Source"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/models/user.py": {
+      "filePath": "backend/app/models/user.py",
+      "contentHash": "a41ecdf6a1e258dee018e520f80f6cd52d7892eb0746f81017d8aa4ee541dc8f",
+      "functions": [],
+      "classes": [
+        {
+          "name": "Tenant",
+          "methods": [],
+          "properties": [
+            "id",
+            "name"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "User",
+          "methods": [],
+          "properties": [
+            "id",
+            "tenant_id",
+            "email",
+            "password_hash",
+            "role",
+            "is_active"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "imports": [
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "Boolean",
+            "String"
+          ]
+        },
+        {
+          "source": "sqlalchemy.orm",
+          "specifiers": [
+            "Mapped",
+            "mapped_column"
+          ]
+        },
+        {
+          "source": "app.models.base",
+          "specifiers": [
+            "Base",
+            "TimestampMixin"
+          ]
+        }
+      ],
+      "exports": [
+        "Tenant",
+        "User"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/plugins/__init__.py": {
+      "filePath": "backend/app/plugins/__init__.py",
+      "contentHash": "032e04bde55691c77b9255b8ad80921312b657792153c322a5d39e9c5f591f73",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/plugins/chunk_rerank.py": {
+      "filePath": "backend/app/plugins/chunk_rerank.py",
+      "contentHash": "5b15a064c82288b25319e6ef03e686dab7c41dcc2992a191a77ca5a63e077a8c",
+      "functions": [
+        {
+          "name": "get_chunk_rerank_plugin",
+          "params": [],
+          "returnType": "ChunkRerankPlugin",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "set_chunk_rerank_plugin",
+          "params": [
+            "plugin"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "ChunkRerankPlugin",
+          "methods": [
+            "rerank"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "DefaultChunkRerankPlugin",
+          "methods": [
+            "rerank"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Protocol",
+            "runtime_checkable"
+          ]
+        }
+      ],
+      "exports": [
+        "ChunkRerankPlugin",
+        "DefaultChunkRerankPlugin",
+        "get_chunk_rerank_plugin",
+        "set_chunk_rerank_plugin"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/routers/__init__.py": {
+      "filePath": "backend/app/routers/__init__.py",
+      "contentHash": "cbacc8761833b64aa017a3df2d933c3897f9f19997044efaea49f206ec1b205a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/routers/document.py": {
+      "filePath": "backend/app/routers/document.py",
+      "contentHash": "e4f0c25c9bdbf9a6801e03bd44853d4f556952af5d4a1503ac6ba34dcfce40fc",
+      "functions": [
+        {
+          "name": "upload_document_endpoint",
+          "params": [
+            "kb_id",
+            "file",
+            "db",
+            "user"
+          ],
+          "returnType": "ApiResponse[DocumentUploadResponse]",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "get_status_endpoint",
+          "params": [
+            "kb_id",
+            "doc_id",
+            "db",
+            "user"
+          ],
+          "returnType": "ApiResponse[DocumentStatusResponse]",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "File",
+            "UploadFile"
+          ]
+        },
+        {
+          "source": "app.config.schemas",
+          "specifiers": [
+            "ApiResponse"
+          ]
+        },
+        {
+          "source": "app.deps",
+          "specifiers": [
+            "CurrentUserDep",
+            "DbDep"
+          ]
+        },
+        {
+          "source": "app.schemas.document",
+          "specifiers": [
+            "DocumentStatusResponse",
+            "DocumentUploadResponse"
+          ]
+        },
+        {
+          "source": "app.services.document_service",
+          "specifiers": [
+            "get_document_status",
+            "upload_document"
+          ]
+        }
+      ],
+      "exports": [
+        "upload_document_endpoint",
+        "get_status_endpoint"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/routers/kb.py": {
+      "filePath": "backend/app/routers/kb.py",
+      "contentHash": "0fb228fb1b83423b2ead310fc817526f97763b71ec503bfe1f1ef8cea0120494",
+      "functions": [
+        {
+          "name": "create_kb_endpoint",
+          "params": [
+            "payload",
+            "db",
+            "user"
+          ],
+          "returnType": "ApiResponse[KBResponse]",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "get_kb_endpoint",
+          "params": [
+            "kb_id",
+            "db",
+            "user"
+          ],
+          "returnType": "ApiResponse[KBResponse]",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "list_kbs_endpoint",
+          "params": [
+            "db",
+            "user"
+          ],
+          "returnType": "ApiResponse[list[KBResponse]]",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter"
+          ]
+        },
+        {
+          "source": "app.config.schemas",
+          "specifiers": [
+            "ApiResponse"
+          ]
+        },
+        {
+          "source": "app.deps",
+          "specifiers": [
+            "CurrentUserDep",
+            "DbDep"
+          ]
+        },
+        {
+          "source": "app.schemas.kb",
+          "specifiers": [
+            "KBCreate",
+            "KBResponse"
+          ]
+        },
+        {
+          "source": "app.services.kb_service",
+          "specifiers": [
+            "create_kb",
+            "get_kb",
+            "list_kbs"
+          ]
+        }
+      ],
+      "exports": [
+        "create_kb_endpoint",
+        "get_kb_endpoint",
+        "list_kbs_endpoint"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/routers/search.py": {
+      "filePath": "backend/app/routers/search.py",
+      "contentHash": "d4e1055cc12bad56cf2cbcb98c2170e8a85537202b540d53bf8b65df24087e38",
+      "functions": [
+        {
+          "name": "search_endpoint",
+          "params": [
+            "kb_id",
+            "q",
+            "mode",
+            "limit",
+            "db",
+            "user"
+          ],
+          "returnType": "ApiResponse[SearchResponse]",
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fastapi",
+          "specifiers": [
+            "APIRouter",
+            "Query"
+          ]
+        },
+        {
+          "source": "app.config.exceptions",
+          "specifiers": [
+            "BusinessValidationException"
+          ]
+        },
+        {
+          "source": "app.config.schemas",
+          "specifiers": [
+            "ApiResponse"
+          ]
+        },
+        {
+          "source": "app.deps",
+          "specifiers": [
+            "CurrentUserDep",
+            "DbDep"
+          ]
+        },
+        {
+          "source": "app.schemas.search",
+          "specifiers": [
+            "SearchResponse"
+          ]
+        },
+        {
+          "source": "app.services.search_service",
+          "specifiers": [
+            "search_service"
+          ]
+        }
+      ],
+      "exports": [
+        "search_endpoint"
+      ],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/schemas/__init__.py": {
+      "filePath": "backend/app/schemas/__init__.py",
+      "contentHash": "17b44fdf1d71334ecac04a86cf3e8e0f1b7033f7f650ab4f60f5596e80dcbf59",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/schemas/auth.py": {
+      "filePath": "backend/app/schemas/auth.py",
+      "contentHash": "c93fe6fe15e9a01fa121a494112d6be42a3cdf8299899935eb52363229a2228f",
+      "functions": [],
+      "classes": [
+        {
+          "name": "LoginRequest",
+          "methods": [],
+          "properties": [
+            "email",
+            "password"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "TokenResponse",
+          "methods": [],
+          "properties": [
+            "access_token",
+            "token_type",
+            "expires_in_hours"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "UserResponse",
+          "methods": [],
+          "properties": [
+            "id",
+            "email",
+            "role",
+            "tenant_id"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "imports": [
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "Field"
+          ]
+        }
+      ],
+      "exports": [
+        "LoginRequest",
+        "TokenResponse",
+        "UserResponse"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/schemas/document.py": {
+      "filePath": "backend/app/schemas/document.py",
+      "contentHash": "4f8bb8c613305bc079f53f14ebf9e66903530c86ed358d593c0820472bf3ded2",
+      "functions": [],
+      "classes": [
+        {
+          "name": "DocumentUploadResponse",
+          "methods": [],
+          "properties": [
+            "doc_id",
+            "status",
+            "original_filename"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "DocumentStatusResponse",
+          "methods": [],
+          "properties": [
+            "doc_id",
+            "status",
+            "original_filename",
+            "error_message",
+            "processed_at"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "imports": [
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel"
+          ]
+        }
+      ],
+      "exports": [
+        "DocumentUploadResponse",
+        "DocumentStatusResponse"
+      ],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/schemas/kb.py": {
+      "filePath": "backend/app/schemas/kb.py",
+      "contentHash": "749d79cf4f35192da18b0e16a68096d1aff54eaf420ef138257aead3a758f4c1",
+      "functions": [],
+      "classes": [
+        {
+          "name": "KBCreate",
+          "methods": [],
+          "properties": [
+            "name",
+            "description",
+            "embedding_model",
+            "embedding_dim",
+            "vector_enabled",
+            "keyword_enabled",
+            "wiki_enabled",
+            "graph_enabled"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "KBResponse",
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "description",
+            "embedding_model",
+            "embedding_dim",
+            "vector_enabled",
+            "keyword_enabled",
+            "wiki_enabled",
+            "graph_enabled",
+            "tenant_id"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "imports": [
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "Field"
+          ]
+        }
+      ],
+      "exports": [
+        "KBCreate",
+        "KBResponse"
+      ],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/schemas/search.py": {
+      "filePath": "backend/app/schemas/search.py",
+      "contentHash": "070a4a6d2bcf5e2fbdb24e6f454c1f11057f7b2a7d9692e59a58b0fcd721525a",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ChunkHit",
+          "methods": [],
+          "properties": [
+            "chunk_id",
+            "doc_id",
+            "text",
+            "score",
+            "rank_source",
+            "distance",
+            "bm25_rank"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "SearchResponse",
+          "methods": [],
+          "properties": [
+            "query",
+            "kb_id",
+            "mode",
+            "total",
+            "hits"
+          ],
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "pydantic",
+          "specifiers": [
+            "BaseModel",
+            "Field"
+          ]
+        }
+      ],
+      "exports": [
+        "ChunkHit",
+        "SearchResponse"
+      ],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/services/__init__.py": {
+      "filePath": "backend/app/services/__init__.py",
+      "contentHash": "300efe34b68791525e2a42f7236e6a1ecd8bd566e462ee2d1bf3fa82cf04cd77",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/services/document_service.py": {
+      "filePath": "backend/app/services/document_service.py",
+      "contentHash": "9f9ecaf9836b93de90c91f4262bb9942d98ce1afd90d69a0781def7e830bcdef",
+      "functions": [
+        {
+          "name": "upload_document",
+          "params": [
+            "db",
+            "kb_id",
+            "user",
+            "filename",
+            "content",
+            "content_type"
+          ],
+          "returnType": "DocumentUploadResponse",
+          "exported": true,
+          "lineCount": 40
+        },
+        {
+          "name": "get_document_status",
+          "params": [
+            "db",
+            "kb_id",
+            "user",
+            "doc_id"
+          ],
+          "returnType": "DocumentStatusResponse",
+          "exported": true,
+          "lineCount": 28
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.config.exceptions",
+          "specifiers": [
+            "BusinessValidationException",
+            "ResourceNotFoundException"
+          ]
+        },
+        {
+          "source": "app.models.document",
+          "specifiers": [
+            "Document"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User"
+          ]
+        },
+        {
+          "source": "app.schemas.document",
+          "specifiers": [
+            "DocumentStatusResponse",
+            "DocumentUploadResponse"
+          ]
+        },
+        {
+          "source": "app.services.kb_service",
+          "specifiers": [
+            "get_kb"
+          ]
+        },
+        {
+          "source": "app.services.minio_service",
+          "specifiers": [
+            "upload_bytes"
+          ]
+        },
+        {
+          "source": "app.workers.queue",
+          "specifiers": [
+            "enqueue_parse_document"
+          ]
+        }
+      ],
+      "exports": [
+        "upload_document",
+        "get_document_status"
+      ],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/services/embedding_service.py": {
+      "filePath": "backend/app/services/embedding_service.py",
+      "contentHash": "fdbe945b08ffc665d3f006fa9ec8c43d9c74334934bf2fc6b569ef71bae7d38d",
+      "functions": [
+        {
+          "name": "get_client",
+          "params": [],
+          "returnType": "OpenAI",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "embed_texts",
+          "params": [
+            "texts"
+          ],
+          "returnType": "List[List[float]]",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "embed_one",
+          "params": [
+            "text"
+          ],
+          "returnType": "List[float]",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Optional"
+          ]
+        },
+        {
+          "source": "openai",
+          "specifiers": [
+            "OpenAI"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        }
+      ],
+      "exports": [
+        "get_client",
+        "embed_texts",
+        "embed_one"
+      ],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/services/kb_service.py": {
+      "filePath": "backend/app/services/kb_service.py",
+      "contentHash": "a9eef23eec8e0e923c0521b35e72cba807757b589b98969a0eec451aad606874",
+      "functions": [
+        {
+          "name": "create_kb",
+          "params": [
+            "db",
+            "payload",
+            "user"
+          ],
+          "returnType": "KnowledgeBase",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "get_kb",
+          "params": [
+            "db",
+            "kb_id",
+            "user"
+          ],
+          "returnType": "KnowledgeBase",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "list_kbs",
+          "params": [
+            "db",
+            "user"
+          ],
+          "returnType": "list[KnowledgeBase]",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.config.exceptions",
+          "specifiers": [
+            "BusinessValidationException",
+            "ResourceNotFoundException"
+          ]
+        },
+        {
+          "source": "app.models.kb",
+          "specifiers": [
+            "KnowledgeBase"
+          ]
+        },
+        {
+          "source": "app.models.user",
+          "specifiers": [
+            "User"
+          ]
+        },
+        {
+          "source": "app.schemas.kb",
+          "specifiers": [
+            "KBCreate"
+          ]
+        }
+      ],
+      "exports": [
+        "create_kb",
+        "get_kb",
+        "list_kbs"
+      ],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/services/minio_service.py": {
+      "filePath": "backend/app/services/minio_service.py",
+      "contentHash": "f8e3aecdf38866c92f94de7221b95d7de9463194cc565164fa1d846e4bdb56ec",
+      "functions": [
+        {
+          "name": "get_minio_client",
+          "params": [],
+          "returnType": "Minio",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "ensure_bucket",
+          "params": [
+            "bucket"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "upload_bytes",
+          "params": [
+            "key",
+            "data",
+            "content_type",
+            "bucket"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "get_bytes",
+          "params": [
+            "key",
+            "bucket"
+          ],
+          "returnType": "bytes",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "io",
+          "specifiers": [
+            "io"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "minio",
+          "specifiers": [
+            "Minio"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        }
+      ],
+      "exports": [
+        "get_minio_client",
+        "ensure_bucket",
+        "upload_bytes",
+        "get_bytes"
+      ],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/services/search_service.py": {
+      "filePath": "backend/app/services/search_service.py",
+      "contentHash": "c5b10938a642b41b920bcd04b2f38fb27dd7072b743c462fa2b4a82079a16656",
+      "functions": [
+        {
+          "name": "vector_search",
+          "params": [
+            "db",
+            "kb_id",
+            "query_embedding",
+            "embedding_dim",
+            "top_k"
+          ],
+          "returnType": "List[ChunkHit]",
+          "exported": true,
+          "lineCount": 48
+        },
+        {
+          "name": "bm25_search",
+          "params": [
+            "db",
+            "kb_id",
+            "query",
+            "top_k"
+          ],
+          "returnType": "List[ChunkHit]",
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "rrf_fuse",
+          "params": [
+            "vector_results",
+            "bm25_results",
+            "k"
+          ],
+          "returnType": "List[ChunkHit]",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "search",
+          "params": [
+            "db",
+            "kb_id",
+            "user_tenant_id",
+            "query",
+            "mode",
+            "limit"
+          ],
+          "returnType": "List[ChunkHit]",
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "get_kb_by_id",
+          "params": [
+            "db",
+            "kb_id",
+            "tenant_id"
+          ],
+          "returnType": "KnowledgeBase",
+          "exported": true,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        },
+        {
+          "source": "app.models.kb",
+          "specifiers": [
+            "KnowledgeBase"
+          ]
+        },
+        {
+          "source": "app.schemas.search",
+          "specifiers": [
+            "ChunkHit"
+          ]
+        },
+        {
+          "source": "app.services.embedding_service",
+          "specifiers": [
+            "embed_one"
+          ]
+        },
+        {
+          "source": "app.services.kb_service",
+          "specifiers": [
+            "get_kb"
+          ]
+        }
+      ],
+      "exports": [
+        "vector_search",
+        "bm25_search",
+        "rrf_fuse",
+        "search",
+        "get_kb_by_id"
+      ],
+      "totalLines": 202,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/workers/__init__.py": {
+      "filePath": "backend/app/workers/__init__.py",
+      "contentHash": "5d9812da650b9291b50380383f5ec1aceb1ea3ce4004bc24050d9b77af841cc3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/workers/chunker.py": {
+      "filePath": "backend/app/workers/chunker.py",
+      "contentHash": "e6f989f12ff6332dbee0ce93a7429cf38e53464d46f6faffcd45b84e4d8c932e",
+      "functions": [
+        {
+          "name": "chunk_text",
+          "params": [
+            "text",
+            "max_words",
+            "overlap"
+          ],
+          "returnType": "List[str]",
+          "exported": true,
+          "lineCount": 53
+        },
+        {
+          "name": "_count_words",
+          "params": [
+            "text"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_hard_split",
+          "params": [
+            "text",
+            "max_words"
+          ],
+          "returnType": "List[str]",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_tail_words",
+          "params": [
+            "text",
+            "n"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List"
+          ]
+        }
+      ],
+      "exports": [
+        "chunk_text",
+        "_count_words",
+        "_hard_split",
+        "_tail_words"
+      ],
+      "totalLines": 94,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/workers/parse_document.py": {
+      "filePath": "backend/app/workers/parse_document.py",
+      "contentHash": "6c264a8f9a6e6e1f51ce1871a9bc13a33ed12bb6ec2aa7592d3928105d50d2be",
+      "functions": [
+        {
+          "name": "parse_document_task",
+          "params": [
+            "doc_id_str"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "_get_doc",
+          "params": [
+            "db",
+            "doc_id"
+          ],
+          "returnType": "Document | None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "_mark_status",
+          "params": [
+            "db",
+            "doc",
+            "status",
+            "error"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "_insert_chunks",
+          "params": [
+            "db",
+            "doc",
+            "chunks_text",
+            "embeddings"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 31
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "UUID"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "select",
+            "text"
+          ]
+        },
+        {
+          "source": "sqlalchemy.ext.asyncio",
+          "specifiers": [
+            "AsyncSession"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        },
+        {
+          "source": "app.database",
+          "specifiers": [
+            "async_session_factory"
+          ]
+        },
+        {
+          "source": "app.models.document",
+          "specifiers": [
+            "Document"
+          ]
+        },
+        {
+          "source": "app.services.embedding_service",
+          "specifiers": [
+            "embed_texts"
+          ]
+        },
+        {
+          "source": "app.services.minio_service",
+          "specifiers": [
+            "get_bytes"
+          ]
+        },
+        {
+          "source": "app.workers.chunker",
+          "specifiers": [
+            "chunk_text"
+          ]
+        },
+        {
+          "source": "app.workers.parsers",
+          "specifiers": [
+            "parse_by_filename"
+          ]
+        }
+      ],
+      "exports": [
+        "parse_document_task",
+        "_get_doc",
+        "_mark_status",
+        "_insert_chunks"
+      ],
+      "totalLines": 118,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/workers/parsers.py": {
+      "filePath": "backend/app/workers/parsers.py",
+      "contentHash": "411dce30296d04fb00032bb3a68236d5c89417ef30e972ffe08d22a08331c93f",
+      "functions": [
+        {
+          "name": "parse_by_filename",
+          "params": [
+            "filename",
+            "data"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "parse_pdf",
+          "params": [
+            "data"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "parse_markdown",
+          "params": [
+            "data"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "parse_text",
+          "params": [
+            "data"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "parse_docx",
+          "params": [
+            "data"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "io",
+          "specifiers": [
+            "io"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        }
+      ],
+      "exports": [
+        "parse_by_filename",
+        "parse_pdf",
+        "parse_markdown",
+        "parse_text",
+        "parse_docx"
+      ],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/workers/queue.py": {
+      "filePath": "backend/app/workers/queue.py",
+      "contentHash": "7d0313e1d1b6c46f12f0316c240ca0a7c7c56fa00a2441754e2a86382f9791e5",
+      "functions": [
+        {
+          "name": "run_parse_document",
+          "params": [
+            "doc_id"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "enqueue_parse_document",
+          "params": [
+            "doc_id"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "redis",
+          "specifiers": [
+            "Redis"
+          ]
+        },
+        {
+          "source": "rq",
+          "specifiers": [
+            "Queue"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        }
+      ],
+      "exports": [
+        "run_parse_document",
+        "enqueue_parse_document"
+      ],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "backend/app/workers/worker.py": {
+      "filePath": "backend/app/workers/worker.py",
+      "contentHash": "fcec96a3169ff38936686913d4124270a715f7e08d531f9f5a978139366a41bd",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "redis",
+          "specifiers": [
+            "Redis"
+          ]
+        },
+        {
+          "source": "rq",
+          "specifiers": [
+            "Worker"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "settings"
+          ]
+        },
+        {
+          "source": "app.workers.queue",
+          "specifiers": [
+            "parse_queue"
+          ]
+        }
+      ],
+      "exports": [
+        "main"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "backend/Dockerfile": {
+      "filePath": "backend/Dockerfile",
+      "contentHash": "9550c0ee6d8b8843f93e837fa5c7a763f06c5f06f91029561a341658704177dc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "backend/pyproject.toml": {
+      "filePath": "backend/pyproject.toml",
+      "contentHash": "48828c8e3509c383209a1abc8e2d1bb78224b3d540b2549b8b6c4a91964c1c34",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tests/__init__.py": {
+      "filePath": "backend/tests/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tests/conftest.py": {
+      "filePath": "backend/tests/conftest.py",
+      "contentHash": "a7b8caca5fdd727069e12a269763a5b0e25bea4dbdfe902bed8c8155df84104d",
+      "functions": [
+        {
+          "name": "event_loop",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "db_session",
+          "params": [],
+          "returnType": "AsyncIterator",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "client",
+          "params": [],
+          "returnType": "AsyncIterator[AsyncClient]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "auth_token",
+          "params": [
+            "client"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "AsyncIterator"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "pytest_asyncio",
+          "specifiers": [
+            "pytest_asyncio"
+          ]
+        },
+        {
+          "source": "httpx",
+          "specifiers": [
+            "ASGITransport",
+            "AsyncClient"
+          ]
+        }
+      ],
+      "exports": [
+        "event_loop",
+        "db_session",
+        "client",
+        "auth_token"
+      ],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tests/test_auth.py": {
+      "filePath": "backend/tests/test_auth.py",
+      "contentHash": "2d1327785e78f065118664ba0e60ccebacfd0d082f24874f8164b32db9e9dc33",
+      "functions": [
+        {
+          "name": "test_password_hash_and_verify",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_jwt_create_and_decode",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_login_success",
+          "params": [
+            "client"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_login_wrong_password",
+          "params": [
+            "client"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_me_with_token",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "app.auth.jwt_handler",
+          "specifiers": [
+            "create_access_token",
+            "decode_token"
+          ]
+        },
+        {
+          "source": "app.auth.password",
+          "specifiers": [
+            "hash_password",
+            "verify_password"
+          ]
+        }
+      ],
+      "exports": [
+        "test_password_hash_and_verify",
+        "test_jwt_create_and_decode",
+        "test_login_success",
+        "test_login_wrong_password",
+        "test_me_with_token"
+      ],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tests/test_document.py": {
+      "filePath": "backend/tests/test_document.py",
+      "contentHash": "7ce9565f954ba32ad429059af642a7f4d6ea5975568bc9f50e9263ba625e13d7",
+      "functions": [
+        {
+          "name": "test_upload_md_and_wait_processed",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 48
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        }
+      ],
+      "exports": [
+        "test_upload_md_and_wait_processed"
+      ],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tests/test_halfvec.py": {
+      "filePath": "backend/tests/test_halfvec.py",
+      "contentHash": "52e5a565db8453c23d518fd35ec244b41f77667d3ff38d4288eaf2d1ffa4e666",
+      "functions": [
+        {
+          "name": "test_halfvec_cast_hits_hnsw_index",
+          "params": [
+            "db_session"
+          ],
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "test_halfvec_no_cast_seq_scan",
+          "params": [
+            "db_session"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "test_zhparser_chinese_tokenizer",
+          "params": [
+            "db_session"
+          ],
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "sqlalchemy",
+          "specifiers": [
+            "text"
+          ]
+        }
+      ],
+      "exports": [
+        "test_halfvec_cast_hits_hnsw_index",
+        "test_halfvec_no_cast_seq_scan",
+        "test_zhparser_chinese_tokenizer"
+      ],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tests/test_kb.py": {
+      "filePath": "backend/tests/test_kb.py",
+      "contentHash": "b72127ce90d1a7abcbeb122b863f601a7d59ced33710ca859990bac445a2775d",
+      "functions": [
+        {
+          "name": "test_create_kb_default_config",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "test_list_kbs",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "test_get_kb_not_found",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        }
+      ],
+      "exports": [
+        "test_create_kb_default_config",
+        "test_list_kbs",
+        "test_get_kb_not_found"
+      ],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "backend/tests/test_search.py": {
+      "filePath": "backend/tests/test_search.py",
+      "contentHash": "b791b99943f9811332388038cb3a2cc019f1ccf75ebae0941bf045017aa6b09c",
+      "functions": [
+        {
+          "name": "test_search_chinese",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "test_search_english",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_search_wiki_mode_not_implemented",
+          "params": [
+            "client",
+            "auth_token"
+          ],
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        }
+      ],
+      "exports": [
+        "test_search_chinese",
+        "test_search_english",
+        "test_search_wiki_mode_not_implemented"
+      ],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "61a1b5f64547d3f97f904c7ece8e21f8429223c62154ae57145f91b8e057cbaa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 128,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/index.html": {
+      "filePath": "frontend/index.html",
+      "contentHash": "b00fa263f6a31043a8809ccd8dced132ed7b2c3bce47a953b17d517c7184bf11",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": false
+    },
+    "frontend/package.json": {
+      "filePath": "frontend/package.json",
+      "contentHash": "42ec2ffe8964664e15bb48538b6952feabb0f368032dfbcebf1979ecd264ca2b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/postcss.config.js": {
+      "filePath": "frontend/postcss.config.js",
+      "contentHash": "190c877db466995bf1482f4a16abd06e04a89ede3119341e2a86ff96e1737b27",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/api.ts": {
+      "filePath": "frontend/src/api.ts",
+      "contentHash": "e2ccc58621feb62a23db29eafb94f79a01ad191e762bfefbdc4547332df96eb9",
+      "functions": [
+        {
+          "name": "login",
+          "params": [
+            "email",
+            "password"
+          ],
+          "returnType": "Promise<TokenResponse>",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "listKBs",
+          "params": [
+            "token"
+          ],
+          "returnType": "Promise<KBInfo[]>",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "search",
+          "params": [
+            "token",
+            "kbId",
+            "query",
+            "mode",
+            "limit"
+          ],
+          "returnType": "Promise<SearchResponse>",
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "axios",
+          "specifiers": [
+            "axios"
+          ]
+        }
+      ],
+      "exports": [
+        "login",
+        "listKBs",
+        "search"
+      ],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/App.tsx": {
+      "filePath": "frontend/src/App.tsx",
+      "contentHash": "20a9a0658fbd82e328127d6193c40f8199f68f67e8ae947d58aa9c3ee57ae9e0",
+      "functions": [
+        {
+          "name": "App",
+          "params": [],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "Routes",
+            "Route",
+            "Navigate"
+          ]
+        },
+        {
+          "source": "./pages/Search",
+          "specifiers": [
+            "SearchPage"
+          ]
+        }
+      ],
+      "exports": [
+        "App"
+      ],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/ResultList.tsx": {
+      "filePath": "frontend/src/components/ResultList.tsx",
+      "contentHash": "a59623ed4552595cf0e68290816579df883796d75b8956c3db1ceb0e8f8c2f9b",
+      "functions": [
+        {
+          "name": "ResultList",
+          "params": [
+            "{ results }"
+          ],
+          "exported": true,
+          "lineCount": 28
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../api",
+          "specifiers": [
+            "ChunkHit"
+          ]
+        }
+      ],
+      "exports": [
+        "ResultList"
+      ],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/components/SearchBox.tsx": {
+      "filePath": "frontend/src/components/SearchBox.tsx",
+      "contentHash": "a9ca134da41f53f1435610b2f01efa0380ee9009f9544045cd4ef91ac5d22f78",
+      "functions": [
+        {
+          "name": "SearchBox",
+          "params": [
+            "{ onSearch, loading }"
+          ],
+          "exported": true,
+          "lineCount": 30
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        }
+      ],
+      "exports": [
+        "SearchBox"
+      ],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/index.css": {
+      "filePath": "frontend/src/index.css",
+      "contentHash": "cc1a7ad0d019ddb1d32d0ecb588ba0ac26ce41d8625dd6c366348b25f83a28ec",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "frontend/src/main.tsx": {
+      "filePath": "frontend/src/main.tsx",
+      "contentHash": "1483e1f86dd403fc71f2ec1b3feef8afd31f4fc7829b5d4456f530abea2c0347",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        },
+        {
+          "source": "react-dom/client",
+          "specifiers": [
+            "ReactDOM"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "BrowserRouter"
+          ]
+        },
+        {
+          "source": "./App",
+          "specifiers": [
+            "App"
+          ]
+        },
+        {
+          "source": "./index.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/src/pages/Search.tsx": {
+      "filePath": "frontend/src/pages/Search.tsx",
+      "contentHash": "a76e4d2feff2f290ed09434457d2f34a97a43cb5fcb92e207052b5becb257f73",
+      "functions": [
+        {
+          "name": "SearchPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 78
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../components/SearchBox",
+          "specifiers": [
+            "SearchBox"
+          ]
+        },
+        {
+          "source": "../components/ResultList",
+          "specifiers": [
+            "ResultList"
+          ]
+        },
+        {
+          "source": "../api",
+          "specifiers": [
+            "ChunkHit",
+            "KBInfo",
+            "listKBs",
+            "login",
+            "search"
+          ]
+        }
+      ],
+      "exports": [
+        "SearchPage"
+      ],
+      "totalLines": 88,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tailwind.config.js": {
+      "filePath": "frontend/tailwind.config.js",
+      "contentHash": "7b7341acbeb11bc028a6b563c60bc46dca8304ba7bcdbb8cfbb3b5f556a9847d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/tsconfig.json": {
+      "filePath": "frontend/tsconfig.json",
+      "contentHash": "a310c441be1d313cf310f05a3a5a32bfd8a5c3d81d7371a23c73e07584be1a43",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "frontend/vite.config.ts": {
+      "filePath": "frontend/vite.config.ts",
+      "contentHash": "bb42e9d1535f00adba0f11e061bf4b84e9bced228a369c44e2e7512b8e45e07a",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-react",
+          "specifiers": [
+            "react"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "Makefile": {
+      "filePath": "Makefile",
+      "contentHash": "e57b0656ff848ab55ab34f3db2ea97be6f4b174fb1b3653ae2d7482234813592",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/CONTEXT.md": {
+      "filePath": "mydocs/context/CONTEXT.md",
+      "contentHash": "9282eb403ada5d7f3be494d987503286408c93604e89627faa41cbfe42a5e662",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 216,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0001-halfvec-multi-dim.md": {
+      "filePath": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "contentHash": "f5bc8d6d2b803515e53c9e2f4615b74f78cf7aea6a3eef279e2954ec1142ed9e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0002-tenant-org-rbac.md": {
+      "filePath": "mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "contentHash": "d9ce0d4792d5dd2670ac2e8762eb82c5fa75e74f8d86fcefd997ff3f072100e1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 112,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0003-three-edge-model.md": {
+      "filePath": "mydocs/context/docs/adr/0003-three-edge-model.md",
+      "contentHash": "26fc3ffbfb22942b6088ec474ba54dbf1c31fc6b2042e76b69b1ac7d27fe4ac3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 136,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0004-http-mcp-server.md": {
+      "filePath": "mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "contentHash": "5b3459c3a3e97ec4c42d6d7674b619b0878d235c0500bdb18b6960454af28edb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 60,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0005-self-signup-and-invitation.md": {
+      "filePath": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "contentHash": "80b78c3ef9aa0ebd2a72d194a2d3a60cea6daa100cb1cef0eda2d05b99153d65",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 133,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0006-agent-runtime-byok.md": {
+      "filePath": "mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "contentHash": "7e2467f12b75b27edbcd76659e07c38bc448c574e2d12789d8e61df6e4f5986b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 121,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0007-multi-source-mounting.md": {
+      "filePath": "mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "contentHash": "e8f1578940996e54896c63948388e292b278280fc93d6626133e5cba775d3f9a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 114,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0008-mvp-scope.md": {
+      "filePath": "mydocs/context/docs/adr/0008-mvp-scope.md",
+      "contentHash": "5d8028f48e3348f22548b7efb25e1eb744c866904e7c6adf70ec7f4c55b2081e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/context/docs/adr/0009-retrieval-architecture.md": {
+      "filePath": "mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "contentHash": "def3ab8f4a4dcfd0c86779cb2b33c63d359d21a0a3cd4dfd9d6a6671c9e7fc37",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 201,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/GBrain知识库设计剖析.md": {
+      "filePath": "mydocs/GBrain知识库设计剖析.md",
+      "contentHash": "b369887db52a95adef3b04dc6a67899f03fb099f8c61274071559156aa5009cf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 351,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/kb-architecture.md": {
+      "filePath": "mydocs/kb-architecture.md",
+      "contentHash": "18c633b9ced74489ede0e41e25d6f85c49727968074ffd67016bbe3af48a627a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 415,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/multi-tenant-architecture.md": {
+      "filePath": "mydocs/multi-tenant-architecture.md",
+      "contentHash": "ca6dba4e65b4bdc29d25a117e8e5a0c79e177822a9451768900c5e92027428e8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 919,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/prd-v4.2.md": {
+      "filePath": "mydocs/prd-v4.2.md",
+      "contentHash": "8cb69e11f7ec3ad1d635d17e6f39db19389d25b3f90cea3ae9313a1b9e3dbbf8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 358,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/rag-architecture.md": {
+      "filePath": "mydocs/rag-architecture.md",
+      "contentHash": "c99187b75ff375c0b7590287572b51b96e642b8f91f5aa950f6fd4709d0155ed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 515,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md": {
+      "filePath": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "contentHash": "4131dfd53f7db4512867ed5c3a602346d1f9b5d824e31d2fe18d6a4f4dc28379",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 532,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md": {
+      "filePath": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "contentHash": "784ca0bbc0789cd643ad688a39996da7b71b039c840ad168411a93bfc782102c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1090,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/specs/llm-wiki-design-decision.html": {
+      "filePath": "mydocs/specs/llm-wiki-design-decision.html",
+      "contentHash": "5840e200747b4c18fae1e364b734c9e5f1b60f581da2b4a29da295071bb4e710",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 620,
+      "hasStructuralAnalysis": false
+    },
+    "mydocs/specs/obsidian-wiki-research.html": {
+      "filePath": "mydocs/specs/obsidian-wiki-research.html",
+      "contentHash": "8e7d4035e9855038849adef10de32cae84b120e29645393c39b9c87a183af027",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1402,
+      "hasStructuralAnalysis": false
+    },
+    "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html": {
+      "filePath": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "contentHash": "060953aad882b367952628589bb2253aee5bb92edb6e53b7fb8f3b31b5618707",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 671,
+      "hasStructuralAnalysis": false
+    },
+    "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md": {
+      "filePath": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "contentHash": "2d4ffa17b70b5a6ca3c734a92c2801b88159fc17c463d65fa17e227d75439eb4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1690,
+      "hasStructuralAnalysis": true
+    },
+    "mydocs/wiki-architecture.md": {
+      "filePath": "mydocs/wiki-architecture.md",
+      "contentHash": "07c5d15f11278e1c42d8f5b80ef028b4f0c6dc3170dfd9c0504ffa467d94393c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 801,
+      "hasStructuralAnalysis": true
+    },
+    "postgres/Dockerfile": {
+      "filePath": "postgres/Dockerfile",
+      "contentHash": "dfc12565c22fb299b7daafc23c1e445476b12779712f41ec9233c93501fe8006",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "postgres/init-extensions.sql": {
+      "filePath": "postgres/init-extensions.sql",
+      "contentHash": "91909cd6157612883e33b523f343c73fedd4035982f372d785978a53c8e35887",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "7008ba6e5697d052712802fcc6f6101fe9746d5cb61d6342268f3739b4a51681",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

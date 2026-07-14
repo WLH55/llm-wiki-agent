@@ -1,0 +1,306 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "backend/app/auth/bootstrap.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "ensure_bootstrap_owner",
+          "startLine": 20,
+          "endLine": 52,
+          "params": [
+            "db"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ensure_bootstrap_owner",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "db.execute",
+          "lineNumber": 25
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "select(User).where(User.role == \"owner\").limit",
+          "lineNumber": 25
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "select(User).where",
+          "lineNumber": 25
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "select",
+          "lineNumber": 25
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "result.scalar_one_or_none",
+          "lineNumber": 26
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "logger.info",
+          "lineNumber": 27
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "logger.warning",
+          "lineNumber": 31
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "Tenant",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "db.add",
+          "lineNumber": 37
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "db.flush",
+          "lineNumber": 38
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "User",
+          "lineNumber": 40
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "hash_password",
+          "lineNumber": 43
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "db.add",
+          "lineNumber": 47
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "db.commit",
+          "lineNumber": 48
+        },
+        {
+          "caller": "ensure_bootstrap_owner",
+          "callee": "logger.info",
+          "lineNumber": 50
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/auth/password.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 18,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "hash_password",
+          "startLine": 11,
+          "endLine": 13,
+          "params": [
+            "raw"
+          ]
+        },
+        {
+          "name": "verify_password",
+          "startLine": 16,
+          "endLine": 18,
+          "params": [
+            "raw",
+            "hashed"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "hash_password",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "verify_password",
+          "line": 16,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "hash_password",
+          "callee": "_pwd_context.hash",
+          "lineNumber": 13
+        },
+        {
+          "caller": "verify_password",
+          "callee": "_pwd_context.verify",
+          "lineNumber": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/tests/test_auth.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 49,
+      "functions": [
+        {
+          "name": "test_password_hash_and_verify",
+          "startLine": 10,
+          "endLine": 16,
+          "params": []
+        },
+        {
+          "name": "test_jwt_create_and_decode",
+          "startLine": 19,
+          "endLine": 24,
+          "params": []
+        },
+        {
+          "name": "test_login_success",
+          "startLine": 28,
+          "endLine": 37,
+          "params": [
+            "client"
+          ]
+        },
+        {
+          "name": "test_login_wrong_password",
+          "startLine": 41,
+          "endLine": 47,
+          "params": [
+            "client"
+          ]
+        },
+        {
+          "name": "test_me_with_token",
+          "startLine": 51,
+          "endLine": 60,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_password_hash_and_verify",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "test_jwt_create_and_decode",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "test_login_success",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "test_login_wrong_password",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "test_me_with_token",
+          "line": 50,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_password_hash_and_verify",
+          "callee": "hash_password",
+          "lineNumber": 13
+        },
+        {
+          "caller": "test_password_hash_and_verify",
+          "callee": "verify_password",
+          "lineNumber": 15
+        },
+        {
+          "caller": "test_password_hash_and_verify",
+          "callee": "verify_password",
+          "lineNumber": 16
+        },
+        {
+          "caller": "test_jwt_create_and_decode",
+          "callee": "create_access_token",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_jwt_create_and_decode",
+          "callee": "decode_token",
+          "lineNumber": 23
+        },
+        {
+          "caller": "test_jwt_create_and_decode",
+          "callee": "str",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_login_success",
+          "callee": "client.post",
+          "lineNumber": 30
+        },
+        {
+          "caller": "test_login_success",
+          "callee": "response.json",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_login_wrong_password",
+          "callee": "client.post",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_me_with_token",
+          "callee": "client.get",
+          "lineNumber": 53
+        },
+        {
+          "caller": "test_me_with_token",
+          "callee": "response.json",
+          "lineNumber": 58
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    }
+  ]
+}

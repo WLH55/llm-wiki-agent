@@ -1,0 +1,34 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "backend/app/auth/bootstrap.py", "language": "python", "sizeLines": 52, "fileCategory": "code"},
+    {"path": "backend/app/auth/password.py", "language": "python", "sizeLines": 32, "fileCategory": "code"},
+    {"path": "backend/tests/test_auth.py", "language": "python", "sizeLines": 77, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "backend/app/auth/bootstrap.py": [
+      "backend/app/auth/password.py",
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/models/user.py"
+    ],
+    "backend/app/auth/password.py": [],
+    "backend/tests/test_auth.py": [
+      "backend/app/auth/jwt_handler.py",
+      "backend/app/auth/password.py"
+    ]
+  },
+  "neighborMap": {
+    "backend/app/auth/bootstrap.py": [
+      {"path": "backend/app/config/__init__.py", "batchIndex": 1, "symbols": []},
+      {"path": "backend/app/config/settings.py", "batchIndex": 1, "symbols": ["get_env_file", "Settings"]},
+      {"path": "backend/app/models/user.py", "batchIndex": 3, "symbols": ["Tenant", "User"]}
+    ],
+    "backend/app/auth/password.py": [
+      {"path": "backend/app/auth/routes.py", "batchIndex": 2, "symbols": ["login", "get_me"]}
+    ],
+    "backend/tests/test_auth.py": [
+      {"path": "backend/app/auth/jwt_handler.py", "batchIndex": 1, "symbols": ["create_access_token", "decode_token", "get_user_id_from_token"]}
+    ]
+  }
+}

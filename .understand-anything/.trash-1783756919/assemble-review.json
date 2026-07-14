@@ -1,0 +1,140 @@
+{
+  "issues": [
+    {
+      "id": "dropped-edge-prefix-mismatch-1",
+      "severity": "high",
+      "category": "dropped-edge-recovery",
+      "title": "丢失边 1：backend/Dockerfile 前端构建阶段依赖 frontend/package.json",
+      "description": "合并脚本因目标节点 ID 前缀不匹配丢弃了 depends_on 边。源节点 service:backend/Dockerfile:frontend-build 是合法的多阶段 Docker 构建子节点，目标节点 file:frontend/package.json 实际 ID 是 config:frontend/package.json（type=config）。",
+      "originalEdge": {
+        "source": "service:backend/Dockerfile:frontend-build",
+        "target": "file:frontend/package.json",
+        "type": "depends_on"
+      },
+      "correctedEdge": {
+        "source": "service:backend/Dockerfile:frontend-build",
+        "target": "config:frontend/package.json",
+        "type": "depends_on",
+        "direction": "forward",
+        "weight": 0.6
+      },
+      "action": "已恢复（前缀从 file: 修正为 config:）",
+      "rootCause": "批次 LLM 在生成边时使用了泛化的 file: 前缀，但实际节点根据其语义角色被归类为 config:。属于系统性的前缀归类不一致。"
+    },
+    {
+      "id": "dropped-edge-prefix-mismatch-2",
+      "severity": "high",
+      "category": "dropped-edge-recovery",
+      "title": "丢失边 2：postgres/Dockerfile 依赖 postgres/init-extensions.sql",
+      "description": "合并脚本因目标节点 ID 前缀不匹配丢弃了 depends_on 边。postgres/Dockerfile 需要在镜像中挂载并执行 init-extensions.sql 初始化脚本，目标节点 file:postgres/init-extensions.sql 实际 ID 是 schema:postgres/init-extensions.sql（type=schema）。",
+      "originalEdge": {
+        "source": "service:postgres/Dockerfile",
+        "target": "file:postgres/init-extensions.sql",
+        "type": "depends_on"
+      },
+      "correctedEdge": {
+        "source": "service:postgres/Dockerfile",
+        "target": "schema:postgres/init-extensions.sql",
+        "type": "depends_on",
+        "direction": "forward",
+        "weight": 0.6
+      },
+      "action": "已恢复（前缀从 file: 修正为 schema:）",
+      "rootCause": "同上，批次使用了泛化 file: 前缀，但 schema 类节点被独立归类。"
+    },
+    {
+      "id": "dropped-edge-prefix-mismatch-3",
+      "severity": "high",
+      "category": "dropped-edge-recovery",
+      "title": "丢失边 3：MVP P1 Spec 文档关联 backend/Dockerfile",
+      "description": "合并脚本因目标节点 ID 前缀不匹配丢弃了 documents 边。该 spec 文档详细描述了后端部署架构（包括 Dockerfile 的多阶段构建策略），目标节点 file:backend/Dockerfile 实际 ID 是 service:backend/Dockerfile（type=service）。",
+      "originalEdge": {
+        "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+        "target": "file:backend/Dockerfile",
+        "type": "documents"
+      },
+      "correctedEdge": {
+        "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+        "target": "service:backend/Dockerfile",
+        "type": "documents",
+        "direction": "forward",
+        "weight": 0.5
+      },
+      "action": "已恢复（前缀从 file: 修正为 service:）",
+      "rootCause": "同上。这是 3 条丢失边共同的根因：批次对非源码资产（Dockerfile、SQL、package.json）默认填 file: 前缀，而合并后的实际类型分类更细（service/schema/config）。建议上游 BATCH 阶段对这类资产统一调用类型分类器，或在 merge-batch-graphs.py 中加入'前缀模糊匹配'的回退策略：当 file:X 不存在但存在 service:/config:/schema:/...:X 时，按唯一性回退。"
+    }
+  ],
+  "warnings": [
+    {
+      "id": "tested-by-semantic-questionable",
+      "severity": "low",
+      "category": "suspicious-edge",
+      "title": "tested_by 边语义可争议但保留",
+      "description": "最终图谱仅保留一条 tested_by 边：file:backend/alembic/versions/001_initial.py -> file:backend/tests/test_halfvec.py。表面看是迁移文件被测试覆盖，但语义上更精确的关系是：迁移文件定义了使用 halfvec 类型的 content_chunks 表，而 test_halfvec.py 验证 halfvec 类型在 HNSW 索引下的行为。从测试覆盖角度看，这条边可以保留（test_halfvec.py 间接验证了迁移使用的类型），但严格语义下 tested_by 应指向单个具体的产品单元。考虑到 batch-13 中原本有更细粒度的 5 条 tested_by 边（指向具体测试函数），它们被 tested_by linker 以'重复'为由去重到 1 条是合理但损失信息的。",
+      "action": "不修改，但记录为可改进点",
+      "recommendation": "未来可在 merge-batch-graphs.py 中保留指向 function: 级别测试的 tested_by 边，仅对 file:↔file: 的重复去重。"
+    },
+    {
+      "id": "orphan-init-py-files",
+      "severity": "low",
+      "category": "orphan-nodes",
+      "title": "7 个 Python __init__.py 文件为孤立节点",
+      "description": "file:backend/app/{auth,plugins,routers,schemas,services,workers}/__init__.py 与 file:backend/app/config/__init__.py 之外的 6 个 __init__.py 节点没有任何边连接。其中 backend/app/config/__init__.py 是 barrel 文件，有大量导入关系（不属于孤立节点），但其余 __init__.py 多为空标记文件。",
+      "action": "不修改，孤立是预期合理的",
+      "recommendation": "若 __init__.py 为空文件可考虑在 scan-result.json 中加入过滤规则，避免噪声节点。"
+    },
+    {
+      "id": "orphan-tooling-files",
+      "severity": "low",
+      "category": "orphan-nodes",
+      "title": "2 个工具元数据文件为孤立节点",
+      "description": "file:.understand-anything/.understandignore 和 config:.understand-anything/intermediate/scan-result.json 是 understand-anything 工具自身的元数据，无语义连接是预期。",
+      "action": "不修改，孤立是预期合理的",
+      "recommendation": "可在 .understandignore 中显式排除 .understand-anything/ 自身，避免工具元数据混入项目图谱。"
+    },
+    {
+      "id": "orphan-doc",
+      "severity": "low",
+      "category": "orphan-nodes",
+      "title": "1 个外部技术指南文档为孤立节点",
+      "description": "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md 是一份 TS/Next.js 入门指南，没有项目内代码或文档引用它。",
+      "action": "不修改，孤立是预期合理的（参考资料类文档）"
+    }
+  ],
+  "notes": [
+    {
+      "id": "fixed-section-sanity",
+      "observation": "Fixed 段落仅记录 5 条 tested_by 边被 linker 丢弃，无大规模 ID 规范化（如 func:→function:），表明上游批次 LLM 输出 ID 格式质量良好。但 3 条 depends_on/documents 边因前缀不匹配被合并脚本判定为'目标不存在'而丢弃，这是合并脚本'严格 ID 匹配'策略的盲区。"
+    },
+    {
+      "id": "cross-batch-edges-ok",
+      "observation": "importMap 中 103 条导入关系，所有源/目标都在图谱中的边均已存在 imports 边（0 条缺失）。calls 边（43 条）和 inherits 边（13 条）覆盖了跨批次的关键调用与继承关系，如 parse_document.py 跨模块调用 minio_service/embedding_service、所有 ORM 模型继承 base.Base、Search.tsx 跨文件调用 api.ts。跨批次边覆盖度良好。"
+    },
+    {
+      "id": "no-duplicates",
+      "observation": "按 (filePath, name) 检查 function/class/table 节点均无重复，ID 去重逻辑工作正常。"
+    },
+    {
+      "id": "no-dangling-after-fix",
+      "observation": "恢复 3 条边后，图谱 226 节点 / 455 边，0 条悬空边。"
+    },
+    {
+      "id": "encoding-no-issue",
+      "observation": "前期怀疑的中文乱码问题经核查是 bash 终端 GBK 显示问题，JSON 文件本身 UTF-8 编码完好（包含中文文件名 GBrain知识库设计剖析.md、知识库客户端原型设计.md 及所有 summary 内容）。无需编码修复。"
+    },
+    {
+      "id": "service-docker-compose-multi-stage",
+      "observation": "service:docker-compose.yml 与 service:backend/Dockerfile 使用 ':<stage>' 后缀正确建模了多阶段构建（frontend-build/python）和多服务组合（backend/worker/postgres/minio/redis）的内部结构，contains 边连接合理。"
+    }
+  ],
+  "stats": {
+    "nodesTotal": 226,
+    "edgesTotalBefore": 452,
+    "edgesTotalAfter": 455,
+    "edgesRecovered": 3,
+    "danglingEdgesAfter": 0,
+    "orphanNodes": 9,
+    "duplicateNodes": 0,
+    "missingImportsEdges": 0
+  }
+}

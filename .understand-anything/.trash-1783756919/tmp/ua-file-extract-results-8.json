@@ -1,0 +1,286 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 26,
+      "nonEmptyLines": 21,
+      "definitions": [
+        {
+          "name": "ENVIRONMENT",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 2,
+          "endLine": 2
+        },
+        {
+          "name": "POSTGRES_USER",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 6,
+          "endLine": 6
+        },
+        {
+          "name": "POSTGRES_DB",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "MINIO_ROOT_USER",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 10,
+          "endLine": 10
+        },
+        {
+          "name": "MINIO_ROOT_PASSWORD",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "MINIO_BUCKET",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 12,
+          "endLine": 12
+        },
+        {
+          "name": "JWT_SECRET",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 15,
+          "endLine": 15
+        },
+        {
+          "name": "JWT_EXPIRE_HOURS",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 16,
+          "endLine": 16
+        },
+        {
+          "name": "BOOTSTRAP_OWNER_EMAIL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 19,
+          "endLine": 19
+        },
+        {
+          "name": "BOOTSTRAP_OWNER_PASSWORD",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 20,
+          "endLine": 20
+        },
+        {
+          "name": "EMBEDDING_API_BASE",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 23,
+          "endLine": 23
+        },
+        {
+          "name": "EMBEDDING_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 24,
+          "endLine": 24
+        },
+        {
+          "name": "EMBEDDING_MODEL",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 25,
+          "endLine": 25
+        },
+        {
+          "name": "EMBEDDING_DIM",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 26,
+          "endLine": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 15
+      }
+    },
+    {
+      "path": "Makefile",
+      "language": "makefile",
+      "fileCategory": "script",
+      "totalLines": 28,
+      "nonEmptyLines": 19,
+      "steps": [
+        {
+          "name": "up",
+          "startLine": 3,
+          "endLine": 5
+        },
+        {
+          "name": "down",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "name": "logs",
+          "startLine": 9,
+          "endLine": 11
+        },
+        {
+          "name": "ps",
+          "startLine": 12,
+          "endLine": 14
+        },
+        {
+          "name": "migrate",
+          "startLine": 15,
+          "endLine": 17
+        },
+        {
+          "name": "test",
+          "startLine": 18,
+          "endLine": 20
+        },
+        {
+          "name": "shell",
+          "startLine": 21,
+          "endLine": 23
+        },
+        {
+          "name": "psql",
+          "startLine": 24,
+          "endLine": 26
+        },
+        {
+          "name": "redis-cli",
+          "startLine": 27,
+          "endLine": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "stepCount": 9
+      }
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 69,
+      "nonEmptyLines": 52,
+      "sections": [
+        {
+          "heading": "LLM Wiki 3.0",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "架构",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "快速启动",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "访问入口",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "常用命令",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "开发",
+          "level": 2,
+          "line": 45
+        },
+        {
+          "heading": "后端本地开发（不用 Docker）",
+          "level": 3,
+          "line": 47
+        },
+        {
+          "heading": "前端本地开发（Vite dev server）",
+          "level": 3,
+          "line": 57
+        },
+        {
+          "heading": "文档",
+          "level": 2,
+          "line": 65
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "fileCategory": "infra",
+      "totalLines": 127,
+      "nonEmptyLines": 120,
+      "sections": [
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "services",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "volumes",
+          "level": 1,
+          "line": 120
+        },
+        {
+          "heading": "networks",
+          "level": 1,
+          "line": 125
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    }
+  ]
+}

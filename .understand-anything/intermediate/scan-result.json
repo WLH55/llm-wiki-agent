@@ -1,0 +1,933 @@
+{
+  "scriptCompleted": true,
+  "files": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 26,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/intermediate/scan-result.json",
+      "language": "json",
+      "sizeLines": 254,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/alembic.ini",
+      "language": "config",
+      "sizeLines": 40,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/alembic/env.py",
+      "language": "python",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/alembic/script.py.mako",
+      "language": "mako",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/alembic/versions/.gitkeep",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/alembic/versions/001_initial.py",
+      "language": "python",
+      "sizeLines": 313,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/auth/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/auth/bootstrap.py",
+      "language": "python",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/auth/jwt_handler.py",
+      "language": "python",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/auth/password.py",
+      "language": "python",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/auth/routes.py",
+      "language": "python",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/config/__init__.py",
+      "language": "python",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/config/dependencies.py",
+      "language": "python",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/config/exceptions.py",
+      "language": "python",
+      "sizeLines": 111,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/config/logger_config.py",
+      "language": "python",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/config/schemas.py",
+      "language": "python",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/config/settings.py",
+      "language": "python",
+      "sizeLines": 106,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/database.py",
+      "language": "python",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/deps.py",
+      "language": "python",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/main.py",
+      "language": "python",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/__init__.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/base.py",
+      "language": "python",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/chunk.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/document.py",
+      "language": "python",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/kb.py",
+      "language": "python",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/reserved.py",
+      "language": "python",
+      "sizeLines": 85,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/source.py",
+      "language": "python",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/models/user.py",
+      "language": "python",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/plugins/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/plugins/chunk_rerank.py",
+      "language": "python",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/routers/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/routers/document.py",
+      "language": "python",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/routers/kb.py",
+      "language": "python",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/routers/search.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/schemas/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/schemas/auth.py",
+      "language": "python",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/schemas/document.py",
+      "language": "python",
+      "sizeLines": 26,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/schemas/kb.py",
+      "language": "python",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/schemas/search.py",
+      "language": "python",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/services/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/services/document_service.py",
+      "language": "python",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/services/embedding_service.py",
+      "language": "python",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/services/kb_service.py",
+      "language": "python",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/services/minio_service.py",
+      "language": "python",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/services/search_service.py",
+      "language": "python",
+      "sizeLines": 201,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/workers/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/workers/chunker.py",
+      "language": "python",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/workers/parse_document.py",
+      "language": "python",
+      "sizeLines": 117,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/workers/parsers.py",
+      "language": "python",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/workers/queue.py",
+      "language": "python",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/app/workers/worker.py",
+      "language": "python",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 45,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "backend/pyproject.toml",
+      "language": "toml",
+      "sizeLines": 53,
+      "fileCategory": "config"
+    },
+    {
+      "path": "backend/tests/__init__.py",
+      "language": "python",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/tests/conftest.py",
+      "language": "python",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/tests/test_auth.py",
+      "language": "python",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/tests/test_document.py",
+      "language": "python",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/tests/test_halfvec.py",
+      "language": "python",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/tests/test_kb.py",
+      "language": "python",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/tests/test_search.py",
+      "language": "python",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "sizeLines": 127,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "frontend/index.html",
+      "language": "html",
+      "sizeLines": 12,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/package.json",
+      "language": "json",
+      "sizeLines": 27,
+      "fileCategory": "config"
+    },
+    {
+      "path": "frontend/postcss.config.js",
+      "language": "javascript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/api.ts",
+      "language": "typescript",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "language": "typescript",
+      "sizeLines": 11,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/ResultList.tsx",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/components/SearchBox.tsx",
+      "language": "typescript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "language": "css",
+      "sizeLines": 3,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "language": "typescript",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/src/pages/Search.tsx",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/tailwind.config.js",
+      "language": "javascript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "language": "json",
+      "sizeLines": 19,
+      "fileCategory": "config"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "Makefile",
+      "language": "makefile",
+      "sizeLines": 28,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "mydocs/context/CONTEXT.md",
+      "language": "markdown",
+      "sizeLines": 215,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "language": "markdown",
+      "sizeLines": 25,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "language": "markdown",
+      "sizeLines": 111,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0003-three-edge-model.md",
+      "language": "markdown",
+      "sizeLines": 135,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "language": "markdown",
+      "sizeLines": 59,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "language": "markdown",
+      "sizeLines": 132,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "language": "markdown",
+      "sizeLines": 120,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "language": "markdown",
+      "sizeLines": 113,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0008-mvp-scope.md",
+      "language": "markdown",
+      "sizeLines": 92,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "language": "markdown",
+      "sizeLines": 200,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/GBrain知识库设计剖析.md",
+      "language": "markdown",
+      "sizeLines": 350,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/kb-architecture.md",
+      "language": "markdown",
+      "sizeLines": 414,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/multi-tenant-architecture.md",
+      "language": "markdown",
+      "sizeLines": 918,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/prd-v4.2.md",
+      "language": "markdown",
+      "sizeLines": 357,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/rag-architecture.md",
+      "language": "markdown",
+      "sizeLines": 514,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "language": "markdown",
+      "sizeLines": 531,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "language": "markdown",
+      "sizeLines": 1089,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/specs/llm-wiki-design-decision.html",
+      "language": "html",
+      "sizeLines": 619,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "mydocs/specs/obsidian-wiki-research.html",
+      "language": "html",
+      "sizeLines": 1401,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "language": "html",
+      "sizeLines": 670,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "language": "markdown",
+      "sizeLines": 1689,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "mydocs/wiki-architecture.md",
+      "language": "markdown",
+      "sizeLines": 800,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "postgres/Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 23,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "postgres/init-extensions.sql",
+      "language": "sql",
+      "sizeLines": 5,
+      "fileCategory": "data"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 69,
+      "fileCategory": "docs"
+    }
+  ],
+  "totalFiles": 103,
+  "filteredByIgnore": 12,
+  "estimatedComplexity": "moderate",
+  "stats": {
+    "filesScanned": 103,
+    "byCategory": {
+      "config": 6,
+      "code": 67,
+      "infra": 4,
+      "markup": 5,
+      "docs": 20,
+      "data": 1
+    },
+    "byLanguage": {
+      "config": 2,
+      "unknown": 2,
+      "json": 3,
+      "python": 55,
+      "mako": 1,
+      "dockerfile": 2,
+      "toml": 1,
+      "yaml": 1,
+      "html": 4,
+      "javascript": 2,
+      "typescript": 7,
+      "css": 1,
+      "makefile": 1,
+      "markdown": 20,
+      "sql": 1
+    }
+  },
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "project": {
+    "name": "llm-wiki3.0",
+    "description": "LLM Wiki 3.0 - 团队知识库产品。MVP P1 Batch 1：RAG 基础闭环（pgvector halfvec 多维度 + BM25 + RRF 融合 + 中文分词）。FastAPI + React 双栈，Docker Compose 编排 5 个服务（postgres/redis/minio/backend/worker）。",
+    "languages": [
+      "python",
+      "typescript",
+      "tsx",
+      "sql",
+      "yaml",
+      "dockerfile",
+      "ini",
+      "markdown",
+      "css",
+      "html",
+      "json"
+    ],
+    "frameworks": [
+      "FastAPI",
+      "SQLAlchemy",
+      "Alembic",
+      "Pydantic",
+      "RQ",
+      "React",
+      "Vite",
+      "TailwindCSS",
+      "pgvector",
+      "Docker Compose"
+    ]
+  },
+  "complexity": "moderate",
+  "importMap": {
+    ".env.example": [],
+    ".understand-anything/.understandignore": [],
+    ".understand-anything/intermediate/scan-result.json": [],
+    "backend/alembic.ini": [],
+    "backend/alembic/env.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/models/__init__.py",
+      "backend/app/models/base.py",
+      "backend/app/models/chunk.py",
+      "backend/app/models/document.py",
+      "backend/app/models/kb.py",
+      "backend/app/models/reserved.py",
+      "backend/app/models/source.py",
+      "backend/app/models/user.py"
+    ],
+    "backend/alembic/script.py.mako": [],
+    "backend/alembic/versions/.gitkeep": [],
+    "backend/alembic/versions/001_initial.py": [],
+    "backend/app/__init__.py": [],
+    "backend/app/auth/__init__.py": [],
+    "backend/app/auth/bootstrap.py": [
+      "backend/app/auth/password.py",
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/models/user.py"
+    ],
+    "backend/app/auth/jwt_handler.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/auth/password.py": [],
+    "backend/app/auth/routes.py": [
+      "backend/app/auth/jwt_handler.py",
+      "backend/app/auth/password.py",
+      "backend/app/config/exceptions.py",
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/models/user.py",
+      "backend/app/schemas/auth.py"
+    ],
+    "backend/app/config/__init__.py": [
+      "backend/app/config/exceptions.py",
+      "backend/app/config/logger_config.py",
+      "backend/app/config/schemas.py",
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/config/dependencies.py": [
+      "backend/app/auth/jwt_handler.py",
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/database.py",
+      "backend/app/models/user.py"
+    ],
+    "backend/app/config/exceptions.py": [
+      "backend/app/config/schemas.py"
+    ],
+    "backend/app/config/logger_config.py": [
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/config/schemas.py": [],
+    "backend/app/config/settings.py": [],
+    "backend/app/database.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/deps.py": [
+      "backend/app/config/dependencies.py"
+    ],
+    "backend/app/main.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/exceptions.py",
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/models/__init__.py": [
+      "backend/app/models/base.py",
+      "backend/app/models/chunk.py",
+      "backend/app/models/document.py",
+      "backend/app/models/kb.py",
+      "backend/app/models/reserved.py",
+      "backend/app/models/source.py",
+      "backend/app/models/user.py"
+    ],
+    "backend/app/models/base.py": [],
+    "backend/app/models/chunk.py": [
+      "backend/app/models/base.py"
+    ],
+    "backend/app/models/document.py": [
+      "backend/app/models/base.py"
+    ],
+    "backend/app/models/kb.py": [
+      "backend/app/models/base.py"
+    ],
+    "backend/app/models/reserved.py": [
+      "backend/app/models/base.py"
+    ],
+    "backend/app/models/source.py": [
+      "backend/app/models/base.py"
+    ],
+    "backend/app/models/user.py": [
+      "backend/app/models/base.py"
+    ],
+    "backend/app/plugins/__init__.py": [],
+    "backend/app/plugins/chunk_rerank.py": [],
+    "backend/app/routers/__init__.py": [],
+    "backend/app/routers/document.py": [
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/schemas/document.py",
+      "backend/app/services/document_service.py"
+    ],
+    "backend/app/routers/kb.py": [
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/schemas/kb.py",
+      "backend/app/services/kb_service.py"
+    ],
+    "backend/app/routers/search.py": [
+      "backend/app/config/exceptions.py",
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/schemas/search.py",
+      "backend/app/services/search_service.py"
+    ],
+    "backend/app/schemas/__init__.py": [],
+    "backend/app/schemas/auth.py": [],
+    "backend/app/schemas/document.py": [],
+    "backend/app/schemas/kb.py": [],
+    "backend/app/schemas/search.py": [],
+    "backend/app/services/__init__.py": [],
+    "backend/app/services/document_service.py": [
+      "backend/app/config/exceptions.py",
+      "backend/app/models/document.py",
+      "backend/app/models/user.py",
+      "backend/app/schemas/document.py",
+      "backend/app/services/kb_service.py",
+      "backend/app/services/minio_service.py",
+      "backend/app/workers/queue.py"
+    ],
+    "backend/app/services/embedding_service.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/services/kb_service.py": [
+      "backend/app/config/exceptions.py",
+      "backend/app/models/kb.py",
+      "backend/app/models/user.py",
+      "backend/app/schemas/kb.py"
+    ],
+    "backend/app/services/minio_service.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/services/search_service.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/models/kb.py",
+      "backend/app/schemas/search.py",
+      "backend/app/services/embedding_service.py",
+      "backend/app/services/kb_service.py"
+    ],
+    "backend/app/workers/__init__.py": [],
+    "backend/app/workers/chunker.py": [],
+    "backend/app/workers/parse_document.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/database.py",
+      "backend/app/models/document.py",
+      "backend/app/services/embedding_service.py",
+      "backend/app/services/minio_service.py",
+      "backend/app/workers/chunker.py",
+      "backend/app/workers/parsers.py"
+    ],
+    "backend/app/workers/parsers.py": [],
+    "backend/app/workers/queue.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py"
+    ],
+    "backend/app/workers/worker.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/workers/queue.py"
+    ],
+    "backend/Dockerfile": [],
+    "backend/pyproject.toml": [],
+    "backend/tests/__init__.py": [],
+    "backend/tests/conftest.py": [],
+    "backend/tests/test_auth.py": [
+      "backend/app/auth/jwt_handler.py",
+      "backend/app/auth/password.py"
+    ],
+    "backend/tests/test_document.py": [],
+    "backend/tests/test_halfvec.py": [],
+    "backend/tests/test_kb.py": [],
+    "backend/tests/test_search.py": [],
+    "docker-compose.yml": [],
+    "frontend/index.html": [],
+    "frontend/package.json": [],
+    "frontend/postcss.config.js": [],
+    "frontend/src/api.ts": [],
+    "frontend/src/App.tsx": [
+      "frontend/src/pages/Search.tsx"
+    ],
+    "frontend/src/components/ResultList.tsx": [
+      "frontend/src/api.ts"
+    ],
+    "frontend/src/components/SearchBox.tsx": [],
+    "frontend/src/index.css": [],
+    "frontend/src/main.tsx": [
+      "frontend/src/App.tsx",
+      "frontend/src/index.css"
+    ],
+    "frontend/src/pages/Search.tsx": [
+      "frontend/src/api.ts",
+      "frontend/src/components/ResultList.tsx",
+      "frontend/src/components/SearchBox.tsx"
+    ],
+    "frontend/tailwind.config.js": [],
+    "frontend/tsconfig.json": [],
+    "frontend/vite.config.ts": [],
+    "Makefile": [],
+    "mydocs/context/CONTEXT.md": [],
+    "mydocs/context/docs/adr/0001-halfvec-multi-dim.md": [],
+    "mydocs/context/docs/adr/0002-tenant-org-rbac.md": [],
+    "mydocs/context/docs/adr/0003-three-edge-model.md": [],
+    "mydocs/context/docs/adr/0004-http-mcp-server.md": [],
+    "mydocs/context/docs/adr/0005-self-signup-and-invitation.md": [],
+    "mydocs/context/docs/adr/0006-agent-runtime-byok.md": [],
+    "mydocs/context/docs/adr/0007-multi-source-mounting.md": [],
+    "mydocs/context/docs/adr/0008-mvp-scope.md": [],
+    "mydocs/context/docs/adr/0009-retrieval-architecture.md": [],
+    "mydocs/GBrain知识库设计剖析.md": [],
+    "mydocs/kb-architecture.md": [],
+    "mydocs/multi-tenant-architecture.md": [],
+    "mydocs/prd-v4.2.md": [],
+    "mydocs/rag-architecture.md": [],
+    "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md": [],
+    "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md": [],
+    "mydocs/specs/llm-wiki-design-decision.html": [],
+    "mydocs/specs/obsidian-wiki-research.html": [],
+    "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html": [],
+    "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md": [],
+    "mydocs/wiki-architecture.md": [],
+    "postgres/Dockerfile": [],
+    "postgres/init-extensions.sql": [],
+    "README.md": []
+  }
+}

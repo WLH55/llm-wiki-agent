@@ -1,0 +1,209 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "项目环境变量示例文件，按 Postgres、MinIO、JWT、Bootstrap Owner、Embedding 五个分组列出所有必需运行参数，作为 .env 的复制模板。",
+      "tags": ["configuration", "environment-variables", "template", "secrets"],
+      "complexity": "simple",
+      "languageNotes": "包含 15 个 ENV 变量定义，覆盖环境、数据库、对象存储、JWT、引导账号、向量模型等核心配置项。"
+    },
+    {
+      "id": "config:Makefile",
+      "type": "config",
+      "name": "Makefile",
+      "filePath": "Makefile",
+      "summary": "封装常用 docker compose 操作的 Makefile，提供 up/down/logs/ps/migrate/test/shell/psql/redis-cli 等开发与运维命令别名。",
+      "tags": ["build-system", "developer-tools", "docker-compose", "automation"],
+      "complexity": "simple",
+      "languageNotes": "Makefile 在 fileCategory 中归为 script，但承担的是 docker compose 命令别名编排角色。"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "项目主入口文档，涵盖架构总览、5 服务快速启动、访问入口、常用命令、前后端本地开发指南与文档索引，是新成员上手的首选入口。",
+      "tags": ["documentation", "entry-point", "quickstart", "overview"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "顶层编排文件，定义 backend、worker、postgres、minio、redis 五个服务的容器规格、依赖关系、健康检查与命名卷网络；按单一部署 ADR 把前后端合入 backend 镜像。",
+      "tags": ["orchestration", "infrastructure", "docker-compose", "multi-service"],
+      "complexity": "complex",
+      "languageNotes": "顶层包含 version/services/volumes/networks 四大节，services 内每个服务又含 build/image/environment/depends_on/healthcheck 等子项。"
+    },
+    {
+      "id": "service:docker-compose.yml:backend",
+      "type": "service",
+      "name": "backend",
+      "filePath": "docker-compose.yml",
+      "summary": "backend 服务：基于 backend/Dockerfile 构建，运行时通过 env_file 注入配置，依赖 postgres 与 minio 的健康检查通过后启动。",
+      "tags": ["orchestration", "service", "backend", "compose"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml:worker",
+      "type": "service",
+      "name": "worker",
+      "filePath": "docker-compose.yml",
+      "summary": "worker 服务：与 backend 共用同一镜像但覆盖 entrypoint 启动后台解析 worker，异步处理文档解析、分块与向量化任务。",
+      "tags": ["orchestration", "service", "worker", "background-task"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml:postgres",
+      "type": "service",
+      "name": "postgres",
+      "filePath": "docker-compose.yml",
+      "summary": "postgres 服务：基于定制 postgres/Dockerfile 镜像构建，挂载持久化卷，向 backend 与 worker 提供向量检索与中文全文检索能力。",
+      "tags": ["orchestration", "service", "postgres", "database"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml:minio",
+      "type": "service",
+      "name": "minio",
+      "filePath": "docker-compose.yml",
+      "summary": "minio 服务：对象存储后端，存储上传的原始文档二进制，供 backend 上传、worker 拉取解析。",
+      "tags": ["orchestration", "service", "minio", "object-storage"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "service:docker-compose.yml:redis",
+      "type": "service",
+      "name": "redis",
+      "filePath": "docker-compose.yml",
+      "summary": "redis 服务：作为队列与缓存后端，承接任务队列与可能的会话/结果缓存。",
+      "tags": ["orchestration", "service", "redis", "queue"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "config:.env.example",
+      "target": "service:docker-compose.yml",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:.env.example",
+      "target": "file:backend/app/config/settings.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:README.md",
+      "target": "service:docker-compose.yml",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:Makefile",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:backend/app/main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:backend",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:worker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:postgres",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:minio",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:redis",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:docker-compose.yml:backend",
+      "target": "service:backend/Dockerfile",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:docker-compose.yml:worker",
+      "target": "service:backend/Dockerfile",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:docker-compose.yml:postgres",
+      "target": "service:postgres/Dockerfile",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:docker-compose.yml:backend",
+      "target": "service:docker-compose.yml:postgres",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:docker-compose.yml:backend",
+      "target": "service:docker-compose.yml:minio",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "service:docker-compose.yml:worker",
+      "target": "service:docker-compose.yml:postgres",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:Makefile",
+      "target": "service:docker-compose.yml",
+      "type": "triggers",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

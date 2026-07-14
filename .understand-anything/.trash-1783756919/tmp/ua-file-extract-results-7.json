@@ -1,0 +1,63 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 1,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "postgres/Dockerfile",
+      "language": "dockerfile",
+      "fileCategory": "infra",
+      "totalLines": 23,
+      "nonEmptyLines": 19,
+      "services": [
+        {
+          "name": "postgres",
+          "image": "postgres:16",
+          "ports": [],
+          "startLine": 1,
+          "endLine": 24
+        }
+      ],
+      "steps": [
+        {
+          "name": "FROM postgres:16",
+          "startLine": 1,
+          "endLine": 1
+        },
+        {
+          "name": "RUN apt-get update && apt-get install -y \\",
+          "startLine": 3,
+          "endLine": 3
+        },
+        {
+          "name": "ARG PGVECTOR_VERSION=v0.7.4",
+          "startLine": 10,
+          "endLine": 10
+        },
+        {
+          "name": "RUN git clone --branch ${PGVECTOR_VERSION} https://github.com/pg",
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "RUN git clone https://github.com/jaiminpan/pg_zhparser.git /tmp/",
+          "startLine": 17,
+          "endLine": 17
+        },
+        {
+          "name": "COPY init-extensions.sql /docker-entrypoint-initdb.d/01-extension",
+          "startLine": 23,
+          "endLine": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "serviceCount": 1,
+        "stepCount": 6
+      }
+    }
+  ]
+}

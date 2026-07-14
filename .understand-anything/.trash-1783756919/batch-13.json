@@ -1,0 +1,553 @@
+{
+  "nodes": [
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "summary": "understand-anything 工具的忽略规则配置文件，定义扫描器应跳过的目录和文件模式（语法同 .gitignore）。",
+      "tags": ["configuration", "ignore-rules", "build-system", "tooling"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.understand-anything/intermediate/scan-result.json",
+      "type": "config",
+      "name": "scan-result.json",
+      "filePath": ".understand-anything/intermediate/scan-result.json",
+      "summary": "understand-anything 扫描阶段的结构化快照产物，包含项目文件清单、复杂度估算与 importMap，供后续 batch 分析消费。",
+      "tags": ["transient", "intermediate", "scan-snapshot", "tooling"],
+      "complexity": "moderate",
+      "languageNotes": "由扫描器自动生成，非人工编辑；每次扫描会被覆盖。"
+    },
+    {
+      "id": "config:backend/alembic.ini",
+      "type": "config",
+      "name": "alembic.ini",
+      "filePath": "backend/alembic.ini",
+      "summary": "Alembic 迁移工具配置：声明脚本目录、日志器与格式，DSN 故意不在此文件写入，由 env.py 从 settings 动态注入。",
+      "tags": ["configuration", "alembic", "database", "migration"],
+      "complexity": "simple",
+      "languageNotes": "Python alembic 标准配置；sqlalchemy.url 在 env.py 中运行时注入以避免凭据泄露。"
+    },
+    {
+      "id": "file:backend/alembic/script.py.mako",
+      "type": "file",
+      "name": "script.py.mako",
+      "filePath": "backend/alembic/script.py.mako",
+      "summary": "Alembic 新建迁移文件的 Mako 模板，定义 revision/down_revision 元数据头与 upgrade/downgrade 函数骨架。",
+      "tags": ["template", "alembic", "migration", "scaffold"],
+      "complexity": "simple",
+      "languageNotes": "Mako 模板使用 ${var} 占位符，由 `alembic revision` 命令渲染为具体迁移脚本。"
+    },
+    {
+      "id": "file:backend/alembic/versions/001_initial.py",
+      "type": "file",
+      "name": "001_initial.py",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "项目初始 Alembic 迁移：启用 vector + zhparser 扩展、创建 chinese_zh 分词配置、定义核心表（tenants/users/knowledge_bases/sources/documents/content_chunks）与 P2+ 预留表，并建立 halfvec partial HNSW 索引和 tsvector 触发器。",
+      "tags": ["migration", "database", "schema", "alembic", "postgresql"],
+      "complexity": "complex",
+      "languageNotes": "通过 op.execute 走原生 SQL 以精确控制 halfvec/tsvector 等 PG 原生类型；按 embedding_dim 分维度的 partial HNSW 索引是 ADR-0001 的核心实现。"
+    },
+    {
+      "id": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "type": "function",
+      "name": "upgrade",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "lineRange": [28, 285],
+      "summary": "正向迁移：依次创建扩展、中文分词配置、核心表与预留表，建立 partial HNSW + GIN 索引，并挂载 search_vector 自动维护触发器。",
+      "tags": ["migration", "ddl", "postgresql", "schema-bootstrap"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:backend/alembic/versions/001_initial.py:downgrade",
+      "type": "function",
+      "name": "downgrade",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "lineRange": [288, 313],
+      "summary": "回滚迁移：按反序 DROP 所有触发器、索引与表，并删除 chinese_zh 分词配置（保留扩展以避免影响其他 DB）。",
+      "tags": ["migration", "ddl", "postgresql", "rollback"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:tenants",
+      "type": "table",
+      "name": "tenants",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "多租户根表：每个租户作为数据隔离边界，users/knowledge_bases 等核心表均外键引用。",
+      "tags": ["database", "multi-tenant", "schema", "core-table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:users",
+      "type": "table",
+      "name": "users",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "用户表：含 email/password_hash/role/is_active 字段，软删除（deleted_at），按 tenant_id 隔离。",
+      "tags": ["database", "user", "authentication", "core-table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:knowledge_bases",
+      "type": "table",
+      "name": "knowledge_bases",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "知识库主表：定义 embedding_model/dim 及 vector/keyword/wiki/graph 四个开关，决定该 KB 启用哪些检索能力。",
+      "tags": ["database", "knowledge-base", "configuration", "core-table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:sources",
+      "type": "table",
+      "name": "sources",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "文档来源表：记录 source_type、同步游标 sync_cursor 和 JSONB config，支撑手动上传与未来外部源同步。",
+      "tags": ["database", "source", "ingestion", "core-table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:documents",
+      "type": "table",
+      "name": "documents",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "文档元数据表：跟踪 original_filename、minio_key、status(pending/processed/failed) 与 processed_at，支撑异步解析流程。",
+      "tags": ["database", "document", "ingestion", "core-table"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:content_chunks",
+      "type": "table",
+      "name": "content_chunks",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "RAG 核心表：存储 chunk 文本 + halfvec embedding（无固定 N）+ tsvector search_vector，按 embedding_dim 分维度建立 partial HNSW 索引，是 ADR-0001 多维度向量策略的物理载体。",
+      "tags": ["database", "chunk", "vector-search", "core-table", "rag"],
+      "complexity": "complex",
+      "languageNotes": "halfvec 类型不带 N（存储时支持任意维度），查询时 cast 成 halfvec(1024) 才能命中 partial HNSW 索引（ADR-0001 关键陷阱）。"
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:wiki_pages",
+      "type": "table",
+      "name": "wiki_pages",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "Wiki 页面预留表（P2+）：按 page_type 区分 source/entity/concept/synthesis，content_chunks.wiki_page_id 引用它建立实体即页面关联。",
+      "tags": ["database", "wiki", "reserved", "p2-feature"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/__init__.py",
+      "summary": "app 顶层 Python 包标记文件，使 backend/app 成为可导入包。",
+      "tags": ["barrel", "package-marker", "python"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/auth/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/auth/__init__.py",
+      "summary": "auth 子包标记文件，承载 JWT 认证与登录相关模块。",
+      "tags": ["barrel", "package-marker", "authentication"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/plugins/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/plugins/__init__.py",
+      "summary": "plugins 子包标记文件，承载可替换的插件协议（如 chunk_rerank）。",
+      "tags": ["barrel", "package-marker", "plugin"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/plugins/chunk_rerank.py",
+      "type": "file",
+      "name": "chunk_rerank.py",
+      "filePath": "backend/app/plugins/chunk_rerank.py",
+      "summary": "CHUNK_RERANK 插件协议与默认实现：定义 Protocol 接口与 DefaultChunkRerankPlugin（第一批不 boost，第二批对 wiki chunk 加 1.3 系数），并通过 get/set 全局管理激活插件。",
+      "tags": ["plugin", "rerank", "protocol", "extension-point"],
+      "complexity": "simple",
+      "languageNotes": "使用 typing.Protocol + runtime_checkable 声明鸭子类型协议；WIKI_CHUNK_BOOST=1.3 对应 ADR-0009 路径 B。"
+    },
+    {
+      "id": "class:backend/app/plugins/chunk_rerank.py:ChunkRerankPlugin",
+      "type": "class",
+      "name": "ChunkRerankPlugin",
+      "filePath": "backend/app/plugins/chunk_rerank.py",
+      "lineRange": [17, 23],
+      "summary": "chunk 重排插件协议（Protocol）：声明 rerank(chunks, query) 接口，第三方实现只需满足此协议即可被注入。",
+      "tags": ["protocol", "interface", "plugin", "extension-point"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/plugins/chunk_rerank.py:DefaultChunkRerankPlugin",
+      "type": "class",
+      "name": "DefaultChunkRerankPlugin",
+      "filePath": "backend/app/plugins/chunk_rerank.py",
+      "lineRange": [26, 31],
+      "summary": "默认 rerank 实现：第一批原样返回 chunks 不做任何 boost；第二批将实现 wiki chunk 分数 * 1.3 的加权逻辑。",
+      "tags": ["plugin", "default-implementation", "rerank"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/plugins/chunk_rerank.py:get_chunk_rerank_plugin",
+      "type": "function",
+      "name": "get_chunk_rerank_plugin",
+      "filePath": "backend/app/plugins/chunk_rerank.py",
+      "lineRange": [37, 39],
+      "summary": "获取当前激活的 chunk rerank 插件实例，供检索流水线在召回后调用。",
+      "tags": ["accessor", "plugin", "singleton"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/plugins/chunk_rerank.py:set_chunk_rerank_plugin",
+      "type": "function",
+      "name": "set_chunk_rerank_plugin",
+      "filePath": "backend/app/plugins/chunk_rerank.py",
+      "lineRange": [42, 45],
+      "summary": "注入自定义 rerank 插件，主要用于测试桩与未来扩展点。",
+      "tags": ["setter", "plugin", "dependency-injection"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/routers/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/routers/__init__.py",
+      "summary": "routers 子包标记文件，承载 FastAPI 路由模块。",
+      "tags": ["barrel", "package-marker", "router"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/schemas/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/schemas/__init__.py",
+      "summary": "schemas 子包标记文件，承载 Pydantic 请求/响应 schema 定义。",
+      "tags": ["barrel", "package-marker", "schema"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/services/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/services/__init__.py",
+      "summary": "services 子包标记文件，承载业务服务层（KB、检索、文档处理等）。",
+      "tags": ["barrel", "package-marker", "service-layer"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/workers/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/workers/__init__.py",
+      "summary": "workers 子包标记文件，承载 RQ 异步任务消费者（文档解析、embedding 等）。",
+      "tags": ["barrel", "package-marker", "worker"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:backend/pyproject.toml",
+      "type": "config",
+      "name": "pyproject.toml",
+      "filePath": "backend/pyproject.toml",
+      "summary": "后端 Python 工程配置：使用 hatchling 构建后端，声明 FastAPI/SQLAlchemy/asyncpg/alembic/openai/minio/redis/rq 等核心依赖，并配置 pytest-asyncio、ruff lint 规则。",
+      "tags": ["configuration", "python", "dependencies", "build-system"],
+      "complexity": "moderate",
+      "languageNotes": "锁死 Python 3.10-3.13 区间；asyncio_mode=auto 让 pytest 自动识别 async 测试。"
+    },
+    {
+      "id": "file:backend/tests/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/tests/__init__.py",
+      "summary": "tests 包标记文件（空文件），使 backend/tests 成为可被 pytest 发现的测试包。",
+      "tags": ["barrel", "package-marker", "test"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/tests/conftest.py",
+      "type": "file",
+      "name": "conftest.py",
+      "filePath": "backend/tests/conftest.py",
+      "summary": "pytest 全局 fixtures：提供 session 级 event_loop、异步 db_session、ASGI AsyncClient 与基于 bootstrap owner 的 auth_token，是所有集成测试的共用前置。",
+      "tags": ["test", "fixture", "pytest", "infrastructure"],
+      "complexity": "moderate",
+      "languageNotes": "假设 docker-compose 已起 PG/Redis/MinIO 且 alembic upgrade head 已执行；fixture 之间通过参数名链式依赖。"
+    },
+    {
+      "id": "function:backend/tests/conftest.py:event_loop",
+      "type": "function",
+      "name": "event_loop",
+      "filePath": "backend/tests/conftest.py",
+      "lineRange": [24, 28],
+      "summary": "session 级 pytest fixture：为整个测试会话提供独立的 asyncio event loop。",
+      "tags": ["fixture", "pytest", "asyncio", "test-infrastructure"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/conftest.py:db_session",
+      "type": "function",
+      "name": "db_session",
+      "filePath": "backend/tests/conftest.py",
+      "lineRange": [32, 37],
+      "summary": "异步数据库会话 fixture：复用 app.database.async_session_factory 直接对话真实 Postgres（含 pgvector/zhparser）。",
+      "tags": ["fixture", "pytest", "database", "test-infrastructure"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/conftest.py:client",
+      "type": "function",
+      "name": "client",
+      "filePath": "backend/tests/conftest.py",
+      "lineRange": [41, 47],
+      "summary": "ASGI 测试客户端 fixture：通过 httpx.ASGITransport 直连 FastAPI app，无需起 HTTP 服务。",
+      "tags": ["fixture", "pytest", "httpx", "test-infrastructure"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/conftest.py:auth_token",
+      "type": "function",
+      "name": "auth_token",
+      "filePath": "backend/tests/conftest.py",
+      "lineRange": [51, 61],
+      "summary": "登录 fixture：以 bootstrap owner 凭据 POST /api/auth/login 获取 JWT，供后续受保护接口测试使用。",
+      "tags": ["fixture", "pytest", "authentication", "jwt"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/tests/test_document.py",
+      "type": "file",
+      "name": "test_document.py",
+      "filePath": "backend/tests/test_document.py",
+      "summary": "文档上传 + 异步解析集成测试：上传 MD 后轮询状态（最多 60s），验证 worker 异步流水线能将文档推进到 processed。",
+      "tags": ["test", "integration", "document", "async-pipeline"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/tests/test_document.py:test_upload_md_and_wait_processed",
+      "type": "function",
+      "name": "test_upload_md_and_wait_processed",
+      "filePath": "backend/tests/test_document.py",
+      "lineRange": [13, 60],
+      "summary": "端到端用例：先建 KB，再上传含中英文 + RAG/RRF 关键词的 MD 文件，每秒轮询文档状态直到 processed 或超时失败。",
+      "tags": ["test", "integration", "document-upload", "polling"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/tests/test_halfvec.py",
+      "type": "file",
+      "name": "test_halfvec.py",
+      "filePath": "backend/tests/test_halfvec.py",
+      "summary": "【ADR-0001 关键守卫测试】验证 halfvec 多维度 partial HNSW 索引的正确使用：带 cast 的查询必须命中 hnsw 索引，不带 cast 的会退化 Seq Scan（开发陷阱），并验证 zhparser 中文分词 trigger 正常工作。",
+      "tags": ["test", "integration", "vector-search", "adr-guard", "postgresql"],
+      "complexity": "moderate",
+      "languageNotes": "通过 EXPLAIN 解析查询计划字符串断言索引命中；这是守护 ADR-0001 性能不变式的核心防线。"
+    },
+    {
+      "id": "function:backend/tests/test_halfvec.py:test_halfvec_cast_hits_hnsw_index",
+      "type": "function",
+      "name": "test_halfvec_cast_hits_hnsw_index",
+      "filePath": "backend/tests/test_halfvec.py",
+      "lineRange": [12, 34],
+      "summary": "正向守卫：EXPLAIN 带 embedding::halfvec(1024) cast 的查询，断言执行计划包含 content_chunks_embedding_1024_hnsw 索引节点。",
+      "tags": ["test", "vector-search", "index-verification", "adr-guard"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/tests/test_halfvec.py:test_halfvec_no_cast_seq_scan",
+      "type": "function",
+      "name": "test_halfvec_no_cast_seq_scan",
+      "filePath": "backend/tests/test_halfvec.py",
+      "lineRange": [38, 63],
+      "summary": "反向守卫：故意不写 cast 的 SQL 必须走 Seq Scan / Bitmap，固化 ADR-0001 中『忘记 cast 就退化为全表扫』的陷阱认知。",
+      "tags": ["test", "vector-search", "pitfall-documentation", "adr-guard"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/tests/test_halfvec.py:test_zhparser_chinese_tokenizer",
+      "type": "function",
+      "name": "test_zhparser_chinese_tokenizer",
+      "filePath": "backend/tests/test_halfvec.py",
+      "lineRange": [67, 91],
+      "summary": "插入含中文的 chunk 行后断言 search_vector 被 trigger 自动填充，验证 zhparser + chinese_zh 配置链路正常。",
+      "tags": ["test", "fts", "zhparser", "trigger-verification"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/tests/test_kb.py",
+      "type": "file",
+      "name": "test_kb.py",
+      "filePath": "backend/tests/test_kb.py",
+      "summary": "知识库 CRUD 集成测试：验证创建 KB 默认配置（bge-m3/1024 维/混合 indexing）、列出 KB、查询不存在 KB 返回 400。",
+      "tags": ["test", "integration", "knowledge-base", "crud"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/tests/test_kb.py:test_create_kb_default_config",
+      "type": "function",
+      "name": "test_create_kb_default_config",
+      "filePath": "backend/tests/test_kb.py",
+      "lineRange": [8, 23],
+      "summary": "验证 KB 默认配置：embedding_model=BAAI/bge-m3、dim=1024、vector/keyword/wiki 启用、graph 关闭。",
+      "tags": ["test", "knowledge-base", "default-config"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/test_kb.py:test_list_kbs",
+      "type": "function",
+      "name": "test_list_kbs",
+      "filePath": "backend/tests/test_kb.py",
+      "lineRange": [27, 43],
+      "summary": "先建后列，断言 GET /api/v1/kb 返回的列表包含刚创建的 KB。",
+      "tags": ["test", "knowledge-base", "list"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/test_kb.py:test_get_kb_not_found",
+      "type": "function",
+      "name": "test_get_kb_not_found",
+      "filePath": "backend/tests/test_kb.py",
+      "lineRange": [47, 53],
+      "summary": "查询不存在的 KB id（99999）应返回 400 ResourceNotFound。",
+      "tags": ["test", "knowledge-base", "error-handling"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/tests/test_search.py",
+      "type": "file",
+      "name": "test_search.py",
+      "filePath": "backend/tests/test_search.py",
+      "summary": "【RAG 检索核心测试】验证 RRF 混合检索：中文 query、英文 query 都能成功召回；mode=wiki 第一批未实现应返回 400。",
+      "tags": ["test", "integration", "search", "rag", "rrf"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/tests/test_search.py:test_search_chinese",
+      "type": "function",
+      "name": "test_search_chinese",
+      "filePath": "backend/tests/test_search.py",
+      "lineRange": [10, 28],
+      "summary": "中文 query『向量检索』走 mode=rag 检索，断言响应 200 且 mode=rag、hits 为 list。",
+      "tags": ["test", "search", "chinese", "rag"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/tests/test_search.py:test_search_english",
+      "type": "function",
+      "name": "test_search_english",
+      "filePath": "backend/tests/test_search.py",
+      "lineRange": [32, 46],
+      "summary": "英文 query『vector database』走 mode=rag 检索，断言响应 200，验证多语言召回能力。",
+      "tags": ["test", "search", "english", "rag"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/test_search.py:test_search_wiki_mode_not_implemented",
+      "type": "function",
+      "name": "test_search_wiki_mode_not_implemented",
+      "filePath": "backend/tests/test_search.py",
+      "lineRange": [50, 64],
+      "summary": "请求 mode=wiki 应返回 400，固化第一批未实现 wiki 模式的契约边界。",
+      "tags": ["test", "search", "wiki-mode", "contract"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:frontend/postcss.config.js",
+      "type": "config",
+      "name": "postcss.config.js",
+      "filePath": "frontend/postcss.config.js",
+      "summary": "前端 PostCSS 配置：启用 tailwindcss 与 autoprefixer 两个插件，将 Tailwind 指令与自动前缀注入构建管线。",
+      "tags": ["configuration", "postcss", "tailwind", "build-system"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:frontend/src/index.css",
+      "type": "file",
+      "name": "index.css",
+      "filePath": "frontend/src/index.css",
+      "summary": "前端全局 CSS 入口：仅注入 Tailwind 三大指令（base/components/utilities），由 PostCSS 编译为最终样式。",
+      "tags": ["css", "tailwind", "entry-point", "styles"],
+      "complexity": "simple",
+      "languageNotes": "使用 Tailwind v3 的 @tailwind 指令注入；具体组件样式走 className 工具类。"
+    },
+    {
+      "id": "config:frontend/tailwind.config.js",
+      "type": "config",
+      "name": "tailwind.config.js",
+      "filePath": "frontend/tailwind.config.js",
+      "summary": "Tailwind 配置：声明 content 扫描路径（index.html 与 src 下所有 js/ts/jsx/tsx），未扩展主题或插件。",
+      "tags": ["configuration", "tailwind", "build-system", "frontend"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:frontend/vite.config.ts",
+      "type": "config",
+      "name": "vite.config.ts",
+      "filePath": "frontend/vite.config.ts",
+      "summary": "Vite 构建配置：启用 React 插件、开发模式将 /api 代理到 localhost:8000（后端 FastAPI）、构建产物输出到 dist。",
+      "tags": ["configuration", "vite", "build-system", "dev-server"],
+      "complexity": "simple",
+      "languageNotes": "dev 代理避免前后端独立服务下的 CORS 与 cookie 域问题；生产期前后端可同源部署。"
+    }
+  ],
+  "edges": [
+    {"source": "file:backend/alembic/versions/001_initial.py", "target": "function:backend/alembic/versions/001_initial.py:upgrade", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/alembic/versions/001_initial.py", "target": "function:backend/alembic/versions/001_initial.py:downgrade", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/alembic/versions/001_initial.py", "target": "function:backend/alembic/versions/001_initial.py:upgrade", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/alembic/versions/001_initial.py", "target": "function:backend/alembic/versions/001_initial.py:downgrade", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/alembic/versions/001_initial.py:upgrade", "target": "table:backend/alembic/versions/001_initial.py:tenants", "type": "migrates", "direction": "forward", "weight": 0.7},
+    {"source": "function:backend/alembic/versions/001_initial.py:upgrade", "target": "table:backend/alembic/versions/001_initial.py:users", "type": "migrates", "direction": "forward", "weight": 0.7},
+    {"source": "function:backend/alembic/versions/001_initial.py:upgrade", "target": "table:backend/alembic/versions/001_initial.py:knowledge_bases", "type": "migrates", "direction": "forward", "weight": 0.7},
+    {"source": "function:backend/alembic/versions/001_initial.py:upgrade", "target": "table:backend/alembic/versions/001_initial.py:sources", "type": "migrates", "direction": "forward", "weight": 0.7},
+    {"source": "function:backend/alembic/versions/001_initial.py:upgrade", "target": "table:backend/alembic/versions/001_initial.py:documents", "type": "migrates", "direction": "forward", "weight": 0.7},
+    {"source": "function:backend/alembic/versions/001_initial.py:upgrade", "target": "table:backend/alembic/versions/001_initial.py:content_chunks", "type": "migrates", "direction": "forward", "weight": 0.7},
+    {"source": "function:backend/alembic/versions/001_initial.py:upgrade", "target": "table:backend/alembic/versions/001_initial.py:wiki_pages", "type": "migrates", "direction": "forward", "weight": 0.7},
+
+    {"source": "config:backend/alembic.ini", "target": "file:backend/alembic/versions/001_initial.py", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:backend/alembic.ini", "target": "file:backend/alembic/script.py.mako", "type": "configures", "direction": "forward", "weight": 0.6},
+
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "class:backend/app/plugins/chunk_rerank.py:ChunkRerankPlugin", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "class:backend/app/plugins/chunk_rerank.py:DefaultChunkRerankPlugin", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "function:backend/app/plugins/chunk_rerank.py:get_chunk_rerank_plugin", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "function:backend/app/plugins/chunk_rerank.py:set_chunk_rerank_plugin", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "class:backend/app/plugins/chunk_rerank.py:ChunkRerankPlugin", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "class:backend/app/plugins/chunk_rerank.py:DefaultChunkRerankPlugin", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "function:backend/app/plugins/chunk_rerank.py:get_chunk_rerank_plugin", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/plugins/chunk_rerank.py", "target": "function:backend/app/plugins/chunk_rerank.py:set_chunk_rerank_plugin", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/tests/conftest.py", "target": "function:backend/tests/conftest.py:event_loop", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/conftest.py", "target": "function:backend/tests/conftest.py:db_session", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/conftest.py", "target": "function:backend/tests/conftest.py:client", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/conftest.py", "target": "function:backend/tests/conftest.py:auth_token", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/tests/test_document.py", "target": "function:backend/tests/test_document.py:test_upload_md_and_wait_processed", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/tests/test_halfvec.py", "target": "function:backend/tests/test_halfvec.py:test_halfvec_cast_hits_hnsw_index", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/test_halfvec.py", "target": "function:backend/tests/test_halfvec.py:test_halfvec_no_cast_seq_scan", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/test_halfvec.py", "target": "function:backend/tests/test_halfvec.py:test_zhparser_chinese_tokenizer", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/tests/test_kb.py", "target": "function:backend/tests/test_kb.py:test_create_kb_default_config", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/test_kb.py", "target": "function:backend/tests/test_kb.py:test_list_kbs", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/test_kb.py", "target": "function:backend/tests/test_kb.py:test_get_kb_not_found", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/tests/test_search.py", "target": "function:backend/tests/test_search.py:test_search_chinese", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/test_search.py", "target": "function:backend/tests/test_search.py:test_search_english", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/tests/test_search.py", "target": "function:backend/tests/test_search.py:test_search_wiki_mode_not_implemented", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "config:backend/pyproject.toml", "target": "file:backend/app/__init__.py", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:backend/pyproject.toml", "target": "file:backend/tests/__init__.py", "type": "configures", "direction": "forward", "weight": 0.6},
+
+    {"source": "config:frontend/postcss.config.js", "target": "file:frontend/src/index.css", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:frontend/tailwind.config.js", "target": "file:frontend/src/index.css", "type": "configures", "direction": "forward", "weight": 0.6},
+    {"source": "config:frontend/vite.config.ts", "target": "file:frontend/src/index.css", "type": "configures", "direction": "forward", "weight": 0.6},
+
+    {"source": "table:backend/alembic/versions/001_initial.py:content_chunks", "target": "file:backend/tests/test_halfvec.py", "type": "tested_by", "direction": "forward", "weight": 0.5},
+    {"source": "table:backend/alembic/versions/001_initial.py:content_chunks", "target": "function:backend/tests/test_halfvec.py:test_halfvec_cast_hits_hnsw_index", "type": "tested_by", "direction": "forward", "weight": 0.5},
+    {"source": "table:backend/alembic/versions/001_initial.py:content_chunks", "target": "function:backend/tests/test_halfvec.py:test_halfvec_no_cast_seq_scan", "type": "tested_by", "direction": "forward", "weight": 0.5},
+    {"source": "table:backend/alembic/versions/001_initial.py:content_chunks", "target": "function:backend/tests/test_halfvec.py:test_zhparser_chinese_tokenizer", "type": "tested_by", "direction": "forward", "weight": 0.5},
+
+    {"source": "file:backend/alembic/versions/001_initial.py", "target": "file:backend/tests/test_halfvec.py", "type": "tested_by", "direction": "forward", "weight": 0.5}
+  ]
+}

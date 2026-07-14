@@ -1,0 +1,10 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "postgres/Dockerfile", "language": "dockerfile", "sizeLines": 16, "fileCategory": "infra"}
+  ],
+  "batchImportData": {
+    "postgres/Dockerfile": []
+  },
+  "neighborMap": {}
+}

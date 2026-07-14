@@ -1,0 +1,1372 @@
+{
+  "scriptCompleted": true,
+  "entryPointCandidates": [
+    {
+      "id": "document:README.md",
+      "score": 5,
+      "name": "README.md",
+      "type": "document",
+      "summary": "项目主入口文档，涵盖架构总览、5 服务快速启动、访问入口、常用命令、前后端本地开发指南与文档索引，是新成员上手的首选入口。"
+    },
+    {
+      "id": "file:backend/app/main.py",
+      "score": 3,
+      "name": "main.py",
+      "type": "file",
+      "summary": "FastAPI 应用入口，create_app() 工厂模式组装中间件（CORS + 请求体缓存）、全局异常处理器、auth/kb/document/search 四组路由、健康检查与 SPA 静态托管（无 nginx）；lifespan 中触发 bootstrap owner 初始化。"
+    },
+    {
+      "id": "file:backend/app/workers/parse_document.py",
+      "score": 2,
+      "name": "parse_document.py",
+      "type": "file",
+      "summary": "异步文档解析主任务：从 MinIO 拉文件 → 按扩展名解析 → CJK 分块 → 调嵌入 API → raw SQL 写 content_chunks（halfvec cast）→ 更新文档状态；任何异常标记 failed。"
+    },
+    {
+      "id": "file:backend/app/auth/routes.py",
+      "score": 2,
+      "name": "routes.py",
+      "type": "file",
+      "summary": "认证路由模块，提供 /login 登录接口（校验邮箱密码并签发 JWT）与 /me 接口（返回当前用户信息）。"
+    },
+    {
+      "id": "file:backend/app/routers/document.py",
+      "score": 2,
+      "name": "document.py",
+      "type": "file",
+      "summary": "文档路由模块，提供文档上传接口（接收文件并触发解析流水线）与文档状态查询接口。"
+    },
+    {
+      "id": "file:backend/app/routers/kb.py",
+      "score": 2,
+      "name": "kb.py",
+      "type": "file",
+      "summary": "知识库管理路由模块，提供知识库的创建、查询、列表接口，所有操作均按当前用户租户隔离。"
+    },
+    {
+      "id": "config:.env.example",
+      "score": 2,
+      "name": ".env.example",
+      "type": "config",
+      "summary": "项目环境变量示例文件，按 Postgres、MinIO、JWT、Bootstrap Owner、Embedding 五个分组列出所有必需运行参数，作为 .env 的复制模板。"
+    },
+    {
+      "id": "file:frontend/index.html",
+      "score": 2,
+      "name": "index.html",
+      "type": "file",
+      "summary": "前端 Vite SPA 入口 HTML，定义根挂载点 #root 并通过 module 脚本加载 /src/main.tsx 引导整个 React 应用。"
+    }
+  ],
+  "fanInRanking": [
+    {
+      "id": "file:backend/app/config/settings.py",
+      "fanIn": 16,
+      "name": "settings.py"
+    },
+    {
+      "id": "file:backend/app/config/__init__.py",
+      "fanIn": 12,
+      "name": "__init__.py"
+    },
+    {
+      "id": "file:backend/app/models/base.py",
+      "fanIn": 8,
+      "name": "base.py"
+    },
+    {
+      "id": "file:backend/app/models/user.py",
+      "fanIn": 7,
+      "name": "user.py"
+    },
+    {
+      "id": "file:backend/app/config/exceptions.py",
+      "fanIn": 6,
+      "name": "exceptions.py"
+    },
+    {
+      "id": "file:backend/app/config/schemas.py",
+      "fanIn": 6,
+      "name": "schemas.py"
+    },
+    {
+      "id": "file:backend/app/main.py",
+      "fanIn": 5,
+      "name": "main.py"
+    },
+    {
+      "id": "file:backend/app/deps.py",
+      "fanIn": 4,
+      "name": "deps.py"
+    },
+    {
+      "id": "file:backend/app/models/document.py",
+      "fanIn": 4,
+      "name": "document.py"
+    },
+    {
+      "id": "file:backend/app/models/kb.py",
+      "fanIn": 4,
+      "name": "kb.py"
+    },
+    {
+      "id": "file:frontend/src/pages/Search.tsx",
+      "fanIn": 4,
+      "name": "Search.tsx"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "fanIn": 4,
+      "name": "0002-tenant-org-rbac.md"
+    },
+    {
+      "id": "file:frontend/src/index.css",
+      "fanIn": 4,
+      "name": "index.css"
+    },
+    {
+      "id": "file:backend/app/auth/jwt_handler.py",
+      "fanIn": 3,
+      "name": "jwt_handler.py"
+    },
+    {
+      "id": "file:backend/app/services/kb_service.py",
+      "fanIn": 3,
+      "name": "kb_service.py"
+    },
+    {
+      "id": "file:backend/app/services/search_service.py",
+      "fanIn": 3,
+      "name": "search_service.py"
+    },
+    {
+      "id": "file:backend/app/models/chunk.py",
+      "fanIn": 3,
+      "name": "chunk.py"
+    },
+    {
+      "id": "file:frontend/src/App.tsx",
+      "fanIn": 3,
+      "name": "App.tsx"
+    },
+    {
+      "id": "file:backend/app/auth/password.py",
+      "fanIn": 3,
+      "name": "password.py"
+    },
+    {
+      "id": "service:backend/Dockerfile",
+      "fanIn": 3,
+      "name": "Dockerfile"
+    }
+  ],
+  "fanOutRanking": [
+    {
+      "id": "file:backend/alembic/env.py",
+      "fanOut": 19,
+      "name": "env.py"
+    },
+    {
+      "id": "file:backend/app/services/search_service.py",
+      "fanOut": 16,
+      "name": "search_service.py"
+    },
+    {
+      "id": "file:backend/app/models/reserved.py",
+      "fanOut": 15,
+      "name": "reserved.py"
+    },
+    {
+      "id": "file:backend/app/config/exceptions.py",
+      "fanOut": 13,
+      "name": "exceptions.py"
+    },
+    {
+      "id": "file:backend/app/workers/parse_document.py",
+      "fanOut": 12,
+      "name": "parse_document.py"
+    },
+    {
+      "id": "file:backend/app/auth/routes.py",
+      "fanOut": 11,
+      "name": "routes.py"
+    },
+    {
+      "id": "file:backend/app/services/document_service.py",
+      "fanOut": 11,
+      "name": "document_service.py"
+    },
+    {
+      "id": "file:backend/app/services/minio_service.py",
+      "fanOut": 10,
+      "name": "minio_service.py"
+    },
+    {
+      "id": "file:backend/app/routers/kb.py",
+      "fanOut": 10,
+      "name": "kb.py"
+    },
+    {
+      "id": "file:backend/app/services/kb_service.py",
+      "fanOut": 10,
+      "name": "kb_service.py"
+    },
+    {
+      "id": "file:backend/app/config/dependencies.py",
+      "fanOut": 9,
+      "name": "dependencies.py"
+    },
+    {
+      "id": "file:backend/app/auth/jwt_handler.py",
+      "fanOut": 8,
+      "name": "jwt_handler.py"
+    },
+    {
+      "id": "file:backend/app/routers/document.py",
+      "fanOut": 8,
+      "name": "document.py"
+    },
+    {
+      "id": "file:backend/app/plugins/chunk_rerank.py",
+      "fanOut": 8,
+      "name": "chunk_rerank.py"
+    },
+    {
+      "id": "file:backend/app/config/logger_config.py",
+      "fanOut": 7,
+      "name": "logger_config.py"
+    },
+    {
+      "id": "file:backend/app/main.py",
+      "fanOut": 7,
+      "name": "main.py"
+    },
+    {
+      "id": "file:backend/app/routers/search.py",
+      "fanOut": 7,
+      "name": "search.py"
+    },
+    {
+      "id": "file:backend/app/models/__init__.py",
+      "fanOut": 7,
+      "name": "__init__.py"
+    },
+    {
+      "id": "file:backend/tests/test_auth.py",
+      "fanOut": 7,
+      "name": "test_auth.py"
+    },
+    {
+      "id": "file:backend/app/services/embedding_service.py",
+      "fanOut": 6,
+      "name": "embedding_service.py"
+    }
+  ],
+  "bfsTraversal": {
+    "startNode": "file:backend/app/main.py",
+    "order": [
+      "file:backend/app/main.py",
+      "file:backend/app/config/settings.py",
+      "file:backend/app/config/__init__.py",
+      "file:backend/app/config/exceptions.py",
+      "file:backend/app/config/schemas.py",
+      "file:backend/app/config/logger_config.py"
+    ],
+    "depthMap": {
+      "file:backend/app/main.py": 0,
+      "file:backend/app/config/settings.py": 1,
+      "file:backend/app/config/__init__.py": 1,
+      "file:backend/app/config/exceptions.py": 1,
+      "file:backend/app/config/schemas.py": 2,
+      "file:backend/app/config/logger_config.py": 2
+    },
+    "byDepth": {
+      "0": [
+        "file:backend/app/main.py"
+      ],
+      "1": [
+        "file:backend/app/config/settings.py",
+        "file:backend/app/config/__init__.py",
+        "file:backend/app/config/exceptions.py"
+      ],
+      "2": [
+        "file:backend/app/config/schemas.py",
+        "file:backend/app/config/logger_config.py"
+      ]
+    }
+  },
+  "nonCodeFiles": {
+    "documentation": [
+      {
+        "id": "document:README.md",
+        "name": "README.md",
+        "type": "document",
+        "summary": "项目主入口文档，涵盖架构总览、5 服务快速启动、访问入口、常用命令、前后端本地开发指南与文档索引，是新成员上手的首选入口。"
+      },
+      {
+        "id": "document:mydocs/GBrain知识库设计剖析.md",
+        "name": "GBrain知识库设计剖析.md",
+        "type": "document",
+        "summary": "对 GBrain 知识库（Postgres-native + PGLite/Supabase 双引擎）的深度剖析文档，覆盖 60+ 张表的实体关系、fact/take 结构化记忆层、chunks 多模态向量设计，并对比与 WeKnora 的根本差异及借鉴建议。"
+      },
+      {
+        "id": "document:mydocs/kb-architecture.md",
+        "name": "kb-architecture.md",
+        "type": "document",
+        "summary": "WeKnora 知识库（KB）架构文档，阐述 KnowledgeBase + IndexingStrategy（真正的行为开关）+ Type（遗留枚举）三层模型，详解 RAG/Wiki 两条独立检索路径及 Document/FAQ 两个 RAG 子模式。"
+      },
+      {
+        "id": "document:mydocs/multi-tenant-architecture.md",
+        "name": "multi-tenant-architecture.md",
+        "type": "document",
+        "summary": "WeKnora 多租户与共享空间架构文档，定义 Tenant（工作空间/资源归属）+ Organization（共享空间/跨租户协作）双层模型，含 6 张核心表、双角色体系、3-D 上限规则、跨租户 Key 解析链路及资产传承语义。"
+      },
+      {
+        "id": "document:mydocs/prd-v4.2.md",
+        "name": "prd-v4.2.md",
+        "type": "document",
+        "summary": "PRD v4.2 产品需求文档：自部署 Web 知识库服务的总纲，确立 Wiki/RAG 双路径 + 两层 RBAC + 自注册邀请制 + Agent Runtime BYOK + 多源挂载等核心决策，并定义 P1-P6 六阶段交付计划。"
+      },
+      {
+        "id": "document:mydocs/rag-architecture.md",
+        "name": "rag-architecture.md",
+        "type": "document",
+        "summary": "WeKnora RAG 架构文档，详述摄取 5 串行 + 4 并行流水线、父子分块（small-to-large retrieval）、chunks 表 12 种 chunk_type、多向量库抽象、三向分区检索、RRF 融合及 Rerank 位置切分。"
+      },
+      {
+        "id": "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+        "name": "ts-nextjs-guide-for-python-java-vue-developer.md",
+        "type": "document",
+        "summary": "面向 Python/Java/Vue 背景开发者的 TypeScript & Next.js 速成指南，覆盖 TS 类型系统、JSX/TSX、Server/Client Component、Next.js API Routes、Tree-shaking 等核心概念及项目高频代码模式。"
+      },
+      {
+        "id": "document:mydocs/wiki-architecture.md",
+        "name": "wiki-architecture.md",
+        "type": "document",
+        "summary": "WeKnora Wiki 系统架构文档，定义 wiki_pages/wiki_folders/wiki_page_issues/wiki_log_entries 四张专属表 + 通用任务队列，阐述文档→Wiki 的 Map-Reduce 转换管道、图片处理链路、并发模型及与向量数据的分离关系。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+        "name": "0001-halfvec-multi-dim.md",
+        "type": "document",
+        "summary": "ADR 0001：选用 pgvector halfvec 实现多维度向量共存方案，对比 single-dim LanceDB 等候选，确立 halfvec 多列共存 + cast 查询的实现路径与后果。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+        "name": "0002-tenant-org-rbac.md",
+        "type": "document",
+        "summary": "ADR 0002：确立 Tenant + Organization 两层 RBAC 模型，定义 fall-through 三步短路的权限合并算法及「空间视角下显示只读」的语义解释。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+        "name": "0003-three-edge-model.md",
+        "type": "document",
+        "summary": "ADR 0003：定义三套边并存模型 —— 链接图边（无类型/无权/有向）+ 目录树边（两套父子结构）+ 溯源边（页面→原文档），并约束 7 种页面类型。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+        "name": "0004-http-mcp-server.md",
+        "type": "document",
+        "summary": "ADR 0004：选择 HTTP + MCP 双协议 server 方案对外暴露 Agent 工具集，对比 stdio MCP、纯 HTTP API 等候选，列出遗留待 grill 的开放问题。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+        "name": "0005-self-signup-and-invitation.md",
+        "type": "document",
+        "summary": "ADR 0005：确立自注册 + 邀请制账户体系，覆盖自注册流程、organization 创建、邀请加入、workspace context 切换及鉴权机制（含 OIDC SSO 占位）。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+        "name": "0006-agent-runtime-byok.md",
+        "type": "document",
+        "summary": "ADR 0006：定义 Agent Runtime + BYOK + 双 AI 通道方案 —— 嵌入模型与 LLM 模型分离、LLM Provider Registry、用户自带 Key 机制；并标注零 LLM 意图分类方案已于 2026-07-09 弃用。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+        "name": "0007-multi-source-mounting.md",
+        "type": "document",
+        "summary": "ADR 0007：确立多源挂载方案 —— 统一 Source 抽象（source_type + config + sync_cursor）、SourceAdapter 接口、无优先级 + 冲突处理 + RBAC，并按 Phase 划分 P1/P4/P5/P6 各阶段范围。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+        "name": "0008-mvp-scope.md",
+        "type": "document",
+        "summary": "ADR 0008：明确 MVP（P1）范围裁剪决策 —— 实现 6 个核心模块 + 鉴权极简 + 7 张空表 schema 预留（Organization/OrgMember/KBShare/LLMProvider 等），并列出完全不做的项。"
+      },
+      {
+        "id": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+        "name": "0009-retrieval-architecture.md",
+        "type": "document",
+        "summary": "ADR 0009：定义检索架构双路径 —— IndexingStrategy 四开关 + 三种典型 KB 配置 + wiki_search（POSIX 正则 + 字段权重）与普通 RAG（+ wiki chunk boost 1.3）两条路径 + KB 类型推断（替代已弃用的意图分类）。"
+      },
+      {
+        "id": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+        "name": "2026-06-14_12-44_知识库客户端原型设计.md",
+        "type": "document",
+        "summary": "知识库客户端原型设计 Spec，定义 Editorial 视觉系统（字体/配色/布局/动效）与四大界面（AI 对话、文档管理、知识图谱、全局搜索），并给出技术选型与原子化实现 Checklist。"
+      },
+      {
+        "id": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+        "name": "2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+        "type": "document",
+        "summary": "MVP P1 第一批 RAG 基础闭环的 SDD Spec（当前代码库已实现版本），覆盖脚手架初始化、Docker 编排、Alembic schema、JWT 鉴权、KB API、文档异步解析、路径 B 检索、最小前端与端到端验收，附完整 Execute Log 与 Review Verdict。"
+      },
+      {
+        "id": "document:mydocs/specs/llm-wiki-design-decision.html",
+        "name": "llm-wiki-design-decision.html",
+        "type": "document",
+        "summary": "LLM Wiki 设计决策研究文档（HTML 形式），记录 v4.2 设计阶段的关键技术选型与权衡，作为 PRD 与 ADR 的补充背景资料。"
+      },
+      {
+        "id": "document:mydocs/specs/obsidian-wiki-research.html",
+        "name": "obsidian-wiki-research.html",
+        "type": "document",
+        "summary": "Obsidian Wiki 调研报告（HTML 形式），系统梳理 Obsidian 在知识库场景的能力、插件生态、双向链接与图谱机制，作为本项目设计参考。"
+      },
+      {
+        "id": "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+        "name": "obsidian-wiki-vs-gbrain-comparison.html",
+        "type": "document",
+        "summary": "Obsidian Wiki 与 GBrain（同工作区参考实现）对比分析报告（HTML 形式），从架构、检索、图谱、扩展性等维度对比两套方案，为本项目设计取舍提供依据。"
+      },
+      {
+        "id": "document:mydocs/context/CONTEXT.md",
+        "name": "CONTEXT.md",
+        "type": "document",
+        "summary": "项目主上下文文档（v4.2 设计中），系统化梳理部署访问、知识资产、数据模型与存储、页面与图谱模型、AI 子系统、技术栈、隔离认证与权限模型，并标注 v4.1→v4.2 已弃用术语，是整个项目的复合简报。"
+      }
+    ],
+    "infrastructure": [
+      {
+        "id": "service:backend/Dockerfile",
+        "name": "Dockerfile",
+        "type": "service",
+        "summary": "后端单镜像多阶段构建：第一阶段用 node:20-alpine 构建前端静态产物，第二阶段基于 python:3.11-slim 装入后端代码与前端 dist，最终在同一容器内运行 alembic 迁移与 uvicorn 服务，对外暴露 8000 端口。"
+      },
+      {
+        "id": "service:backend/Dockerfile:frontend-build",
+        "name": "frontend-build",
+        "type": "service",
+        "summary": "构建阶段一：基于 node:20-alpine，安装 npm 依赖并执行 npm run build 产出前端 dist 静态产物。"
+      },
+      {
+        "id": "service:backend/Dockerfile:python",
+        "name": "python",
+        "type": "service",
+        "summary": "构建阶段二（运行时）：基于 python:3.11-slim 安装后端依赖，COPY 前端 dist 到 static/，启动时先运行 alembic 迁移再以 uvicorn 启动 FastAPI，对外暴露 8000。"
+      },
+      {
+        "id": "service:postgres/Dockerfile",
+        "name": "Dockerfile",
+        "type": "service",
+        "summary": "定制版 postgres:16 镜像：apt 安装编译依赖后通过 git 拉取 pgvector v0.7.4 与 pg_zhparser 源码并完成 make install，将 init-extensions.sql 复制到容器启动钩子目录以自动启用向量检索与中文分词。"
+      },
+      {
+        "id": "service:postgres/Dockerfile:postgres",
+        "name": "postgres",
+        "type": "service",
+        "summary": "从 postgres:16 基础镜像出发，安装编译工具链，构建并安装 pgvector 与 pg_zhparser 扩展，作为向量检索与中文分词的运行时。"
+      },
+      {
+        "id": "service:docker-compose.yml",
+        "name": "docker-compose.yml",
+        "type": "service",
+        "summary": "顶层编排文件，定义 backend、worker、postgres、minio、redis 五个服务的容器规格、依赖关系、健康检查与命名卷网络；按单一部署 ADR 把前后端合入 backend 镜像。"
+      },
+      {
+        "id": "service:docker-compose.yml:backend",
+        "name": "backend",
+        "type": "service",
+        "summary": "backend 服务：基于 backend/Dockerfile 构建，运行时通过 env_file 注入配置，依赖 postgres 与 minio 的健康检查通过后启动。"
+      },
+      {
+        "id": "service:docker-compose.yml:worker",
+        "name": "worker",
+        "type": "service",
+        "summary": "worker 服务：与 backend 共用同一镜像但覆盖 entrypoint 启动后台解析 worker，异步处理文档解析、分块与向量化任务。"
+      },
+      {
+        "id": "service:docker-compose.yml:postgres",
+        "name": "postgres",
+        "type": "service",
+        "summary": "postgres 服务：基于定制 postgres/Dockerfile 镜像构建，挂载持久化卷，向 backend 与 worker 提供向量检索与中文全文检索能力。"
+      },
+      {
+        "id": "service:docker-compose.yml:minio",
+        "name": "minio",
+        "type": "service",
+        "summary": "minio 服务：对象存储后端，存储上传的原始文档二进制，供 backend 上传、worker 拉取解析。"
+      },
+      {
+        "id": "service:docker-compose.yml:redis",
+        "name": "redis",
+        "type": "service",
+        "summary": "redis 服务：作为队列与缓存后端，承接任务队列与可能的会话/结果缓存。"
+      }
+    ],
+    "data": [
+      {
+        "id": "table:backend/alembic/versions/001_initial.py:tenants",
+        "name": "tenants",
+        "type": "table",
+        "summary": "多租户根表：每个租户作为数据隔离边界，users/knowledge_bases 等核心表均外键引用。"
+      },
+      {
+        "id": "table:backend/alembic/versions/001_initial.py:users",
+        "name": "users",
+        "type": "table",
+        "summary": "用户表：含 email/password_hash/role/is_active 字段，软删除（deleted_at），按 tenant_id 隔离。"
+      },
+      {
+        "id": "table:backend/alembic/versions/001_initial.py:knowledge_bases",
+        "name": "knowledge_bases",
+        "type": "table",
+        "summary": "知识库主表：定义 embedding_model/dim 及 vector/keyword/wiki/graph 四个开关，决定该 KB 启用哪些检索能力。"
+      },
+      {
+        "id": "table:backend/alembic/versions/001_initial.py:sources",
+        "name": "sources",
+        "type": "table",
+        "summary": "文档来源表：记录 source_type、同步游标 sync_cursor 和 JSONB config，支撑手动上传与未来外部源同步。"
+      },
+      {
+        "id": "table:backend/alembic/versions/001_initial.py:documents",
+        "name": "documents",
+        "type": "table",
+        "summary": "文档元数据表：跟踪 original_filename、minio_key、status(pending/processed/failed) 与 processed_at，支撑异步解析流程。"
+      },
+      {
+        "id": "table:backend/alembic/versions/001_initial.py:content_chunks",
+        "name": "content_chunks",
+        "type": "table",
+        "summary": "RAG 核心表：存储 chunk 文本 + halfvec embedding（无固定 N）+ tsvector search_vector，按 embedding_dim 分维度建立 partial HNSW 索引，是 ADR-0001 多维度向量策略的物理载体。"
+      },
+      {
+        "id": "table:backend/alembic/versions/001_initial.py:wiki_pages",
+        "name": "wiki_pages",
+        "type": "table",
+        "summary": "Wiki 页面预留表（P2+）：按 page_type 区分 source/entity/concept/synthesis，content_chunks.wiki_page_id 引用它建立实体即页面关联。"
+      },
+      {
+        "id": "schema:postgres/init-extensions.sql",
+        "name": "init-extensions.sql",
+        "type": "schema",
+        "summary": "Postgres 数据库初始化脚本，创建 pgvector（向量存储）与 zhparser（中文分词）扩展，并配置 chinese_zh 全文搜索配置，是混合检索（向量 + BM25 中文）能力的 schema 前置依赖。"
+      }
+    ],
+    "config": [
+      {
+        "id": "config:.env.example",
+        "name": ".env.example",
+        "type": "config",
+        "summary": "项目环境变量示例文件，按 Postgres、MinIO、JWT、Bootstrap Owner、Embedding 五个分组列出所有必需运行参数，作为 .env 的复制模板。"
+      },
+      {
+        "id": "config:Makefile",
+        "name": "Makefile",
+        "type": "config",
+        "summary": "封装常用 docker compose 操作的 Makefile，提供 up/down/logs/ps/migrate/test/shell/psql/redis-cli 等开发与运维命令别名。"
+      },
+      {
+        "id": "config:frontend/package.json",
+        "name": "package.json",
+        "type": "config",
+        "summary": "前端 npm 配置文件，声明 scripts（dev/build/preview）、运行时依赖（React 18、react-dom、react-router）与开发依赖（Vite、TypeScript、Tailwind CSS、autoprefixer、postcss），是构建与依赖管理的真相之源"
+      },
+      {
+        "id": "config:frontend/tsconfig.json",
+        "name": "tsconfig.json",
+        "type": "config",
+        "summary": "TypeScript 编译器配置，启用 strict 严格模式，target ES2020、使用 bundler 模式的 moduleResolution，并配合 Vite 的 isoimport 支持，include 覆盖 src 全部 .ts/.tsx。"
+      },
+      {
+        "id": "config:.understand-anything/intermediate/scan-result.json",
+        "name": "scan-result.json",
+        "type": "config",
+        "summary": "understand-anything 扫描阶段的结构化快照产物，包含项目文件清单、复杂度估算与 importMap，供后续 batch 分析消费。"
+      },
+      {
+        "id": "config:backend/alembic.ini",
+        "name": "alembic.ini",
+        "type": "config",
+        "summary": "Alembic 迁移工具配置：声明脚本目录、日志器与格式，DSN 故意不在此文件写入，由 env.py 从 settings 动态注入。"
+      },
+      {
+        "id": "config:backend/pyproject.toml",
+        "name": "pyproject.toml",
+        "type": "config",
+        "summary": "后端 Python 工程配置：使用 hatchling 构建后端，声明 FastAPI/SQLAlchemy/asyncpg/alembic/openai/minio/redis/rq 等核心依赖，并配置 pytest-asyncio、ruff lint 规则。"
+      },
+      {
+        "id": "config:frontend/postcss.config.js",
+        "name": "postcss.config.js",
+        "type": "config",
+        "summary": "前端 PostCSS 配置：启用 tailwindcss 与 autoprefixer 两个插件，将 Tailwind 指令与自动前缀注入构建管线。"
+      },
+      {
+        "id": "config:frontend/tailwind.config.js",
+        "name": "tailwind.config.js",
+        "type": "config",
+        "summary": "Tailwind 配置：声明 content 扫描路径（index.html 与 src 下所有 js/ts/jsx/tsx），未扩展主题或插件。"
+      },
+      {
+        "id": "config:frontend/vite.config.ts",
+        "name": "vite.config.ts",
+        "type": "config",
+        "summary": "Vite 构建配置：启用 React 插件、开发模式将 /api 代理到 localhost:8000（后端 FastAPI）、构建产物输出到 dist。"
+      }
+    ]
+  },
+  "clusters": [],
+  "layers": {
+    "count": 8,
+    "list": [
+      {
+        "id": "layer:api",
+        "name": "API 接口层",
+        "description": "FastAPI HTTP 入口与请求/响应契约，包括 routers/（document/kb/search 路由）、auth/routes、main.py 应用装配、deps.py 依赖注入以及 schemas/ 下基于 Pydantic 的请求/响应 DTO。"
+      },
+      {
+        "id": "layer:service",
+        "name": "业务服务层",
+        "description": "核心业务逻辑编排：services/（document_service、kb_service、search_service、embedding_service、minio_service）以及 auth/ 模块（jwt_handler、password、bootstrap）负责鉴权与首个管理员初始化。"
+      },
+      {
+        "id": "layer:data",
+        "name": "数据模型与迁移层",
+        "description": "数据持久化层：SQLAlchemy ORM 模型（User/KB/Document/Chunk/Source/WikiPage 等）、Alembic 迁移脚本与版本（001_initial）、迁移产生的表节点以及 PostgreSQL 扩展初始化 SQL（pgvector/zhparser）。"
+      },
+      {
+        "id": "layer:infrastructure",
+        "name": "异步任务与基础设施层",
+        "description": "跨切面基础设施与异步管道：config/（settings、exceptions、schemas、logger、dependencies）、database.py 异步引擎、RQ workers/（chunker、parsers、queue、worker）负责文档解析-分块-嵌入流水线，以及 plugins/chunk_rerank 重排插件。"
+      },
+      {
+        "id": "layer:frontend",
+        "name": "前端 UI 层",
+        "description": "React + Vite + TailwindCSS 前端：Search 页面、SearchBox/ResultList 组件、App.tsx 路由装配、api.ts Axios 客户端以及 main.tsx Vite 入口。"
+      },
+      {
+        "id": "layer:config",
+        "name": "配置与容器编排层",
+        "description": "项目级配置与容器编排：根目录 docker-compose.yml（backend/worker/postgres/minio/redis 五服务）、backend/Dockerfile 多阶段构建（frontend-build + python）、postgres/Dockerfile、Makefile、.env.example、前后端构建配置（pyproject.toml、package.json、tsconfig.json、vite.config.ts、tailwind/postcss）以及 alembic.ini。"
+      },
+      {
+        "id": "layer:documentation",
+        "name": "项目文档层",
+        "description": "项目文档与设计资产：mydocs/ 下的 PRD v4.2、知识库/RAG/多租户架构设计、9 篇 ADR（0001-0009）、MVP P1 Batch 1 SDD 规范、Obsidian Wiki 调研对比、TS 指南以及根目录 README.md。"
+      },
+      {
+        "id": "layer:test",
+        "name": "测试套件层",
+        "description": "pytest 测试套件：tests/ 下覆盖鉴权（test_auth）、知识库（test_kb）、文档（test_document）、检索（test_search）以及 pgvector 半精度向量（test_halfvec）的集成与单元测试，含 conftest.py 公共 fixture。"
+      }
+    ]
+  },
+  "nodeSummaryIndex": {
+    "file:backend/app/auth/jwt_handler.py": {
+      "name": "jwt_handler.py",
+      "type": "file",
+      "summary": "JWT 鉴权模块，使用 HS256 算法签发与解码 access token，默认 24 小时过期，无 refresh token，遵循 ADR-0008 极简鉴权策略。",
+      "filePath": "backend/app/auth/jwt_handler.py"
+    },
+    "file:backend/app/config/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "配置包 barrel，聚合导出 settings、setup_logging、异常类与响应封装（ApiResponse/PageResponse），是整个后端 config 层的统一入口。",
+      "filePath": "backend/app/config/__init__.py"
+    },
+    "file:backend/app/config/dependencies.py": {
+      "name": "dependencies.py",
+      "type": "file",
+      "summary": "FastAPI 依赖注入模块，提供 get_db 异步会话依赖与 get_current_user JWT 鉴权依赖，并定义 DbDep/CurrentUserDep 类型别名简化路由签名。",
+      "filePath": "backend/app/config/dependencies.py"
+    },
+    "file:backend/app/config/logger_config.py": {
+      "name": "logger_config.py",
+      "type": "file",
+      "summary": "日志系统配置模块，按日期轮转日志文件、自动 gzip 压缩旧日志、清理超过保留期的日志，同时输出到控制台和文件。",
+      "filePath": "backend/app/config/logger_config.py"
+    },
+    "file:backend/app/config/settings.py": {
+      "name": "settings.py",
+      "type": "file",
+      "summary": "基于 Pydantic V2 BaseSettings 的全局配置中心，按 ENVIRONMENT 切换 .env 文件，统一管理应用、CORS、日志、Postgres、Redis、MinIO、JWT、Bootstrap owner、Embedding、RAG 等所有配置项。",
+      "filePath": "backend/app/config/settings.py"
+    },
+    "file:backend/app/database.py": {
+      "name": "database.py",
+      "type": "file",
+      "summary": "数据库连接模块，创建异步 SQLAlchemy engine（pool_pre_ping + pool_size=10）与 async_session_factory，是全应用唯一的 AsyncSession 提供者。",
+      "filePath": "backend/app/database.py"
+    },
+    "file:backend/app/main.py": {
+      "name": "main.py",
+      "type": "file",
+      "summary": "FastAPI 应用入口，create_app() 工厂模式组装中间件（CORS + 请求体缓存）、全局异常处理器、auth/kb/document/search 四组路由、健康检查与 SPA 静态托管（无 nginx）；lifespan 中触发 bootstrap owner 初始化。",
+      "filePath": "backend/app/main.py"
+    },
+    "file:backend/app/services/embedding_service.py": {
+      "name": "embedding_service.py",
+      "type": "file",
+      "summary": "嵌入服务：通过 OpenAI SDK 调用 SiliconFlow bge-m3 API，输出 1024 维向量，提供懒加载单例 client 与批量/单条嵌入接口。",
+      "filePath": "backend/app/services/embedding_service.py"
+    },
+    "file:backend/app/services/minio_service.py": {
+      "name": "minio_service.py",
+      "type": "file",
+      "summary": "MinIO 对象存储服务：提供懒加载单例 client、bucket 自动创建、字节流上传（返回 {bucket}/{key}）与下载接口，是文档原始文件的存取层。",
+      "filePath": "backend/app/services/minio_service.py"
+    },
+    "file:backend/app/workers/chunker.py": {
+      "name": "chunker.py",
+      "type": "file",
+      "summary": "CJK 友好的文本分块器：按中英文句号切分、单句超长硬切、块间 overlap 保留上下文连续性（默认 300 词/50 词重叠），中文按字计、英文按 5 字符约 1 词估算。",
+      "filePath": "backend/app/workers/chunker.py"
+    },
+    "file:backend/app/workers/parse_document.py": {
+      "name": "parse_document.py",
+      "type": "file",
+      "summary": "异步文档解析主任务：从 MinIO 拉文件 → 按扩展名解析 → CJK 分块 → 调嵌入 API → raw SQL 写 content_chunks（halfvec cast）→ 更新文档状态；任何异常标记 failed。",
+      "filePath": "backend/app/workers/parse_document.py"
+    },
+    "file:backend/app/workers/parsers.py": {
+      "name": "parsers.py",
+      "type": "file",
+      "summary": "文件解析器：按扩展名分派到 PDF（pdfplumber）/ Markdown / TXT / DOCX（优先 unstructured，回退 python-docx）解析器，未知扩展名按纯文本处理。",
+      "filePath": "backend/app/workers/parsers.py"
+    },
+    "file:backend/app/workers/queue.py": {
+      "name": "queue.py",
+      "type": "file",
+      "summary": "RQ 任务队列定义：连接 Redis 创建 parse 队列，提供 enqueue_parse_document（入队）与 run_parse_document（同步 wrapper，内部 asyncio.run 跑异步任务）。",
+      "filePath": "backend/app/workers/queue.py"
+    },
+    "file:backend/app/workers/worker.py": {
+      "name": "worker.py",
+      "type": "file",
+      "summary": "RQ worker 进程入口（python -m app.workers.worker）：配置基础日志、连接 Redis、启动 Worker 监听 parse 队列。",
+      "filePath": "backend/app/workers/worker.py"
+    },
+    "file:backend/app/auth/routes.py": {
+      "name": "routes.py",
+      "type": "file",
+      "summary": "认证路由模块，提供 /login 登录接口（校验邮箱密码并签发 JWT）与 /me 接口（返回当前用户信息）。",
+      "filePath": "backend/app/auth/routes.py"
+    },
+    "file:backend/app/config/exceptions.py": {
+      "name": "exceptions.py",
+      "type": "file",
+      "summary": "全局异常处理模块，定义业务异常类（BusinessValidationException、ResourceNotFoundException）并注册 FastAPI 异常处理器，统一错误响应格式并写入结构化日志。",
+      "filePath": "backend/app/config/exceptions.py"
+    },
+    "file:backend/app/config/schemas.py": {
+      "name": "schemas.py",
+      "type": "file",
+      "summary": "全局响应 Schema 定义，提供 ApiResponse 统一响应封装、PageResponse 分页响应封装及 ResponseCode 业务状态码枚举。",
+      "filePath": "backend/app/config/schemas.py"
+    },
+    "file:backend/app/deps.py": {
+      "name": "deps.py",
+      "type": "file",
+      "summary": "依赖注入快捷 re-export 模块，集中导出 DbDep、CurrentUserDep、get_db、get_current_user，简化路由层 import。",
+      "filePath": "backend/app/deps.py"
+    },
+    "file:backend/app/routers/document.py": {
+      "name": "document.py",
+      "type": "file",
+      "summary": "文档路由模块，提供文档上传接口（接收文件并触发解析流水线）与文档状态查询接口。",
+      "filePath": "backend/app/routers/document.py"
+    },
+    "file:backend/app/routers/kb.py": {
+      "name": "kb.py",
+      "type": "file",
+      "summary": "知识库管理路由模块，提供知识库的创建、查询、列表接口，所有操作均按当前用户租户隔离。",
+      "filePath": "backend/app/routers/kb.py"
+    },
+    "file:backend/app/routers/search.py": {
+      "name": "search.py",
+      "type": "file",
+      "summary": "搜索路由模块，提供知识库混合检索接口，支持 vector / keyword / hybrid 多种模式参数。",
+      "filePath": "backend/app/routers/search.py"
+    },
+    "file:backend/app/schemas/auth.py": {
+      "name": "auth.py",
+      "type": "file",
+      "summary": "认证相关 Pydantic Schema，定义 LoginRequest 登录请求、TokenResponse JWT 响应、UserResponse 用户信息响应。",
+      "filePath": "backend/app/schemas/auth.py"
+    },
+    "file:backend/app/schemas/document.py": {
+      "name": "document.py",
+      "type": "file",
+      "summary": "文档相关 Pydantic Schema，定义 DocumentUploadResponse 上传响应与 DocumentStatusResponse 状态查询响应。",
+      "filePath": "backend/app/schemas/document.py"
+    },
+    "file:backend/app/schemas/kb.py": {
+      "name": "kb.py",
+      "type": "file",
+      "summary": "知识库相关 Pydantic Schema，定义 KBCreate 创建请求（含 embedding 维度与多路检索开关）与 KBResponse 响应。",
+      "filePath": "backend/app/schemas/kb.py"
+    },
+    "file:backend/app/schemas/search.py": {
+      "name": "search.py",
+      "type": "file",
+      "summary": "搜索相关 Pydantic Schema，定义 ChunkHit 单条命中（含向量距离、BM25 排名等溯源字段）与 SearchResponse 响应。",
+      "filePath": "backend/app/schemas/search.py"
+    },
+    "file:backend/app/services/document_service.py": {
+      "name": "document_service.py",
+      "type": "file",
+      "summary": "文档业务服务层，处理文档上传流水线（校验、MinIO 落桶、DB 落库、入队解析任务）与文档状态查询。",
+      "filePath": "backend/app/services/document_service.py"
+    },
+    "file:backend/app/services/kb_service.py": {
+      "name": "kb_service.py",
+      "type": "file",
+      "summary": "知识库业务服务层，提供 create_kb / get_kb / list_kbs 三个核心函数，全部按 tenant_id 做数据隔离并支持软删除过滤。",
+      "filePath": "backend/app/services/kb_service.py"
+    },
+    "file:backend/app/services/search_service.py": {
+      "name": "search_service.py",
+      "type": "file",
+      "summary": "混合检索核心服务，实现 pgvector halfvec 向量检索、Postgres BM25 关键词检索、RRF 融合算法及统一 search 入口（按 mode 分派 vector/keyword/hybrid）。",
+      "filePath": "backend/app/services/search_service.py"
+    },
+    "file:backend/alembic/env.py": {
+      "name": "env.py",
+      "type": "file",
+      "summary": "Alembic 迁移环境配置，使用 asyncpg 异步引擎从 POSTGRES_DSN 注入 DSN，导入全部 ORM model 触发 Base.metadata 注册以支持 autogenerate。",
+      "filePath": "backend/alembic/env.py"
+    },
+    "file:backend/app/models/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "Models 包入口，统一导入所有 ORM model 触发 Base.metadata 注册（Alembic autogenerate 依赖），并对外暴露 __all__ 列表。",
+      "filePath": "backend/app/models/__init__.py"
+    },
+    "file:backend/app/models/base.py": {
+      "name": "base.py",
+      "type": "file",
+      "summary": "SQLAlchemy 2.x declarative Base 定义，以及 TimestampMixin（created_at/updated_at/deleted_at 软删除）和 TenantMixin（tenant_id 多租户字段）两个通用混入。",
+      "filePath": "backend/app/models/base.py"
+    },
+    "file:backend/app/models/chunk.py": {
+      "name": "chunk.py",
+      "type": "file",
+      "summary": "ContentChunk 模型：内容块表，承载向量检索 + 全文检索双路径。embedding(halfvec) 与 search_vector(tsvector) 列 DDL 在 migration 手写（SQLAlchemy 原生不支持 halfvec）。",
+      "filePath": "backend/app/models/chunk.py"
+    },
+    "file:backend/app/models/document.py": {
+      "name": "document.py",
+      "type": "file",
+      "summary": "Document 模型：上传文档元数据表，记录 minio_key、解析状态（status/error_message）和处理时间，由 worker 异步解析后产出 ContentChunk。",
+      "filePath": "backend/app/models/document.py"
+    },
+    "file:backend/app/models/kb.py": {
+      "name": "kb.py",
+      "type": "file",
+      "summary": "KnowledgeBase 模型：知识库元数据表，定义 embedding_model、embedding_dim 维度及 vector/keyword/wiki/graph 四个能力开关，是整个系统的核心组织实体。",
+      "filePath": "backend/app/models/kb.py"
+    },
+    "file:backend/app/models/reserved.py": {
+      "name": "reserved.py",
+      "type": "file",
+      "summary": "P2+ 预留模型集合：Organization/OrgMember/KBShare（组织共享）、LLMProvider/UserLLMKey（密钥管理）、WikiFolder/WikiPage（Wiki 体系）。MVP 阶段定义但不在主链路使用。",
+      "filePath": "backend/app/models/reserved.py"
+    },
+    "file:backend/app/models/source.py": {
+      "name": "source.py",
+      "type": "file",
+      "summary": "Source 模型：知识库数据源表（source_type、config、sync_cursor），用于增量同步外部数据源的游标管理。",
+      "filePath": "backend/app/models/source.py"
+    },
+    "file:backend/app/models/user.py": {
+      "name": "user.py",
+      "type": "file",
+      "summary": "Tenant 与 User 模型：租户表 + 用户表（email 登录、password_hash、role 三档 RBAC、is_active 状态）。",
+      "filePath": "backend/app/models/user.py"
+    },
+    "file:frontend/src/main.tsx": {
+      "name": "main.tsx",
+      "type": "file",
+      "summary": "Vite 应用入口，挂载 React 根节点并加载全局样式与 App 组件。",
+      "filePath": "frontend/src/main.tsx"
+    },
+    "file:frontend/src/App.tsx": {
+      "name": "App.tsx",
+      "type": "file",
+      "summary": "React Router 根组件，配置路由表将根路径指向 Search 搜索页。",
+      "filePath": "frontend/src/App.tsx"
+    },
+    "file:frontend/src/api.ts": {
+      "name": "api.ts",
+      "type": "file",
+      "summary": "基于 axios 的 HTTP 客户端，封装登录、知识库列表与搜索三个 /api/* 接口调用。",
+      "filePath": "frontend/src/api.ts"
+    },
+    "file:frontend/src/pages/Search.tsx": {
+      "name": "Search.tsx",
+      "type": "file",
+      "summary": "搜索页容器组件，编排登录引导、知识库选择、查询提交与结果展示的完整状态流转。",
+      "filePath": "frontend/src/pages/Search.tsx"
+    },
+    "file:frontend/src/components/SearchBox.tsx": {
+      "name": "SearchBox.tsx",
+      "type": "file",
+      "summary": "搜索输入组件，受控管理查询文本并通过 onSearch 回调将非空查询提交给父组件。",
+      "filePath": "frontend/src/components/SearchBox.tsx"
+    },
+    "file:frontend/src/components/ResultList.tsx": {
+      "name": "ResultList.tsx",
+      "type": "file",
+      "summary": "搜索结果列表组件，按 score 排序展示每个 chunk 命中的文档标题、内容片段与相似度分数。",
+      "filePath": "frontend/src/components/ResultList.tsx"
+    },
+    "file:backend/app/auth/bootstrap.py": {
+      "name": "bootstrap.py",
+      "type": "file",
+      "summary": "系统首次启动时初始化 owner 租户与管理员账号的引导模块；若数据库中尚无 owner 角色用户，则按配置创建默认 Tenant 与 User。",
+      "filePath": "backend/app/auth/bootstrap.py"
+    },
+    "file:backend/app/auth/password.py": {
+      "name": "password.py",
+      "type": "file",
+      "summary": "密码哈希与校验工具模块，基于 argon2 算法封装 hash_password / verify_password 两个函数，供登录与引导流程复用。",
+      "filePath": "backend/app/auth/password.py"
+    },
+    "file:backend/tests/test_auth.py": {
+      "name": "test_auth.py",
+      "type": "file",
+      "summary": "认证模块集成测试，覆盖密码哈希/校验、JWT 令牌签发解析、登录成功与失败、/me 接口鉴权五条关键路径。",
+      "filePath": "backend/tests/test_auth.py"
+    },
+    "service:backend/Dockerfile": {
+      "name": "Dockerfile",
+      "type": "service",
+      "summary": "后端单镜像多阶段构建：第一阶段用 node:20-alpine 构建前端静态产物，第二阶段基于 python:3.11-slim 装入后端代码与前端 dist，最终在同一容器内运行 alembic 迁移与 uvicorn 服务，对外暴露 8000 端口。",
+      "filePath": "backend/Dockerfile"
+    },
+    "service:backend/Dockerfile:frontend-build": {
+      "name": "frontend-build",
+      "type": "service",
+      "summary": "构建阶段一：基于 node:20-alpine，安装 npm 依赖并执行 npm run build 产出前端 dist 静态产物。",
+      "filePath": "backend/Dockerfile"
+    },
+    "service:backend/Dockerfile:python": {
+      "name": "python",
+      "type": "service",
+      "summary": "构建阶段二（运行时）：基于 python:3.11-slim 安装后端依赖，COPY 前端 dist 到 static/，启动时先运行 alembic 迁移再以 uvicorn 启动 FastAPI，对外暴露 8000。",
+      "filePath": "backend/Dockerfile"
+    },
+    "service:postgres/Dockerfile": {
+      "name": "Dockerfile",
+      "type": "service",
+      "summary": "定制版 postgres:16 镜像：apt 安装编译依赖后通过 git 拉取 pgvector v0.7.4 与 pg_zhparser 源码并完成 make install，将 init-extensions.sql 复制到容器启动钩子目录以自动启用向量检索与中文分词。",
+      "filePath": "postgres/Dockerfile"
+    },
+    "service:postgres/Dockerfile:postgres": {
+      "name": "postgres",
+      "type": "service",
+      "summary": "从 postgres:16 基础镜像出发，安装编译工具链，构建并安装 pgvector 与 pg_zhparser 扩展，作为向量检索与中文分词的运行时。",
+      "filePath": "postgres/Dockerfile"
+    },
+    "config:.env.example": {
+      "name": ".env.example",
+      "type": "config",
+      "summary": "项目环境变量示例文件，按 Postgres、MinIO、JWT、Bootstrap Owner、Embedding 五个分组列出所有必需运行参数，作为 .env 的复制模板。",
+      "filePath": ".env.example"
+    },
+    "config:Makefile": {
+      "name": "Makefile",
+      "type": "config",
+      "summary": "封装常用 docker compose 操作的 Makefile，提供 up/down/logs/ps/migrate/test/shell/psql/redis-cli 等开发与运维命令别名。",
+      "filePath": "Makefile"
+    },
+    "document:README.md": {
+      "name": "README.md",
+      "type": "document",
+      "summary": "项目主入口文档，涵盖架构总览、5 服务快速启动、访问入口、常用命令、前后端本地开发指南与文档索引，是新成员上手的首选入口。",
+      "filePath": "README.md"
+    },
+    "service:docker-compose.yml": {
+      "name": "docker-compose.yml",
+      "type": "service",
+      "summary": "顶层编排文件，定义 backend、worker、postgres、minio、redis 五个服务的容器规格、依赖关系、健康检查与命名卷网络；按单一部署 ADR 把前后端合入 backend 镜像。",
+      "filePath": "docker-compose.yml"
+    },
+    "service:docker-compose.yml:backend": {
+      "name": "backend",
+      "type": "service",
+      "summary": "backend 服务：基于 backend/Dockerfile 构建，运行时通过 env_file 注入配置，依赖 postgres 与 minio 的健康检查通过后启动。",
+      "filePath": "docker-compose.yml"
+    },
+    "service:docker-compose.yml:worker": {
+      "name": "worker",
+      "type": "service",
+      "summary": "worker 服务：与 backend 共用同一镜像但覆盖 entrypoint 启动后台解析 worker，异步处理文档解析、分块与向量化任务。",
+      "filePath": "docker-compose.yml"
+    },
+    "service:docker-compose.yml:postgres": {
+      "name": "postgres",
+      "type": "service",
+      "summary": "postgres 服务：基于定制 postgres/Dockerfile 镜像构建，挂载持久化卷，向 backend 与 worker 提供向量检索与中文全文检索能力。",
+      "filePath": "docker-compose.yml"
+    },
+    "service:docker-compose.yml:minio": {
+      "name": "minio",
+      "type": "service",
+      "summary": "minio 服务：对象存储后端，存储上传的原始文档二进制，供 backend 上传、worker 拉取解析。",
+      "filePath": "docker-compose.yml"
+    },
+    "service:docker-compose.yml:redis": {
+      "name": "redis",
+      "type": "service",
+      "summary": "redis 服务：作为队列与缓存后端，承接任务队列与可能的会话/结果缓存。",
+      "filePath": "docker-compose.yml"
+    },
+    "file:frontend/index.html": {
+      "name": "index.html",
+      "type": "file",
+      "summary": "前端 Vite SPA 入口 HTML，定义根挂载点 #root 并通过 module 脚本加载 /src/main.tsx 引导整个 React 应用。",
+      "filePath": "frontend/index.html"
+    },
+    "config:frontend/package.json": {
+      "name": "package.json",
+      "type": "config",
+      "summary": "前端 npm 配置文件，声明 scripts（dev/build/preview）、运行时依赖（React 18、react-dom、react-router）与开发依赖（Vite、TypeScript、Tailwind CSS、autoprefixer、postcss），是构建与依赖管理的真相之源",
+      "filePath": "frontend/package.json"
+    },
+    "config:frontend/tsconfig.json": {
+      "name": "tsconfig.json",
+      "type": "config",
+      "summary": "TypeScript 编译器配置，启用 strict 严格模式，target ES2020、使用 bundler 模式的 moduleResolution，并配合 Vite 的 isoimport 支持，include 覆盖 src 全部 .ts/.tsx。",
+      "filePath": "frontend/tsconfig.json"
+    },
+    "document:mydocs/GBrain知识库设计剖析.md": {
+      "name": "GBrain知识库设计剖析.md",
+      "type": "document",
+      "summary": "对 GBrain 知识库（Postgres-native + PGLite/Supabase 双引擎）的深度剖析文档，覆盖 60+ 张表的实体关系、fact/take 结构化记忆层、chunks 多模态向量设计，并对比与 WeKnora 的根本差异及借鉴建议。",
+      "filePath": "mydocs/GBrain知识库设计剖析.md"
+    },
+    "document:mydocs/kb-architecture.md": {
+      "name": "kb-architecture.md",
+      "type": "document",
+      "summary": "WeKnora 知识库（KB）架构文档，阐述 KnowledgeBase + IndexingStrategy（真正的行为开关）+ Type（遗留枚举）三层模型，详解 RAG/Wiki 两条独立检索路径及 Document/FAQ 两个 RAG 子模式。",
+      "filePath": "mydocs/kb-architecture.md"
+    },
+    "document:mydocs/multi-tenant-architecture.md": {
+      "name": "multi-tenant-architecture.md",
+      "type": "document",
+      "summary": "WeKnora 多租户与共享空间架构文档，定义 Tenant（工作空间/资源归属）+ Organization（共享空间/跨租户协作）双层模型，含 6 张核心表、双角色体系、3-D 上限规则、跨租户 Key 解析链路及资产传承语义。",
+      "filePath": "mydocs/multi-tenant-architecture.md"
+    },
+    "document:mydocs/prd-v4.2.md": {
+      "name": "prd-v4.2.md",
+      "type": "document",
+      "summary": "PRD v4.2 产品需求文档：自部署 Web 知识库服务的总纲，确立 Wiki/RAG 双路径 + 两层 RBAC + 自注册邀请制 + Agent Runtime BYOK + 多源挂载等核心决策，并定义 P1-P6 六阶段交付计划。",
+      "filePath": "mydocs/prd-v4.2.md"
+    },
+    "document:mydocs/rag-architecture.md": {
+      "name": "rag-architecture.md",
+      "type": "document",
+      "summary": "WeKnora RAG 架构文档，详述摄取 5 串行 + 4 并行流水线、父子分块（small-to-large retrieval）、chunks 表 12 种 chunk_type、多向量库抽象、三向分区检索、RRF 融合及 Rerank 位置切分。",
+      "filePath": "mydocs/rag-architecture.md"
+    },
+    "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md": {
+      "name": "ts-nextjs-guide-for-python-java-vue-developer.md",
+      "type": "document",
+      "summary": "面向 Python/Java/Vue 背景开发者的 TypeScript & Next.js 速成指南，覆盖 TS 类型系统、JSX/TSX、Server/Client Component、Next.js API Routes、Tree-shaking 等核心概念及项目高频代码模式。",
+      "filePath": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md"
+    },
+    "document:mydocs/wiki-architecture.md": {
+      "name": "wiki-architecture.md",
+      "type": "document",
+      "summary": "WeKnora Wiki 系统架构文档，定义 wiki_pages/wiki_folders/wiki_page_issues/wiki_log_entries 四张专属表 + 通用任务队列，阐述文档→Wiki 的 Map-Reduce 转换管道、图片处理链路、并发模型及与向量数据的分离关系。",
+      "filePath": "mydocs/wiki-architecture.md"
+    },
+    "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md": {
+      "name": "0001-halfvec-multi-dim.md",
+      "type": "document",
+      "summary": "ADR 0001：选用 pgvector halfvec 实现多维度向量共存方案，对比 single-dim LanceDB 等候选，确立 halfvec 多列共存 + cast 查询的实现路径与后果。",
+      "filePath": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md"
+    },
+    "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md": {
+      "name": "0002-tenant-org-rbac.md",
+      "type": "document",
+      "summary": "ADR 0002：确立 Tenant + Organization 两层 RBAC 模型，定义 fall-through 三步短路的权限合并算法及「空间视角下显示只读」的语义解释。",
+      "filePath": "mydocs/context/docs/adr/0002-tenant-org-rbac.md"
+    },
+    "document:mydocs/context/docs/adr/0003-three-edge-model.md": {
+      "name": "0003-three-edge-model.md",
+      "type": "document",
+      "summary": "ADR 0003：定义三套边并存模型 —— 链接图边（无类型/无权/有向）+ 目录树边（两套父子结构）+ 溯源边（页面→原文档），并约束 7 种页面类型。",
+      "filePath": "mydocs/context/docs/adr/0003-three-edge-model.md"
+    },
+    "document:mydocs/context/docs/adr/0004-http-mcp-server.md": {
+      "name": "0004-http-mcp-server.md",
+      "type": "document",
+      "summary": "ADR 0004：选择 HTTP + MCP 双协议 server 方案对外暴露 Agent 工具集，对比 stdio MCP、纯 HTTP API 等候选，列出遗留待 grill 的开放问题。",
+      "filePath": "mydocs/context/docs/adr/0004-http-mcp-server.md"
+    },
+    "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md": {
+      "name": "0005-self-signup-and-invitation.md",
+      "type": "document",
+      "summary": "ADR 0005：确立自注册 + 邀请制账户体系，覆盖自注册流程、organization 创建、邀请加入、workspace context 切换及鉴权机制（含 OIDC SSO 占位）。",
+      "filePath": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md"
+    },
+    "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md": {
+      "name": "0006-agent-runtime-byok.md",
+      "type": "document",
+      "summary": "ADR 0006：定义 Agent Runtime + BYOK + 双 AI 通道方案 —— 嵌入模型与 LLM 模型分离、LLM Provider Registry、用户自带 Key 机制；并标注零 LLM 意图分类方案已于 2026-07-09 弃用。",
+      "filePath": "mydocs/context/docs/adr/0006-agent-runtime-byok.md"
+    },
+    "document:mydocs/context/docs/adr/0007-multi-source-mounting.md": {
+      "name": "0007-multi-source-mounting.md",
+      "type": "document",
+      "summary": "ADR 0007：确立多源挂载方案 —— 统一 Source 抽象（source_type + config + sync_cursor）、SourceAdapter 接口、无优先级 + 冲突处理 + RBAC，并按 Phase 划分 P1/P4/P5/P6 各阶段范围。",
+      "filePath": "mydocs/context/docs/adr/0007-multi-source-mounting.md"
+    },
+    "document:mydocs/context/docs/adr/0008-mvp-scope.md": {
+      "name": "0008-mvp-scope.md",
+      "type": "document",
+      "summary": "ADR 0008：明确 MVP（P1）范围裁剪决策 —— 实现 6 个核心模块 + 鉴权极简 + 7 张空表 schema 预留（Organization/OrgMember/KBShare/LLMProvider 等），并列出完全不做的项。",
+      "filePath": "mydocs/context/docs/adr/0008-mvp-scope.md"
+    },
+    "document:mydocs/context/docs/adr/0009-retrieval-architecture.md": {
+      "name": "0009-retrieval-architecture.md",
+      "type": "document",
+      "summary": "ADR 0009：定义检索架构双路径 —— IndexingStrategy 四开关 + 三种典型 KB 配置 + wiki_search（POSIX 正则 + 字段权重）与普通 RAG（+ wiki chunk boost 1.3）两条路径 + KB 类型推断（替代已弃用的意图分类）。",
+      "filePath": "mydocs/context/docs/adr/0009-retrieval-architecture.md"
+    },
+    "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md": {
+      "name": "2026-06-14_12-44_知识库客户端原型设计.md",
+      "type": "document",
+      "summary": "知识库客户端原型设计 Spec，定义 Editorial 视觉系统（字体/配色/布局/动效）与四大界面（AI 对话、文档管理、知识图谱、全局搜索），并给出技术选型与原子化实现 Checklist。",
+      "filePath": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md"
+    },
+    "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md": {
+      "name": "2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "type": "document",
+      "summary": "MVP P1 第一批 RAG 基础闭环的 SDD Spec（当前代码库已实现版本），覆盖脚手架初始化、Docker 编排、Alembic schema、JWT 鉴权、KB API、文档异步解析、路径 B 检索、最小前端与端到端验收，附完整 Execute Log 与 Review Verdict。",
+      "filePath": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md"
+    },
+    "document:mydocs/specs/llm-wiki-design-decision.html": {
+      "name": "llm-wiki-design-decision.html",
+      "type": "document",
+      "summary": "LLM Wiki 设计决策研究文档（HTML 形式），记录 v4.2 设计阶段的关键技术选型与权衡，作为 PRD 与 ADR 的补充背景资料。",
+      "filePath": "mydocs/specs/llm-wiki-design-decision.html"
+    },
+    "document:mydocs/specs/obsidian-wiki-research.html": {
+      "name": "obsidian-wiki-research.html",
+      "type": "document",
+      "summary": "Obsidian Wiki 调研报告（HTML 形式），系统梳理 Obsidian 在知识库场景的能力、插件生态、双向链接与图谱机制，作为本项目设计参考。",
+      "filePath": "mydocs/specs/obsidian-wiki-research.html"
+    },
+    "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html": {
+      "name": "obsidian-wiki-vs-gbrain-comparison.html",
+      "type": "document",
+      "summary": "Obsidian Wiki 与 GBrain（同工作区参考实现）对比分析报告（HTML 形式），从架构、检索、图谱、扩展性等维度对比两套方案，为本项目设计取舍提供依据。",
+      "filePath": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html"
+    },
+    "file:.understand-anything/.understandignore": {
+      "name": ".understandignore",
+      "type": "file",
+      "summary": "understand-anything 工具的忽略规则配置文件，定义扫描器应跳过的目录和文件模式（语法同 .gitignore）。",
+      "filePath": ".understand-anything/.understandignore"
+    },
+    "config:.understand-anything/intermediate/scan-result.json": {
+      "name": "scan-result.json",
+      "type": "config",
+      "summary": "understand-anything 扫描阶段的结构化快照产物，包含项目文件清单、复杂度估算与 importMap，供后续 batch 分析消费。",
+      "filePath": ".understand-anything/intermediate/scan-result.json"
+    },
+    "config:backend/alembic.ini": {
+      "name": "alembic.ini",
+      "type": "config",
+      "summary": "Alembic 迁移工具配置：声明脚本目录、日志器与格式，DSN 故意不在此文件写入，由 env.py 从 settings 动态注入。",
+      "filePath": "backend/alembic.ini"
+    },
+    "file:backend/alembic/script.py.mako": {
+      "name": "script.py.mako",
+      "type": "file",
+      "summary": "Alembic 新建迁移文件的 Mako 模板，定义 revision/down_revision 元数据头与 upgrade/downgrade 函数骨架。",
+      "filePath": "backend/alembic/script.py.mako"
+    },
+    "file:backend/alembic/versions/001_initial.py": {
+      "name": "001_initial.py",
+      "type": "file",
+      "summary": "项目初始 Alembic 迁移：启用 vector + zhparser 扩展、创建 chinese_zh 分词配置、定义核心表（tenants/users/knowledge_bases/sources/documents/content_chunks）与 P2+ 预留表，并建立 halfvec ",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "table:backend/alembic/versions/001_initial.py:tenants": {
+      "name": "tenants",
+      "type": "table",
+      "summary": "多租户根表：每个租户作为数据隔离边界，users/knowledge_bases 等核心表均外键引用。",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "table:backend/alembic/versions/001_initial.py:users": {
+      "name": "users",
+      "type": "table",
+      "summary": "用户表：含 email/password_hash/role/is_active 字段，软删除（deleted_at），按 tenant_id 隔离。",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "table:backend/alembic/versions/001_initial.py:knowledge_bases": {
+      "name": "knowledge_bases",
+      "type": "table",
+      "summary": "知识库主表：定义 embedding_model/dim 及 vector/keyword/wiki/graph 四个开关，决定该 KB 启用哪些检索能力。",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "table:backend/alembic/versions/001_initial.py:sources": {
+      "name": "sources",
+      "type": "table",
+      "summary": "文档来源表：记录 source_type、同步游标 sync_cursor 和 JSONB config，支撑手动上传与未来外部源同步。",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "table:backend/alembic/versions/001_initial.py:documents": {
+      "name": "documents",
+      "type": "table",
+      "summary": "文档元数据表：跟踪 original_filename、minio_key、status(pending/processed/failed) 与 processed_at，支撑异步解析流程。",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "table:backend/alembic/versions/001_initial.py:content_chunks": {
+      "name": "content_chunks",
+      "type": "table",
+      "summary": "RAG 核心表：存储 chunk 文本 + halfvec embedding（无固定 N）+ tsvector search_vector，按 embedding_dim 分维度建立 partial HNSW 索引，是 ADR-0001 多维度向量策略的物理载体。",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "table:backend/alembic/versions/001_initial.py:wiki_pages": {
+      "name": "wiki_pages",
+      "type": "table",
+      "summary": "Wiki 页面预留表（P2+）：按 page_type 区分 source/entity/concept/synthesis，content_chunks.wiki_page_id 引用它建立实体即页面关联。",
+      "filePath": "backend/alembic/versions/001_initial.py"
+    },
+    "file:backend/app/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "app 顶层 Python 包标记文件，使 backend/app 成为可导入包。",
+      "filePath": "backend/app/__init__.py"
+    },
+    "file:backend/app/auth/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "auth 子包标记文件，承载 JWT 认证与登录相关模块。",
+      "filePath": "backend/app/auth/__init__.py"
+    },
+    "file:backend/app/plugins/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "plugins 子包标记文件，承载可替换的插件协议（如 chunk_rerank）。",
+      "filePath": "backend/app/plugins/__init__.py"
+    },
+    "file:backend/app/plugins/chunk_rerank.py": {
+      "name": "chunk_rerank.py",
+      "type": "file",
+      "summary": "CHUNK_RERANK 插件协议与默认实现：定义 Protocol 接口与 DefaultChunkRerankPlugin（第一批不 boost，第二批对 wiki chunk 加 1.3 系数），并通过 get/set 全局管理激活插件。",
+      "filePath": "backend/app/plugins/chunk_rerank.py"
+    },
+    "file:backend/app/routers/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "routers 子包标记文件，承载 FastAPI 路由模块。",
+      "filePath": "backend/app/routers/__init__.py"
+    },
+    "file:backend/app/schemas/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "schemas 子包标记文件，承载 Pydantic 请求/响应 schema 定义。",
+      "filePath": "backend/app/schemas/__init__.py"
+    },
+    "file:backend/app/services/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "services 子包标记文件，承载业务服务层（KB、检索、文档处理等）。",
+      "filePath": "backend/app/services/__init__.py"
+    },
+    "file:backend/app/workers/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "workers 子包标记文件，承载 RQ 异步任务消费者（文档解析、embedding 等）。",
+      "filePath": "backend/app/workers/__init__.py"
+    },
+    "config:backend/pyproject.toml": {
+      "name": "pyproject.toml",
+      "type": "config",
+      "summary": "后端 Python 工程配置：使用 hatchling 构建后端，声明 FastAPI/SQLAlchemy/asyncpg/alembic/openai/minio/redis/rq 等核心依赖，并配置 pytest-asyncio、ruff lint 规则。",
+      "filePath": "backend/pyproject.toml"
+    },
+    "file:backend/tests/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "tests 包标记文件（空文件），使 backend/tests 成为可被 pytest 发现的测试包。",
+      "filePath": "backend/tests/__init__.py"
+    },
+    "file:backend/tests/conftest.py": {
+      "name": "conftest.py",
+      "type": "file",
+      "summary": "pytest 全局 fixtures：提供 session 级 event_loop、异步 db_session、ASGI AsyncClient 与基于 bootstrap owner 的 auth_token，是所有集成测试的共用前置。",
+      "filePath": "backend/tests/conftest.py"
+    },
+    "file:backend/tests/test_document.py": {
+      "name": "test_document.py",
+      "type": "file",
+      "summary": "文档上传 + 异步解析集成测试：上传 MD 后轮询状态（最多 60s），验证 worker 异步流水线能将文档推进到 processed。",
+      "filePath": "backend/tests/test_document.py"
+    },
+    "file:backend/tests/test_halfvec.py": {
+      "name": "test_halfvec.py",
+      "type": "file",
+      "summary": "【ADR-0001 关键守卫测试】验证 halfvec 多维度 partial HNSW 索引的正确使用：带 cast 的查询必须命中 hnsw 索引，不带 cast 的会退化 Seq Scan（开发陷阱），并验证 zhparser 中文分词 trigger 正常工作。",
+      "filePath": "backend/tests/test_halfvec.py"
+    },
+    "file:backend/tests/test_kb.py": {
+      "name": "test_kb.py",
+      "type": "file",
+      "summary": "知识库 CRUD 集成测试：验证创建 KB 默认配置（bge-m3/1024 维/混合 indexing）、列出 KB、查询不存在 KB 返回 400。",
+      "filePath": "backend/tests/test_kb.py"
+    },
+    "file:backend/tests/test_search.py": {
+      "name": "test_search.py",
+      "type": "file",
+      "summary": "【RAG 检索核心测试】验证 RRF 混合检索：中文 query、英文 query 都能成功召回；mode=wiki 第一批未实现应返回 400。",
+      "filePath": "backend/tests/test_search.py"
+    },
+    "config:frontend/postcss.config.js": {
+      "name": "postcss.config.js",
+      "type": "config",
+      "summary": "前端 PostCSS 配置：启用 tailwindcss 与 autoprefixer 两个插件，将 Tailwind 指令与自动前缀注入构建管线。",
+      "filePath": "frontend/postcss.config.js"
+    },
+    "file:frontend/src/index.css": {
+      "name": "index.css",
+      "type": "file",
+      "summary": "前端全局 CSS 入口：仅注入 Tailwind 三大指令（base/components/utilities），由 PostCSS 编译为最终样式。",
+      "filePath": "frontend/src/index.css"
+    },
+    "config:frontend/tailwind.config.js": {
+      "name": "tailwind.config.js",
+      "type": "config",
+      "summary": "Tailwind 配置：声明 content 扫描路径（index.html 与 src 下所有 js/ts/jsx/tsx），未扩展主题或插件。",
+      "filePath": "frontend/tailwind.config.js"
+    },
+    "config:frontend/vite.config.ts": {
+      "name": "vite.config.ts",
+      "type": "config",
+      "summary": "Vite 构建配置：启用 React 插件、开发模式将 /api 代理到 localhost:8000（后端 FastAPI）、构建产物输出到 dist。",
+      "filePath": "frontend/vite.config.ts"
+    },
+    "document:mydocs/context/CONTEXT.md": {
+      "name": "CONTEXT.md",
+      "type": "document",
+      "summary": "项目主上下文文档（v4.2 设计中），系统化梳理部署访问、知识资产、数据模型与存储、页面与图谱模型、AI 子系统、技术栈、隔离认证与权限模型，并标注 v4.1→v4.2 已弃用术语，是整个项目的复合简报。",
+      "filePath": "mydocs/context/CONTEXT.md"
+    },
+    "schema:postgres/init-extensions.sql": {
+      "name": "init-extensions.sql",
+      "type": "schema",
+      "summary": "Postgres 数据库初始化脚本，创建 pgvector（向量存储）与 zhparser（中文分词）扩展，并配置 chinese_zh 全文搜索配置，是混合检索（向量 + BM25 中文）能力的 schema 前置依赖。",
+      "filePath": "postgres/init-extensions.sql"
+    }
+  },
+  "totalNodes": 117,
+  "totalEdges": 455
+}

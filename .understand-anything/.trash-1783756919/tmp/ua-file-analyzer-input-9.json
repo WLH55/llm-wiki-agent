@@ -1,0 +1,14 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "frontend/index.html", "language": "html", "sizeLines": 14, "fileCategory": "markup"},
+    {"path": "frontend/package.json", "language": "json", "sizeLines": 27, "fileCategory": "config"},
+    {"path": "frontend/tsconfig.json", "language": "json", "sizeLines": 32, "fileCategory": "config"}
+  ],
+  "batchImportData": {
+    "frontend/index.html": [],
+    "frontend/package.json": [],
+    "frontend/tsconfig.json": []
+  },
+  "neighborMap": {}
+}

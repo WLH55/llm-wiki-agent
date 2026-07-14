@@ -1,0 +1,1556 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 14,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "backend/app/auth/routes.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "login",
+          "startLine": 22,
+          "endLine": 39,
+          "params": [
+            "payload",
+            "db"
+          ]
+        },
+        {
+          "name": "get_me",
+          "startLine": 43,
+          "endLine": 52,
+          "params": [
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "login",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "get_me",
+          "line": 42,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "login",
+          "callee": "db.execute",
+          "lineNumber": 24
+        },
+        {
+          "caller": "login",
+          "callee": "select(User).where(User.email == payload.email).limit",
+          "lineNumber": 25
+        },
+        {
+          "caller": "login",
+          "callee": "select(User).where",
+          "lineNumber": 25
+        },
+        {
+          "caller": "login",
+          "callee": "select",
+          "lineNumber": 25
+        },
+        {
+          "caller": "login",
+          "callee": "result.scalar_one_or_none",
+          "lineNumber": 27
+        },
+        {
+          "caller": "login",
+          "callee": "verify_password",
+          "lineNumber": 28
+        },
+        {
+          "caller": "login",
+          "callee": "BusinessValidationException",
+          "lineNumber": 29
+        },
+        {
+          "caller": "login",
+          "callee": "BusinessValidationException",
+          "lineNumber": 31
+        },
+        {
+          "caller": "login",
+          "callee": "create_access_token",
+          "lineNumber": 33
+        },
+        {
+          "caller": "login",
+          "callee": "ApiResponse.success",
+          "lineNumber": 34
+        },
+        {
+          "caller": "login",
+          "callee": "TokenResponse",
+          "lineNumber": 35
+        },
+        {
+          "caller": "get_me",
+          "callee": "ApiResponse.success",
+          "lineNumber": 45
+        },
+        {
+          "caller": "get_me",
+          "callee": "UserResponse",
+          "lineNumber": 46
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/config/exceptions.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 111,
+      "nonEmptyLines": 85,
+      "functions": [
+        {
+          "name": "_log_exception",
+          "startLine": 14,
+          "endLine": 57,
+          "params": [
+            "request",
+            "exc",
+            "level",
+            "include_stacktrace"
+          ]
+        },
+        {
+          "name": "general_exception_handler",
+          "startLine": 77,
+          "endLine": 88,
+          "params": [
+            "request",
+            "exc"
+          ]
+        },
+        {
+          "name": "validation_exception_handler",
+          "startLine": 91,
+          "endLine": 105,
+          "params": [
+            "request",
+            "exc"
+          ]
+        },
+        {
+          "name": "register_exception_handlers",
+          "startLine": 108,
+          "endLine": 111,
+          "params": [
+            "app"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "BusinessValidationException",
+          "startLine": 60,
+          "endLine": 66,
+          "methods": [
+            "__init__"
+          ],
+          "properties": []
+        },
+        {
+          "name": "ResourceNotFoundException",
+          "startLine": 69,
+          "endLine": 74,
+          "methods": [
+            "__init__"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_log_exception",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "BusinessValidationException",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "ResourceNotFoundException",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "general_exception_handler",
+          "line": 77,
+          "isDefault": false
+        },
+        {
+          "name": "validation_exception_handler",
+          "line": 91,
+          "isDefault": false
+        },
+        {
+          "name": "register_exception_handlers",
+          "line": 108,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_log_exception",
+          "callee": "log_parts.append",
+          "lineNumber": 38
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "dict",
+          "lineNumber": 38
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "getattr",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "log_parts.append",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "log_parts.append",
+          "lineNumber": 45
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "type",
+          "lineNumber": 47
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "str",
+          "lineNumber": 48
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "log_parts.append",
+          "lineNumber": 49
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "\" \".join",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "getattr",
+          "lineNumber": 53
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "level.lower",
+          "lineNumber": 53
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "log_func",
+          "lineNumber": 55
+        },
+        {
+          "caller": "_log_exception",
+          "callee": "log_func",
+          "lineNumber": 57
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 66
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 66
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 74
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 74
+        },
+        {
+          "caller": "general_exception_handler",
+          "callee": "_log_exception",
+          "lineNumber": 79
+        },
+        {
+          "caller": "general_exception_handler",
+          "callee": "JSONResponse",
+          "lineNumber": 81
+        },
+        {
+          "caller": "general_exception_handler",
+          "callee": "ApiResponse.error(\r\n            code=ResponseCode.INTERNAL_ERROR,\r\n            message=str(exc) or \"服务器内部错误\",\r\n            data=None\r\n        ).model_dump",
+          "lineNumber": 83
+        },
+        {
+          "caller": "general_exception_handler",
+          "callee": "ApiResponse.error",
+          "lineNumber": 83
+        },
+        {
+          "caller": "general_exception_handler",
+          "callee": "str",
+          "lineNumber": 85
+        },
+        {
+          "caller": "validation_exception_handler",
+          "callee": "_log_exception",
+          "lineNumber": 96
+        },
+        {
+          "caller": "validation_exception_handler",
+          "callee": "JSONResponse",
+          "lineNumber": 98
+        },
+        {
+          "caller": "validation_exception_handler",
+          "callee": "ApiResponse.error(\r\n            code=ResponseCode.BAD_REQUEST,\r\n            message=exc.message or \"处理请求参数验证异常\",\r\n            data=None\r\n        ).model_dump",
+          "lineNumber": 100
+        },
+        {
+          "caller": "validation_exception_handler",
+          "callee": "ApiResponse.error",
+          "lineNumber": 100
+        },
+        {
+          "caller": "register_exception_handlers",
+          "callee": "app.add_exception_handler",
+          "lineNumber": 110
+        },
+        {
+          "caller": "register_exception_handlers",
+          "callee": "app.add_exception_handler",
+          "lineNumber": 111
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 6,
+        "functionCount": 4,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "backend/app/config/schemas.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "nonEmptyLines": 57,
+      "classes": [
+        {
+          "name": "ApiResponse",
+          "startLine": 10,
+          "endLine": 25,
+          "methods": [
+            "success",
+            "error"
+          ],
+          "properties": [
+            "code",
+            "message",
+            "data"
+          ]
+        },
+        {
+          "name": "PageResponse",
+          "startLine": 28,
+          "endLine": 53,
+          "methods": [
+            "create"
+          ],
+          "properties": [
+            "items",
+            "total",
+            "page",
+            "page_size",
+            "total_pages"
+          ]
+        },
+        {
+          "name": "ResponseCode",
+          "startLine": 56,
+          "endLine": 72,
+          "methods": [],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ApiResponse",
+          "line": 10,
+          "isDefault": false
+        },
+        {
+          "name": "PageResponse",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "ResponseCode",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "success",
+          "callee": "cls",
+          "lineNumber": 20
+        },
+        {
+          "caller": "error",
+          "callee": "cls",
+          "lineNumber": 25
+        },
+        {
+          "caller": "create",
+          "callee": "cls",
+          "lineNumber": 47
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 0,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "backend/app/deps.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 19,
+      "nonEmptyLines": 17,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/routers/document.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 38,
+      "functions": [
+        {
+          "name": "upload_document_endpoint",
+          "startLine": 17,
+          "endLine": 33,
+          "params": [
+            "kb_id",
+            "file",
+            "db",
+            "user"
+          ]
+        },
+        {
+          "name": "get_status_endpoint",
+          "startLine": 37,
+          "endLine": 45,
+          "params": [
+            "kb_id",
+            "doc_id",
+            "db",
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "upload_document_endpoint",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "get_status_endpoint",
+          "line": 36,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "upload_document_endpoint",
+          "callee": "File",
+          "lineNumber": 19
+        },
+        {
+          "caller": "upload_document_endpoint",
+          "callee": "file.read",
+          "lineNumber": 24
+        },
+        {
+          "caller": "upload_document_endpoint",
+          "callee": "upload_document",
+          "lineNumber": 25
+        },
+        {
+          "caller": "upload_document_endpoint",
+          "callee": "ApiResponse.success",
+          "lineNumber": 33
+        },
+        {
+          "caller": "get_status_endpoint",
+          "callee": "get_document_status",
+          "lineNumber": 44
+        },
+        {
+          "caller": "get_status_endpoint",
+          "callee": "ApiResponse.success",
+          "lineNumber": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/routers/kb.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 36,
+      "functions": [
+        {
+          "name": "create_kb_endpoint",
+          "startLine": 17,
+          "endLine": 24,
+          "params": [
+            "payload",
+            "db",
+            "user"
+          ]
+        },
+        {
+          "name": "get_kb_endpoint",
+          "startLine": 28,
+          "endLine": 35,
+          "params": [
+            "kb_id",
+            "db",
+            "user"
+          ]
+        },
+        {
+          "name": "list_kbs_endpoint",
+          "startLine": 39,
+          "endLine": 45,
+          "params": [
+            "db",
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_kb_endpoint",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "get_kb_endpoint",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "list_kbs_endpoint",
+          "line": 38,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_kb_endpoint",
+          "callee": "create_kb",
+          "lineNumber": 23
+        },
+        {
+          "caller": "create_kb_endpoint",
+          "callee": "ApiResponse.success",
+          "lineNumber": 24
+        },
+        {
+          "caller": "create_kb_endpoint",
+          "callee": "KBResponse.model_validate",
+          "lineNumber": 24
+        },
+        {
+          "caller": "get_kb_endpoint",
+          "callee": "get_kb",
+          "lineNumber": 34
+        },
+        {
+          "caller": "get_kb_endpoint",
+          "callee": "ApiResponse.success",
+          "lineNumber": 35
+        },
+        {
+          "caller": "get_kb_endpoint",
+          "callee": "KBResponse.model_validate",
+          "lineNumber": 35
+        },
+        {
+          "caller": "list_kbs_endpoint",
+          "callee": "list_kbs",
+          "lineNumber": 44
+        },
+        {
+          "caller": "list_kbs_endpoint",
+          "callee": "ApiResponse.success",
+          "lineNumber": 45
+        },
+        {
+          "caller": "list_kbs_endpoint",
+          "callee": "KBResponse.model_validate",
+          "lineNumber": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/routers/search.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 35,
+      "functions": [
+        {
+          "name": "search_endpoint",
+          "startLine": 16,
+          "endLine": 40,
+          "params": [
+            "kb_id",
+            "q",
+            "mode",
+            "limit",
+            "db",
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "search_endpoint",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "search_endpoint",
+          "callee": "Query",
+          "lineNumber": 18
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "Query",
+          "lineNumber": 19
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "Query",
+          "lineNumber": 20
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "search_service",
+          "lineNumber": 26
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "BusinessValidationException",
+          "lineNumber": 30
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "str",
+          "lineNumber": 30
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "ApiResponse.success",
+          "lineNumber": 32
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "SearchResponse",
+          "lineNumber": 33
+        },
+        {
+          "caller": "search_endpoint",
+          "callee": "len",
+          "lineNumber": 37
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/schemas/auth.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 27,
+      "nonEmptyLines": 20,
+      "classes": [
+        {
+          "name": "LoginRequest",
+          "startLine": 7,
+          "endLine": 10,
+          "methods": [],
+          "properties": [
+            "email",
+            "password"
+          ]
+        },
+        {
+          "name": "TokenResponse",
+          "startLine": 13,
+          "endLine": 17,
+          "methods": [],
+          "properties": [
+            "access_token",
+            "token_type",
+            "expires_in_hours"
+          ]
+        },
+        {
+          "name": "UserResponse",
+          "startLine": 20,
+          "endLine": 27,
+          "methods": [],
+          "properties": [
+            "id",
+            "email",
+            "role",
+            "tenant_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LoginRequest",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "TokenResponse",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "UserResponse",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 0,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "backend/app/schemas/document.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 26,
+      "nonEmptyLines": 20,
+      "classes": [
+        {
+          "name": "DocumentUploadResponse",
+          "startLine": 11,
+          "endLine": 15,
+          "methods": [],
+          "properties": [
+            "doc_id",
+            "status",
+            "original_filename"
+          ]
+        },
+        {
+          "name": "DocumentStatusResponse",
+          "startLine": 18,
+          "endLine": 26,
+          "methods": [],
+          "properties": [
+            "doc_id",
+            "status",
+            "original_filename",
+            "error_message",
+            "processed_at"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "DocumentUploadResponse",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "DocumentStatusResponse",
+          "line": 18,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "backend/app/schemas/kb.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 32,
+      "nonEmptyLines": 27,
+      "classes": [
+        {
+          "name": "KBCreate",
+          "startLine": 7,
+          "endLine": 16,
+          "methods": [],
+          "properties": [
+            "name",
+            "description",
+            "embedding_model",
+            "embedding_dim",
+            "vector_enabled",
+            "keyword_enabled",
+            "wiki_enabled",
+            "graph_enabled"
+          ]
+        },
+        {
+          "name": "KBResponse",
+          "startLine": 19,
+          "endLine": 32,
+          "methods": [],
+          "properties": [
+            "id",
+            "name",
+            "description",
+            "embedding_model",
+            "embedding_dim",
+            "vector_enabled",
+            "keyword_enabled",
+            "wiki_enabled",
+            "graph_enabled",
+            "tenant_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "KBCreate",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "KBResponse",
+          "line": 19,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "backend/app/schemas/search.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 32,
+      "nonEmptyLines": 27,
+      "classes": [
+        {
+          "name": "ChunkHit",
+          "startLine": 9,
+          "endLine": 23,
+          "methods": [],
+          "properties": [
+            "chunk_id",
+            "doc_id",
+            "text",
+            "score",
+            "rank_source",
+            "distance",
+            "bm25_rank"
+          ]
+        },
+        {
+          "name": "SearchResponse",
+          "startLine": 26,
+          "endLine": 32,
+          "methods": [],
+          "properties": [
+            "query",
+            "kb_id",
+            "mode",
+            "total",
+            "hits"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ChunkHit",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "SearchResponse",
+          "line": 26,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "backend/app/services/document_service.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 91,
+      "nonEmptyLines": 75,
+      "functions": [
+        {
+          "name": "upload_document",
+          "startLine": 22,
+          "endLine": 61,
+          "params": [
+            "db",
+            "kb_id",
+            "user",
+            "filename",
+            "content",
+            "content_type"
+          ]
+        },
+        {
+          "name": "get_document_status",
+          "startLine": 64,
+          "endLine": 91,
+          "params": [
+            "db",
+            "kb_id",
+            "user",
+            "doc_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "upload_document",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "get_document_status",
+          "line": 64,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "upload_document",
+          "callee": "get_kb",
+          "lineNumber": 31
+        },
+        {
+          "caller": "upload_document",
+          "callee": "len",
+          "lineNumber": 33
+        },
+        {
+          "caller": "upload_document",
+          "callee": "BusinessValidationException",
+          "lineNumber": 34
+        },
+        {
+          "caller": "upload_document",
+          "callee": "len",
+          "lineNumber": 35
+        },
+        {
+          "caller": "upload_document",
+          "callee": "uuid.uuid4",
+          "lineNumber": 38
+        },
+        {
+          "caller": "upload_document",
+          "callee": "upload_bytes",
+          "lineNumber": 40
+        },
+        {
+          "caller": "upload_document",
+          "callee": "Document",
+          "lineNumber": 42
+        },
+        {
+          "caller": "upload_document",
+          "callee": "db.add",
+          "lineNumber": 50
+        },
+        {
+          "caller": "upload_document",
+          "callee": "db.commit",
+          "lineNumber": 51
+        },
+        {
+          "caller": "upload_document",
+          "callee": "enqueue_parse_document",
+          "lineNumber": 53
+        },
+        {
+          "caller": "upload_document",
+          "callee": "str",
+          "lineNumber": 53
+        },
+        {
+          "caller": "upload_document",
+          "callee": "logger.info",
+          "lineNumber": 55
+        },
+        {
+          "caller": "upload_document",
+          "callee": "DocumentUploadResponse",
+          "lineNumber": 57
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "get_kb",
+          "lineNumber": 71
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "db.execute",
+          "lineNumber": 74
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "select(Document).where(\n            Document.doc_id == doc_id,\n            Document.kb_id == kb.id,\n            Document.tenant_id == user.tenant_id,\n        ).limit",
+          "lineNumber": 75
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "select(Document).where",
+          "lineNumber": 75
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "select",
+          "lineNumber": 75
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "result.scalar_one_or_none",
+          "lineNumber": 81
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "ResourceNotFoundException",
+          "lineNumber": 83
+        },
+        {
+          "caller": "get_document_status",
+          "callee": "DocumentStatusResponse",
+          "lineNumber": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/services/kb_service.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 66,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "create_kb",
+          "startLine": 19,
+          "endLine": 36,
+          "params": [
+            "db",
+            "payload",
+            "user"
+          ]
+        },
+        {
+          "name": "get_kb",
+          "startLine": 39,
+          "endLine": 53,
+          "params": [
+            "db",
+            "kb_id",
+            "user"
+          ]
+        },
+        {
+          "name": "list_kbs",
+          "startLine": 56,
+          "endLine": 66,
+          "params": [
+            "db",
+            "user"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_kb",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "get_kb",
+          "line": 39,
+          "isDefault": false
+        },
+        {
+          "name": "list_kbs",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_kb",
+          "callee": "KnowledgeBase",
+          "lineNumber": 21
+        },
+        {
+          "caller": "create_kb",
+          "callee": "db.add",
+          "lineNumber": 32
+        },
+        {
+          "caller": "create_kb",
+          "callee": "db.commit",
+          "lineNumber": 33
+        },
+        {
+          "caller": "create_kb",
+          "callee": "db.refresh",
+          "lineNumber": 34
+        },
+        {
+          "caller": "create_kb",
+          "callee": "logger.info",
+          "lineNumber": 35
+        },
+        {
+          "caller": "get_kb",
+          "callee": "db.execute",
+          "lineNumber": 41
+        },
+        {
+          "caller": "get_kb",
+          "callee": "select(KnowledgeBase)\n        .where(\n            KnowledgeBase.id == kb_id,\n            KnowledgeBase.tenant_id == user.tenant_id,\n            KnowledgeBase.deleted_at.is_(None),\n        )\n        .limit",
+          "lineNumber": 42
+        },
+        {
+          "caller": "get_kb",
+          "callee": "select(KnowledgeBase)\n        .where",
+          "lineNumber": 42
+        },
+        {
+          "caller": "get_kb",
+          "callee": "select",
+          "lineNumber": 42
+        },
+        {
+          "caller": "get_kb",
+          "callee": "KnowledgeBase.deleted_at.is_",
+          "lineNumber": 46
+        },
+        {
+          "caller": "get_kb",
+          "callee": "result.scalar_one_or_none",
+          "lineNumber": 50
+        },
+        {
+          "caller": "get_kb",
+          "callee": "ResourceNotFoundException",
+          "lineNumber": 52
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "db.execute",
+          "lineNumber": 58
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "select(KnowledgeBase)\n        .where(\n            KnowledgeBase.tenant_id == user.tenant_id,\n            KnowledgeBase.deleted_at.is_(None),\n        )\n        .order_by",
+          "lineNumber": 59
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "select(KnowledgeBase)\n        .where",
+          "lineNumber": 59
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "select",
+          "lineNumber": 59
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "KnowledgeBase.deleted_at.is_",
+          "lineNumber": 62
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "KnowledgeBase.created_at.desc",
+          "lineNumber": 64
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "list",
+          "lineNumber": 66
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "result.scalars().all",
+          "lineNumber": 66
+        },
+        {
+          "caller": "list_kbs",
+          "callee": "result.scalars",
+          "lineNumber": 66
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/services/search_service.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 201,
+      "nonEmptyLines": 171,
+      "functions": [
+        {
+          "name": "vector_search",
+          "startLine": 27,
+          "endLine": 74,
+          "params": [
+            "db",
+            "kb_id",
+            "query_embedding",
+            "embedding_dim",
+            "top_k"
+          ]
+        },
+        {
+          "name": "bm25_search",
+          "startLine": 77,
+          "endLine": 112,
+          "params": [
+            "db",
+            "kb_id",
+            "query",
+            "top_k"
+          ]
+        },
+        {
+          "name": "rrf_fuse",
+          "startLine": 115,
+          "endLine": 141,
+          "params": [
+            "vector_results",
+            "bm25_results",
+            "k"
+          ]
+        },
+        {
+          "name": "search",
+          "startLine": 144,
+          "endLine": 180,
+          "params": [
+            "db",
+            "kb_id",
+            "user_tenant_id",
+            "query",
+            "mode",
+            "limit"
+          ]
+        },
+        {
+          "name": "get_kb_by_id",
+          "startLine": 183,
+          "endLine": 201,
+          "params": [
+            "db",
+            "kb_id",
+            "tenant_id"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "vector_search",
+          "line": 27,
+          "isDefault": false
+        },
+        {
+          "name": "bm25_search",
+          "line": 77,
+          "isDefault": false
+        },
+        {
+          "name": "rrf_fuse",
+          "line": 115,
+          "isDefault": false
+        },
+        {
+          "name": "search",
+          "line": 144,
+          "isDefault": false
+        },
+        {
+          "name": "get_kb_by_id",
+          "line": 183,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "vector_search",
+          "callee": "\",\".join",
+          "lineNumber": 39
+        },
+        {
+          "caller": "vector_search",
+          "callee": "text",
+          "lineNumber": 40
+        },
+        {
+          "caller": "vector_search",
+          "callee": "db.execute",
+          "lineNumber": 53
+        },
+        {
+          "caller": "vector_search",
+          "callee": "hits.append",
+          "lineNumber": 64
+        },
+        {
+          "caller": "vector_search",
+          "callee": "ChunkHit",
+          "lineNumber": 65
+        },
+        {
+          "caller": "vector_search",
+          "callee": "float",
+          "lineNumber": 71
+        },
+        {
+          "caller": "bm25_search",
+          "callee": "text",
+          "lineNumber": 84
+        },
+        {
+          "caller": "bm25_search",
+          "callee": "db.execute",
+          "lineNumber": 97
+        },
+        {
+          "caller": "bm25_search",
+          "callee": "hits.append",
+          "lineNumber": 102
+        },
+        {
+          "caller": "bm25_search",
+          "callee": "ChunkHit",
+          "lineNumber": 103
+        },
+        {
+          "caller": "bm25_search",
+          "callee": "float",
+          "lineNumber": 107
+        },
+        {
+          "caller": "bm25_search",
+          "callee": "float",
+          "lineNumber": 109
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "enumerate",
+          "lineNumber": 127
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "scores.get",
+          "lineNumber": 128
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "enumerate",
+          "lineNumber": 132
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "scores.get",
+          "lineNumber": 133
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "sorted",
+          "lineNumber": 138
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "scores.items",
+          "lineNumber": 138
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "metadata[chunk_id].model_copy",
+          "lineNumber": 139
+        },
+        {
+          "caller": "rrf_fuse",
+          "callee": "fused.append",
+          "lineNumber": 140
+        },
+        {
+          "caller": "search",
+          "callee": "get_kb_by_id",
+          "lineNumber": 153
+        },
+        {
+          "caller": "search",
+          "callee": "NotImplementedError",
+          "lineNumber": 157
+        },
+        {
+          "caller": "search",
+          "callee": "embed_one",
+          "lineNumber": 169
+        },
+        {
+          "caller": "search",
+          "callee": "vector_search",
+          "lineNumber": 170
+        },
+        {
+          "caller": "search",
+          "callee": "bm25_search",
+          "lineNumber": 175
+        },
+        {
+          "caller": "search",
+          "callee": "rrf_fuse",
+          "lineNumber": 177
+        },
+        {
+          "caller": "get_kb_by_id",
+          "callee": "db.execute",
+          "lineNumber": 189
+        },
+        {
+          "caller": "get_kb_by_id",
+          "callee": "select(KnowledgeBase).where(\n            KnowledgeBase.id == kb_id,\n            KnowledgeBase.tenant_id == tenant_id,\n            KnowledgeBase.deleted_at.is_(None),\n        ).limit",
+          "lineNumber": 190
+        },
+        {
+          "caller": "get_kb_by_id",
+          "callee": "select(KnowledgeBase).where",
+          "lineNumber": 190
+        },
+        {
+          "caller": "get_kb_by_id",
+          "callee": "select",
+          "lineNumber": 190
+        },
+        {
+          "caller": "get_kb_by_id",
+          "callee": "KnowledgeBase.deleted_at.is_",
+          "lineNumber": 193
+        },
+        {
+          "caller": "get_kb_by_id",
+          "callee": "result.scalar_one_or_none",
+          "lineNumber": 196
+        },
+        {
+          "caller": "get_kb_by_id",
+          "callee": "ResourceNotFoundException",
+          "lineNumber": 200
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    }
+  ]
+}

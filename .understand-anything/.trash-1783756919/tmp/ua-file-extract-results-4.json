@@ -1,0 +1,395 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 6,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "frontend/src/App.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 11,
+      "nonEmptyLines": 10,
+      "functions": [
+        {
+          "name": "App",
+          "startLine": 4,
+          "endLine": 11,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "App",
+          "line": 4,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/src/api.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 68,
+      "nonEmptyLines": 59,
+      "functions": [
+        {
+          "name": "login",
+          "startLine": 44,
+          "endLine": 47,
+          "params": [
+            "email",
+            "password"
+          ]
+        },
+        {
+          "name": "listKBs",
+          "startLine": 49,
+          "endLine": 54,
+          "params": [
+            "token"
+          ]
+        },
+        {
+          "name": "search",
+          "startLine": 56,
+          "endLine": 68,
+          "params": [
+            "token",
+            "kbId",
+            "query",
+            "mode",
+            "limit"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "login",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "listKBs",
+          "line": 49,
+          "isDefault": false
+        },
+        {
+          "name": "search",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "login",
+          "callee": "await api.post",
+          "lineNumber": 45
+        },
+        {
+          "caller": "listKBs",
+          "callee": "await api.get",
+          "lineNumber": 50
+        },
+        {
+          "caller": "search",
+          "callee": "await api.get",
+          "lineNumber": 63
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/src/components/ResultList.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 34,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "ResultList",
+          "startLine": 7,
+          "endLine": 34,
+          "params": [
+            "{ results }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ResultList",
+          "line": 7,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ResultList",
+          "callee": "results.map",
+          "lineNumber": 14
+        },
+        {
+          "caller": "ResultList",
+          "callee": "hit.score.toFixed",
+          "lineNumber": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/src/components/SearchBox.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 33,
+      "functions": [
+        {
+          "name": "SearchBox",
+          "startLine": 8,
+          "endLine": 37,
+          "params": [
+            "{ onSearch, loading }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "SearchBox",
+          "line": 8,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SearchBox",
+          "callee": "useState",
+          "lineNumber": 9
+        },
+        {
+          "caller": "submit",
+          "callee": "e.preventDefault",
+          "lineNumber": 12
+        },
+        {
+          "caller": "submit",
+          "callee": "query.trim",
+          "lineNumber": 13
+        },
+        {
+          "caller": "submit",
+          "callee": "onSearch",
+          "lineNumber": 14
+        },
+        {
+          "caller": "submit",
+          "callee": "query.trim",
+          "lineNumber": 14
+        },
+        {
+          "caller": "SearchBox",
+          "callee": "setQuery",
+          "lineNumber": 25
+        },
+        {
+          "caller": "SearchBox",
+          "callee": "query.trim",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 13,
+      "nonEmptyLines": 12,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/src/pages/Search.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 87,
+      "nonEmptyLines": 78,
+      "functions": [
+        {
+          "name": "SearchPage",
+          "startLine": 10,
+          "endLine": 87,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "SearchPage",
+          "line": 10,
+          "isDefault": true
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "SearchPage",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 11
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "useEffect",
+          "lineNumber": 19
+        },
+        {
+          "caller": "bootstrap",
+          "callee": "login",
+          "lineNumber": 24
+        },
+        {
+          "caller": "bootstrap",
+          "callee": "localStorage.setItem",
+          "lineNumber": 26
+        },
+        {
+          "caller": "bootstrap",
+          "callee": "setToken",
+          "lineNumber": 27
+        },
+        {
+          "caller": "bootstrap",
+          "callee": "listKBs",
+          "lineNumber": 29
+        },
+        {
+          "caller": "bootstrap",
+          "callee": "setKBs",
+          "lineNumber": 30
+        },
+        {
+          "caller": "bootstrap",
+          "callee": "setSelectedKb",
+          "lineNumber": 32
+        },
+        {
+          "caller": "bootstrap",
+          "callee": "setError",
+          "lineNumber": 35
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "bootstrap",
+          "lineNumber": 38
+        },
+        {
+          "caller": "handleSearch",
+          "callee": "setLoading",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleSearch",
+          "callee": "setError",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleSearch",
+          "callee": "search",
+          "lineNumber": 47
+        },
+        {
+          "caller": "handleSearch",
+          "callee": "setResults",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleSearch",
+          "callee": "setError",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleSearch",
+          "callee": "setResults",
+          "lineNumber": 51
+        },
+        {
+          "caller": "handleSearch",
+          "callee": "setLoading",
+          "lineNumber": 53
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "setSelectedKb",
+          "lineNumber": 67
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "Number",
+          "lineNumber": 67
+        },
+        {
+          "caller": "SearchPage",
+          "callee": "kbs.map",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

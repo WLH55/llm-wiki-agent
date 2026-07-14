@@ -1,0 +1,23 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "frontend/src/App.tsx", "language": "typescript", "sizeLines": 12, "fileCategory": "code"},
+    {"path": "frontend/src/api.ts", "language": "typescript", "sizeLines": 44, "fileCategory": "code"},
+    {"path": "frontend/src/components/ResultList.tsx", "language": "typescript", "sizeLines": 50, "fileCategory": "code"},
+    {"path": "frontend/src/components/SearchBox.tsx", "language": "typescript", "sizeLines": 38, "fileCategory": "code"},
+    {"path": "frontend/src/main.tsx", "language": "typescript", "sizeLines": 15, "fileCategory": "code"},
+    {"path": "frontend/src/pages/Search.tsx", "language": "typescript", "sizeLines": 78, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "frontend/src/App.tsx": ["frontend/src/pages/Search.tsx"],
+    "frontend/src/api.ts": [],
+    "frontend/src/components/ResultList.tsx": ["frontend/src/api.ts"],
+    "frontend/src/components/SearchBox.tsx": [],
+    "frontend/src/main.tsx": ["frontend/src/App.tsx", "frontend/src/index.css"],
+    "frontend/src/pages/Search.tsx": [
+      "frontend/src/api.ts",
+      "frontend/src/components/ResultList.tsx",
+      "frontend/src/components/SearchBox.tsx"
+    ]
+  }
+}

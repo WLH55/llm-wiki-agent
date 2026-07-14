@@ -1,0 +1,1705 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "louvain",
+  "totalFiles": 103,
+  "totalBatches": 14,
+  "exportsByPath": {
+    ".understand-anything/.understandignore": [],
+    "backend/alembic/env.py": [
+      "run_migrations_offline",
+      "do_run_migrations",
+      "run_async_migrations",
+      "run_migrations_online"
+    ],
+    "backend/alembic/script.py.mako": [],
+    "backend/alembic/versions/.gitkeep": [],
+    "backend/alembic/versions/001_initial.py": [
+      "upgrade",
+      "downgrade"
+    ],
+    "backend/app/__init__.py": [],
+    "backend/app/auth/__init__.py": [],
+    "backend/app/auth/bootstrap.py": [
+      "ensure_bootstrap_owner"
+    ],
+    "backend/app/auth/jwt_handler.py": [
+      "create_access_token",
+      "decode_token",
+      "get_user_id_from_token"
+    ],
+    "backend/app/auth/password.py": [
+      "hash_password",
+      "verify_password"
+    ],
+    "backend/app/auth/routes.py": [
+      "login",
+      "get_me"
+    ],
+    "backend/app/config/__init__.py": [],
+    "backend/app/config/dependencies.py": [
+      "get_db",
+      "get_current_user"
+    ],
+    "backend/app/config/exceptions.py": [
+      "_log_exception",
+      "BusinessValidationException",
+      "ResourceNotFoundException",
+      "general_exception_handler",
+      "validation_exception_handler",
+      "register_exception_handlers"
+    ],
+    "backend/app/config/logger_config.py": [
+      "setup_logging",
+      "_rotator",
+      "_cleanup_old_logs"
+    ],
+    "backend/app/config/schemas.py": [
+      "ApiResponse",
+      "PageResponse",
+      "ResponseCode"
+    ],
+    "backend/app/config/settings.py": [
+      "get_env_file",
+      "Settings"
+    ],
+    "backend/app/database.py": [],
+    "backend/app/deps.py": [],
+    "backend/app/main.py": [
+      "lifespan",
+      "create_app"
+    ],
+    "backend/app/models/__init__.py": [],
+    "backend/app/models/base.py": [
+      "Base",
+      "TimestampMixin",
+      "TenantMixin"
+    ],
+    "backend/app/models/chunk.py": [
+      "ContentChunk"
+    ],
+    "backend/app/models/document.py": [
+      "Document"
+    ],
+    "backend/app/models/kb.py": [
+      "KnowledgeBase"
+    ],
+    "backend/app/models/reserved.py": [
+      "Organization",
+      "OrgMember",
+      "KBShare",
+      "LLMProvider",
+      "UserLLMKey",
+      "WikiFolder",
+      "WikiPage"
+    ],
+    "backend/app/models/source.py": [
+      "Source"
+    ],
+    "backend/app/models/user.py": [
+      "Tenant",
+      "User"
+    ],
+    "backend/app/plugins/__init__.py": [],
+    "backend/app/plugins/chunk_rerank.py": [
+      "ChunkRerankPlugin",
+      "DefaultChunkRerankPlugin",
+      "get_chunk_rerank_plugin",
+      "set_chunk_rerank_plugin"
+    ],
+    "backend/app/routers/__init__.py": [],
+    "backend/app/routers/document.py": [
+      "upload_document_endpoint",
+      "get_status_endpoint"
+    ],
+    "backend/app/routers/kb.py": [
+      "create_kb_endpoint",
+      "get_kb_endpoint",
+      "list_kbs_endpoint"
+    ],
+    "backend/app/routers/search.py": [
+      "search_endpoint"
+    ],
+    "backend/app/schemas/__init__.py": [],
+    "backend/app/schemas/auth.py": [
+      "LoginRequest",
+      "TokenResponse",
+      "UserResponse"
+    ],
+    "backend/app/schemas/document.py": [
+      "DocumentUploadResponse",
+      "DocumentStatusResponse"
+    ],
+    "backend/app/schemas/kb.py": [
+      "KBCreate",
+      "KBResponse"
+    ],
+    "backend/app/schemas/search.py": [
+      "ChunkHit",
+      "SearchResponse"
+    ],
+    "backend/app/services/__init__.py": [],
+    "backend/app/services/document_service.py": [
+      "upload_document",
+      "get_document_status"
+    ],
+    "backend/app/services/embedding_service.py": [
+      "get_client",
+      "embed_texts",
+      "embed_one"
+    ],
+    "backend/app/services/kb_service.py": [
+      "create_kb",
+      "get_kb",
+      "list_kbs"
+    ],
+    "backend/app/services/minio_service.py": [
+      "get_minio_client",
+      "ensure_bucket",
+      "upload_bytes",
+      "get_bytes"
+    ],
+    "backend/app/services/search_service.py": [
+      "vector_search",
+      "bm25_search",
+      "rrf_fuse",
+      "search",
+      "get_kb_by_id"
+    ],
+    "backend/app/workers/__init__.py": [],
+    "backend/app/workers/chunker.py": [
+      "chunk_text",
+      "_count_words",
+      "_hard_split",
+      "_tail_words"
+    ],
+    "backend/app/workers/parse_document.py": [
+      "parse_document_task",
+      "_get_doc",
+      "_mark_status",
+      "_insert_chunks"
+    ],
+    "backend/app/workers/parsers.py": [
+      "parse_by_filename",
+      "parse_pdf",
+      "parse_markdown",
+      "parse_text",
+      "parse_docx"
+    ],
+    "backend/app/workers/queue.py": [
+      "run_parse_document",
+      "enqueue_parse_document"
+    ],
+    "backend/app/workers/worker.py": [
+      "main"
+    ],
+    "backend/tests/__init__.py": [],
+    "backend/tests/conftest.py": [
+      "event_loop",
+      "db_session",
+      "client",
+      "auth_token"
+    ],
+    "backend/tests/test_auth.py": [
+      "test_password_hash_and_verify",
+      "test_jwt_create_and_decode",
+      "test_login_success",
+      "test_login_wrong_password",
+      "test_me_with_token"
+    ],
+    "backend/tests/test_document.py": [
+      "test_upload_md_and_wait_processed"
+    ],
+    "backend/tests/test_halfvec.py": [
+      "test_halfvec_cast_hits_hnsw_index",
+      "test_halfvec_no_cast_seq_scan",
+      "test_zhparser_chinese_tokenizer"
+    ],
+    "backend/tests/test_kb.py": [
+      "test_create_kb_default_config",
+      "test_list_kbs",
+      "test_get_kb_not_found"
+    ],
+    "backend/tests/test_search.py": [
+      "test_search_chinese",
+      "test_search_english",
+      "test_search_wiki_mode_not_implemented"
+    ],
+    "frontend/postcss.config.js": [],
+    "frontend/src/api.ts": [
+      "login",
+      "listKBs",
+      "search"
+    ],
+    "frontend/src/App.tsx": [
+      "App"
+    ],
+    "frontend/src/components/ResultList.tsx": [
+      "ResultList"
+    ],
+    "frontend/src/components/SearchBox.tsx": [
+      "SearchBox"
+    ],
+    "frontend/src/main.tsx": [],
+    "frontend/src/pages/Search.tsx": [
+      "SearchPage"
+    ],
+    "frontend/tailwind.config.js": [],
+    "frontend/vite.config.ts": []
+  },
+  "batches": [
+    {
+      "batchIndex": 1,
+      "files": [
+        {
+          "path": "backend/app/auth/jwt_handler.py",
+          "language": "python",
+          "sizeLines": 46,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/config/__init__.py",
+          "language": "python",
+          "sizeLines": 19,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/config/dependencies.py",
+          "language": "python",
+          "sizeLines": 69,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/config/logger_config.py",
+          "language": "python",
+          "sizeLines": 89,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/config/settings.py",
+          "language": "python",
+          "sizeLines": 106,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/database.py",
+          "language": "python",
+          "sizeLines": 33,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/main.py",
+          "language": "python",
+          "sizeLines": 136,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/services/embedding_service.py",
+          "language": "python",
+          "sizeLines": 47,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/services/minio_service.py",
+          "language": "python",
+          "sizeLines": 68,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/workers/chunker.py",
+          "language": "python",
+          "sizeLines": 93,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/workers/parse_document.py",
+          "language": "python",
+          "sizeLines": 117,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/workers/parsers.py",
+          "language": "python",
+          "sizeLines": 61,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/workers/queue.py",
+          "language": "python",
+          "sizeLines": 33,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/workers/worker.py",
+          "language": "python",
+          "sizeLines": 27,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "backend/app/auth/jwt_handler.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/config/__init__.py": [
+          "backend/app/config/exceptions.py",
+          "backend/app/config/logger_config.py",
+          "backend/app/config/schemas.py",
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/config/dependencies.py": [
+          "backend/app/auth/jwt_handler.py",
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py",
+          "backend/app/database.py",
+          "backend/app/models/user.py"
+        ],
+        "backend/app/config/logger_config.py": [
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/config/settings.py": [],
+        "backend/app/database.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/main.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/exceptions.py",
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/services/embedding_service.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/services/minio_service.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/workers/chunker.py": [],
+        "backend/app/workers/parse_document.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py",
+          "backend/app/database.py",
+          "backend/app/models/document.py",
+          "backend/app/services/embedding_service.py",
+          "backend/app/services/minio_service.py",
+          "backend/app/workers/chunker.py",
+          "backend/app/workers/parsers.py"
+        ],
+        "backend/app/workers/parsers.py": [],
+        "backend/app/workers/queue.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py"
+        ],
+        "backend/app/workers/worker.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py",
+          "backend/app/workers/queue.py"
+        ]
+      },
+      "neighborMap": {
+        "backend/app/auth/jwt_handler.py": [
+          {
+            "path": "backend/app/auth/routes.py",
+            "batchIndex": 2,
+            "symbols": [
+              "login",
+              "get_me"
+            ]
+          },
+          {
+            "path": "backend/tests/test_auth.py",
+            "batchIndex": 5,
+            "symbols": [
+              "test_password_hash_and_verify",
+              "test_jwt_create_and_decode",
+              "test_login_success",
+              "test_login_wrong_password",
+              "test_me_with_token"
+            ]
+          }
+        ],
+        "backend/app/config/__init__.py": [
+          {
+            "path": "backend/app/config/exceptions.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_log_exception",
+              "BusinessValidationException",
+              "ResourceNotFoundException",
+              "general_exception_handler",
+              "validation_exception_handler",
+              "register_exception_handlers"
+            ]
+          },
+          {
+            "path": "backend/app/config/schemas.py",
+            "batchIndex": 2,
+            "symbols": [
+              "ApiResponse",
+              "PageResponse",
+              "ResponseCode"
+            ]
+          },
+          {
+            "path": "backend/alembic/env.py",
+            "batchIndex": 3,
+            "symbols": [
+              "run_migrations_offline",
+              "do_run_migrations",
+              "run_async_migrations",
+              "run_migrations_online"
+            ]
+          },
+          {
+            "path": "backend/app/auth/bootstrap.py",
+            "batchIndex": 5,
+            "symbols": [
+              "ensure_bootstrap_owner"
+            ]
+          },
+          {
+            "path": "backend/app/services/search_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "vector_search",
+              "bm25_search",
+              "rrf_fuse",
+              "search",
+              "get_kb_by_id"
+            ]
+          }
+        ],
+        "backend/app/config/dependencies.py": [
+          {
+            "path": "backend/app/models/user.py",
+            "batchIndex": 3,
+            "symbols": [
+              "Tenant",
+              "User"
+            ]
+          },
+          {
+            "path": "backend/app/deps.py",
+            "batchIndex": 2,
+            "symbols": []
+          }
+        ],
+        "backend/app/config/settings.py": [
+          {
+            "path": "backend/alembic/env.py",
+            "batchIndex": 3,
+            "symbols": [
+              "run_migrations_offline",
+              "do_run_migrations",
+              "run_async_migrations",
+              "run_migrations_online"
+            ]
+          },
+          {
+            "path": "backend/app/auth/bootstrap.py",
+            "batchIndex": 5,
+            "symbols": [
+              "ensure_bootstrap_owner"
+            ]
+          },
+          {
+            "path": "backend/app/services/search_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "vector_search",
+              "bm25_search",
+              "rrf_fuse",
+              "search",
+              "get_kb_by_id"
+            ]
+          }
+        ],
+        "backend/app/main.py": [
+          {
+            "path": "backend/app/config/exceptions.py",
+            "batchIndex": 2,
+            "symbols": [
+              "_log_exception",
+              "BusinessValidationException",
+              "ResourceNotFoundException",
+              "general_exception_handler",
+              "validation_exception_handler",
+              "register_exception_handlers"
+            ]
+          }
+        ],
+        "backend/app/services/embedding_service.py": [
+          {
+            "path": "backend/app/services/search_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "vector_search",
+              "bm25_search",
+              "rrf_fuse",
+              "search",
+              "get_kb_by_id"
+            ]
+          }
+        ],
+        "backend/app/services/minio_service.py": [
+          {
+            "path": "backend/app/services/document_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "upload_document",
+              "get_document_status"
+            ]
+          }
+        ],
+        "backend/app/workers/parse_document.py": [
+          {
+            "path": "backend/app/models/document.py",
+            "batchIndex": 3,
+            "symbols": [
+              "Document"
+            ]
+          }
+        ],
+        "backend/app/workers/queue.py": [
+          {
+            "path": "backend/app/services/document_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "upload_document",
+              "get_document_status"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 2,
+      "files": [
+        {
+          "path": "backend/app/auth/routes.py",
+          "language": "python",
+          "sizeLines": 52,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/config/exceptions.py",
+          "language": "python",
+          "sizeLines": 111,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/config/schemas.py",
+          "language": "python",
+          "sizeLines": 72,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/deps.py",
+          "language": "python",
+          "sizeLines": 19,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/routers/document.py",
+          "language": "python",
+          "sizeLines": 45,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/routers/kb.py",
+          "language": "python",
+          "sizeLines": 45,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/routers/search.py",
+          "language": "python",
+          "sizeLines": 40,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/schemas/auth.py",
+          "language": "python",
+          "sizeLines": 27,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/schemas/document.py",
+          "language": "python",
+          "sizeLines": 26,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/schemas/kb.py",
+          "language": "python",
+          "sizeLines": 32,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/schemas/search.py",
+          "language": "python",
+          "sizeLines": 32,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/services/document_service.py",
+          "language": "python",
+          "sizeLines": 91,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/services/kb_service.py",
+          "language": "python",
+          "sizeLines": 66,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/services/search_service.py",
+          "language": "python",
+          "sizeLines": 201,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "backend/app/auth/routes.py": [
+          "backend/app/auth/jwt_handler.py",
+          "backend/app/auth/password.py",
+          "backend/app/config/exceptions.py",
+          "backend/app/config/schemas.py",
+          "backend/app/deps.py",
+          "backend/app/models/user.py",
+          "backend/app/schemas/auth.py"
+        ],
+        "backend/app/config/exceptions.py": [
+          "backend/app/config/schemas.py"
+        ],
+        "backend/app/config/schemas.py": [],
+        "backend/app/deps.py": [
+          "backend/app/config/dependencies.py"
+        ],
+        "backend/app/routers/document.py": [
+          "backend/app/config/schemas.py",
+          "backend/app/deps.py",
+          "backend/app/schemas/document.py",
+          "backend/app/services/document_service.py"
+        ],
+        "backend/app/routers/kb.py": [
+          "backend/app/config/schemas.py",
+          "backend/app/deps.py",
+          "backend/app/schemas/kb.py",
+          "backend/app/services/kb_service.py"
+        ],
+        "backend/app/routers/search.py": [
+          "backend/app/config/exceptions.py",
+          "backend/app/config/schemas.py",
+          "backend/app/deps.py",
+          "backend/app/schemas/search.py",
+          "backend/app/services/search_service.py"
+        ],
+        "backend/app/schemas/auth.py": [],
+        "backend/app/schemas/document.py": [],
+        "backend/app/schemas/kb.py": [],
+        "backend/app/schemas/search.py": [],
+        "backend/app/services/document_service.py": [
+          "backend/app/config/exceptions.py",
+          "backend/app/models/document.py",
+          "backend/app/models/user.py",
+          "backend/app/schemas/document.py",
+          "backend/app/services/kb_service.py",
+          "backend/app/services/minio_service.py",
+          "backend/app/workers/queue.py"
+        ],
+        "backend/app/services/kb_service.py": [
+          "backend/app/config/exceptions.py",
+          "backend/app/models/kb.py",
+          "backend/app/models/user.py",
+          "backend/app/schemas/kb.py"
+        ],
+        "backend/app/services/search_service.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py",
+          "backend/app/models/kb.py",
+          "backend/app/schemas/search.py",
+          "backend/app/services/embedding_service.py",
+          "backend/app/services/kb_service.py"
+        ]
+      },
+      "neighborMap": {
+        "backend/app/auth/routes.py": [
+          {
+            "path": "backend/app/auth/jwt_handler.py",
+            "batchIndex": 1,
+            "symbols": [
+              "create_access_token",
+              "decode_token",
+              "get_user_id_from_token"
+            ]
+          },
+          {
+            "path": "backend/app/auth/password.py",
+            "batchIndex": 5,
+            "symbols": [
+              "hash_password",
+              "verify_password"
+            ]
+          },
+          {
+            "path": "backend/app/models/user.py",
+            "batchIndex": 3,
+            "symbols": [
+              "Tenant",
+              "User"
+            ]
+          }
+        ],
+        "backend/app/config/exceptions.py": [
+          {
+            "path": "backend/app/config/__init__.py",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "backend/app/main.py",
+            "batchIndex": 1,
+            "symbols": [
+              "lifespan",
+              "create_app"
+            ]
+          }
+        ],
+        "backend/app/config/schemas.py": [
+          {
+            "path": "backend/app/config/__init__.py",
+            "batchIndex": 1,
+            "symbols": []
+          }
+        ],
+        "backend/app/deps.py": [
+          {
+            "path": "backend/app/config/dependencies.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_db",
+              "get_current_user"
+            ]
+          }
+        ],
+        "backend/app/services/document_service.py": [
+          {
+            "path": "backend/app/models/document.py",
+            "batchIndex": 3,
+            "symbols": [
+              "Document"
+            ]
+          },
+          {
+            "path": "backend/app/models/user.py",
+            "batchIndex": 3,
+            "symbols": [
+              "Tenant",
+              "User"
+            ]
+          },
+          {
+            "path": "backend/app/services/minio_service.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_minio_client",
+              "ensure_bucket",
+              "upload_bytes",
+              "get_bytes"
+            ]
+          },
+          {
+            "path": "backend/app/workers/queue.py",
+            "batchIndex": 1,
+            "symbols": [
+              "run_parse_document",
+              "enqueue_parse_document"
+            ]
+          }
+        ],
+        "backend/app/services/kb_service.py": [
+          {
+            "path": "backend/app/models/kb.py",
+            "batchIndex": 3,
+            "symbols": [
+              "KnowledgeBase"
+            ]
+          },
+          {
+            "path": "backend/app/models/user.py",
+            "batchIndex": 3,
+            "symbols": [
+              "Tenant",
+              "User"
+            ]
+          }
+        ],
+        "backend/app/services/search_service.py": [
+          {
+            "path": "backend/app/config/__init__.py",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "backend/app/config/settings.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_env_file",
+              "Settings"
+            ]
+          },
+          {
+            "path": "backend/app/models/kb.py",
+            "batchIndex": 3,
+            "symbols": [
+              "KnowledgeBase"
+            ]
+          },
+          {
+            "path": "backend/app/services/embedding_service.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_client",
+              "embed_texts",
+              "embed_one"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 3,
+      "files": [
+        {
+          "path": "backend/alembic/env.py",
+          "language": "python",
+          "sizeLines": 73,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/__init__.py",
+          "language": "python",
+          "sizeLines": 40,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/base.py",
+          "language": "python",
+          "sizeLines": 44,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/chunk.py",
+          "language": "python",
+          "sizeLines": 40,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/document.py",
+          "language": "python",
+          "sizeLines": 37,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/kb.py",
+          "language": "python",
+          "sizeLines": 28,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/reserved.py",
+          "language": "python",
+          "sizeLines": 85,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/source.py",
+          "language": "python",
+          "sizeLines": 23,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/models/user.py",
+          "language": "python",
+          "sizeLines": 27,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "backend/alembic/env.py": [
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py",
+          "backend/app/models/__init__.py",
+          "backend/app/models/base.py",
+          "backend/app/models/chunk.py",
+          "backend/app/models/document.py",
+          "backend/app/models/kb.py",
+          "backend/app/models/reserved.py",
+          "backend/app/models/source.py",
+          "backend/app/models/user.py"
+        ],
+        "backend/app/models/__init__.py": [
+          "backend/app/models/base.py",
+          "backend/app/models/chunk.py",
+          "backend/app/models/document.py",
+          "backend/app/models/kb.py",
+          "backend/app/models/reserved.py",
+          "backend/app/models/source.py",
+          "backend/app/models/user.py"
+        ],
+        "backend/app/models/base.py": [],
+        "backend/app/models/chunk.py": [
+          "backend/app/models/base.py"
+        ],
+        "backend/app/models/document.py": [
+          "backend/app/models/base.py"
+        ],
+        "backend/app/models/kb.py": [
+          "backend/app/models/base.py"
+        ],
+        "backend/app/models/reserved.py": [
+          "backend/app/models/base.py"
+        ],
+        "backend/app/models/source.py": [
+          "backend/app/models/base.py"
+        ],
+        "backend/app/models/user.py": [
+          "backend/app/models/base.py"
+        ]
+      },
+      "neighborMap": {
+        "backend/alembic/env.py": [
+          {
+            "path": "backend/app/config/__init__.py",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "backend/app/config/settings.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_env_file",
+              "Settings"
+            ]
+          }
+        ],
+        "backend/app/models/document.py": [
+          {
+            "path": "backend/app/services/document_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "upload_document",
+              "get_document_status"
+            ]
+          },
+          {
+            "path": "backend/app/workers/parse_document.py",
+            "batchIndex": 1,
+            "symbols": [
+              "parse_document_task",
+              "_get_doc",
+              "_mark_status",
+              "_insert_chunks"
+            ]
+          }
+        ],
+        "backend/app/models/kb.py": [
+          {
+            "path": "backend/app/services/kb_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "create_kb",
+              "get_kb",
+              "list_kbs"
+            ]
+          },
+          {
+            "path": "backend/app/services/search_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "vector_search",
+              "bm25_search",
+              "rrf_fuse",
+              "search",
+              "get_kb_by_id"
+            ]
+          }
+        ],
+        "backend/app/models/user.py": [
+          {
+            "path": "backend/app/auth/bootstrap.py",
+            "batchIndex": 5,
+            "symbols": [
+              "ensure_bootstrap_owner"
+            ]
+          },
+          {
+            "path": "backend/app/auth/routes.py",
+            "batchIndex": 2,
+            "symbols": [
+              "login",
+              "get_me"
+            ]
+          },
+          {
+            "path": "backend/app/config/dependencies.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_db",
+              "get_current_user"
+            ]
+          },
+          {
+            "path": "backend/app/services/document_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "upload_document",
+              "get_document_status"
+            ]
+          },
+          {
+            "path": "backend/app/services/kb_service.py",
+            "batchIndex": 2,
+            "symbols": [
+              "create_kb",
+              "get_kb",
+              "list_kbs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 4,
+      "files": [
+        {
+          "path": "frontend/src/App.tsx",
+          "language": "typescript",
+          "sizeLines": 11,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/api.ts",
+          "language": "typescript",
+          "sizeLines": 68,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/ResultList.tsx",
+          "language": "typescript",
+          "sizeLines": 34,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/components/SearchBox.tsx",
+          "language": "typescript",
+          "sizeLines": 37,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "language": "typescript",
+          "sizeLines": 13,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/pages/Search.tsx",
+          "language": "typescript",
+          "sizeLines": 87,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "frontend/src/App.tsx": [
+          "frontend/src/pages/Search.tsx"
+        ],
+        "frontend/src/api.ts": [],
+        "frontend/src/components/ResultList.tsx": [
+          "frontend/src/api.ts"
+        ],
+        "frontend/src/components/SearchBox.tsx": [],
+        "frontend/src/main.tsx": [
+          "frontend/src/App.tsx",
+          "frontend/src/index.css"
+        ],
+        "frontend/src/pages/Search.tsx": [
+          "frontend/src/api.ts",
+          "frontend/src/components/ResultList.tsx",
+          "frontend/src/components/SearchBox.tsx"
+        ]
+      },
+      "neighborMap": {
+        "frontend/src/main.tsx": [
+          {
+            "path": "frontend/src/index.css",
+            "batchIndex": 13,
+            "symbols": []
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 5,
+      "files": [
+        {
+          "path": "backend/app/auth/bootstrap.py",
+          "language": "python",
+          "sizeLines": 52,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/auth/password.py",
+          "language": "python",
+          "sizeLines": 18,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/tests/test_auth.py",
+          "language": "python",
+          "sizeLines": 60,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "backend/app/auth/bootstrap.py": [
+          "backend/app/auth/password.py",
+          "backend/app/config/__init__.py",
+          "backend/app/config/settings.py",
+          "backend/app/models/user.py"
+        ],
+        "backend/app/auth/password.py": [],
+        "backend/tests/test_auth.py": [
+          "backend/app/auth/jwt_handler.py",
+          "backend/app/auth/password.py"
+        ]
+      },
+      "neighborMap": {
+        "backend/app/auth/bootstrap.py": [
+          {
+            "path": "backend/app/config/__init__.py",
+            "batchIndex": 1,
+            "symbols": []
+          },
+          {
+            "path": "backend/app/config/settings.py",
+            "batchIndex": 1,
+            "symbols": [
+              "get_env_file",
+              "Settings"
+            ]
+          },
+          {
+            "path": "backend/app/models/user.py",
+            "batchIndex": 3,
+            "symbols": [
+              "Tenant",
+              "User"
+            ]
+          }
+        ],
+        "backend/app/auth/password.py": [
+          {
+            "path": "backend/app/auth/routes.py",
+            "batchIndex": 2,
+            "symbols": [
+              "login",
+              "get_me"
+            ]
+          }
+        ],
+        "backend/tests/test_auth.py": [
+          {
+            "path": "backend/app/auth/jwt_handler.py",
+            "batchIndex": 1,
+            "symbols": [
+              "create_access_token",
+              "decode_token",
+              "get_user_id_from_token"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 6,
+      "files": [
+        {
+          "path": "backend/Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 45,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        "backend/Dockerfile": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 7,
+      "files": [
+        {
+          "path": "postgres/Dockerfile",
+          "language": "dockerfile",
+          "sizeLines": 23,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        "postgres/Dockerfile": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 8,
+      "files": [
+        {
+          "path": ".env.example",
+          "language": "config",
+          "sizeLines": 26,
+          "fileCategory": "config"
+        },
+        {
+          "path": "Makefile",
+          "language": "makefile",
+          "sizeLines": 28,
+          "fileCategory": "infra"
+        },
+        {
+          "path": "README.md",
+          "language": "markdown",
+          "sizeLines": 69,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docker-compose.yml",
+          "language": "yaml",
+          "sizeLines": 127,
+          "fileCategory": "infra"
+        }
+      ],
+      "batchImportData": {
+        ".env.example": [],
+        "Makefile": [],
+        "README.md": [],
+        "docker-compose.yml": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 9,
+      "files": [
+        {
+          "path": "frontend/index.html",
+          "language": "html",
+          "sizeLines": 12,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "frontend/package.json",
+          "language": "json",
+          "sizeLines": 27,
+          "fileCategory": "config"
+        },
+        {
+          "path": "frontend/tsconfig.json",
+          "language": "json",
+          "sizeLines": 19,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        "frontend/index.html": [],
+        "frontend/package.json": [],
+        "frontend/tsconfig.json": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 10,
+      "files": [
+        {
+          "path": "mydocs/GBrain知识库设计剖析.md",
+          "language": "markdown",
+          "sizeLines": 350,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/kb-architecture.md",
+          "language": "markdown",
+          "sizeLines": 414,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/multi-tenant-architecture.md",
+          "language": "markdown",
+          "sizeLines": 918,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/prd-v4.2.md",
+          "language": "markdown",
+          "sizeLines": 357,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/rag-architecture.md",
+          "language": "markdown",
+          "sizeLines": 514,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+          "language": "markdown",
+          "sizeLines": 1689,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/wiki-architecture.md",
+          "language": "markdown",
+          "sizeLines": 800,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "mydocs/GBrain知识库设计剖析.md": [],
+        "mydocs/kb-architecture.md": [],
+        "mydocs/multi-tenant-architecture.md": [],
+        "mydocs/prd-v4.2.md": [],
+        "mydocs/rag-architecture.md": [],
+        "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md": [],
+        "mydocs/wiki-architecture.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 11,
+      "files": [
+        {
+          "path": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+          "language": "markdown",
+          "sizeLines": 25,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+          "language": "markdown",
+          "sizeLines": 111,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0003-three-edge-model.md",
+          "language": "markdown",
+          "sizeLines": 135,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0004-http-mcp-server.md",
+          "language": "markdown",
+          "sizeLines": 59,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+          "language": "markdown",
+          "sizeLines": 132,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+          "language": "markdown",
+          "sizeLines": 120,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0007-multi-source-mounting.md",
+          "language": "markdown",
+          "sizeLines": 113,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0008-mvp-scope.md",
+          "language": "markdown",
+          "sizeLines": 92,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/context/docs/adr/0009-retrieval-architecture.md",
+          "language": "markdown",
+          "sizeLines": 200,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "mydocs/context/docs/adr/0001-halfvec-multi-dim.md": [],
+        "mydocs/context/docs/adr/0002-tenant-org-rbac.md": [],
+        "mydocs/context/docs/adr/0003-three-edge-model.md": [],
+        "mydocs/context/docs/adr/0004-http-mcp-server.md": [],
+        "mydocs/context/docs/adr/0005-self-signup-and-invitation.md": [],
+        "mydocs/context/docs/adr/0006-agent-runtime-byok.md": [],
+        "mydocs/context/docs/adr/0007-multi-source-mounting.md": [],
+        "mydocs/context/docs/adr/0008-mvp-scope.md": [],
+        "mydocs/context/docs/adr/0009-retrieval-architecture.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 12,
+      "files": [
+        {
+          "path": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+          "language": "markdown",
+          "sizeLines": 531,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+          "language": "markdown",
+          "sizeLines": 1089,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "mydocs/specs/llm-wiki-design-decision.html",
+          "language": "html",
+          "sizeLines": 619,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "mydocs/specs/obsidian-wiki-research.html",
+          "language": "html",
+          "sizeLines": 1401,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+          "language": "html",
+          "sizeLines": 670,
+          "fileCategory": "markup"
+        }
+      ],
+      "batchImportData": {
+        "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md": [],
+        "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md": [],
+        "mydocs/specs/llm-wiki-design-decision.html": [],
+        "mydocs/specs/obsidian-wiki-research.html": [],
+        "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 13,
+      "files": [
+        {
+          "path": ".understand-anything/.understandignore",
+          "language": "unknown",
+          "sizeLines": 76,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".understand-anything/intermediate/scan-result.json",
+          "language": "json",
+          "sizeLines": 254,
+          "fileCategory": "config"
+        },
+        {
+          "path": "backend/alembic.ini",
+          "language": "config",
+          "sizeLines": 40,
+          "fileCategory": "config"
+        },
+        {
+          "path": "backend/alembic/script.py.mako",
+          "language": "mako",
+          "sizeLines": 25,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/alembic/versions/.gitkeep",
+          "language": "unknown",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/alembic/versions/001_initial.py",
+          "language": "python",
+          "sizeLines": 313,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/auth/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/plugins/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/plugins/chunk_rerank.py",
+          "language": "python",
+          "sizeLines": 45,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/routers/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/schemas/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/services/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/app/workers/__init__.py",
+          "language": "python",
+          "sizeLines": 1,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/pyproject.toml",
+          "language": "toml",
+          "sizeLines": 53,
+          "fileCategory": "config"
+        },
+        {
+          "path": "backend/tests/__init__.py",
+          "language": "python",
+          "sizeLines": 0,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/tests/conftest.py",
+          "language": "python",
+          "sizeLines": 61,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/tests/test_document.py",
+          "language": "python",
+          "sizeLines": 60,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/tests/test_halfvec.py",
+          "language": "python",
+          "sizeLines": 91,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/tests/test_kb.py",
+          "language": "python",
+          "sizeLines": 53,
+          "fileCategory": "code"
+        },
+        {
+          "path": "backend/tests/test_search.py",
+          "language": "python",
+          "sizeLines": 64,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/postcss.config.js",
+          "language": "javascript",
+          "sizeLines": 6,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/src/index.css",
+          "language": "css",
+          "sizeLines": 3,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "language": "javascript",
+          "sizeLines": 8,
+          "fileCategory": "code"
+        },
+        {
+          "path": "frontend/vite.config.ts",
+          "language": "typescript",
+          "sizeLines": 20,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        ".understand-anything/.understandignore": [],
+        ".understand-anything/intermediate/scan-result.json": [],
+        "backend/alembic.ini": [],
+        "backend/alembic/script.py.mako": [],
+        "backend/alembic/versions/.gitkeep": [],
+        "backend/alembic/versions/001_initial.py": [],
+        "backend/app/__init__.py": [],
+        "backend/app/auth/__init__.py": [],
+        "backend/app/plugins/__init__.py": [],
+        "backend/app/plugins/chunk_rerank.py": [],
+        "backend/app/routers/__init__.py": [],
+        "backend/app/schemas/__init__.py": [],
+        "backend/app/services/__init__.py": [],
+        "backend/app/workers/__init__.py": [],
+        "backend/pyproject.toml": [],
+        "backend/tests/__init__.py": [],
+        "backend/tests/conftest.py": [],
+        "backend/tests/test_document.py": [],
+        "backend/tests/test_halfvec.py": [],
+        "backend/tests/test_kb.py": [],
+        "backend/tests/test_search.py": [],
+        "frontend/postcss.config.js": [],
+        "frontend/src/index.css": [],
+        "frontend/tailwind.config.js": [],
+        "frontend/vite.config.ts": []
+      },
+      "neighborMap": {
+        "frontend/src/index.css": [
+          {
+            "path": "frontend/src/main.tsx",
+            "batchIndex": 4,
+            "symbols": []
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 14,
+      "files": [
+        {
+          "path": "mydocs/context/CONTEXT.md",
+          "language": "markdown",
+          "sizeLines": 215,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "postgres/init-extensions.sql",
+          "language": "sql",
+          "sizeLines": 5,
+          "fileCategory": "data"
+        }
+      ],
+      "batchImportData": {
+        "mydocs/context/CONTEXT.md": [],
+        "postgres/init-extensions.sql": []
+      },
+      "neighborMap": {}
+    }
+  ]
+}

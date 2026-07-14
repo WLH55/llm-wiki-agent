@@ -1,0 +1,26 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md", "language": "markdown", "sizeLines": 25, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0002-tenant-org-rbac.md", "language": "markdown", "sizeLines": 111, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0003-three-edge-model.md", "language": "markdown", "sizeLines": 135, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0004-http-mcp-server.md", "language": "markdown", "sizeLines": 59, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md", "language": "markdown", "sizeLines": 132, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0006-agent-runtime-byok.md", "language": "markdown", "sizeLines": 120, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0007-multi-source-mounting.md", "language": "markdown", "sizeLines": 113, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0008-mvp-scope.md", "language": "markdown", "sizeLines": 92, "fileCategory": "docs"},
+    {"path": "mydocs/context/docs/adr/0009-retrieval-architecture.md", "language": "markdown", "sizeLines": 200, "fileCategory": "docs"}
+  ],
+  "batchImportData": {
+    "mydocs/context/docs/adr/0001-halfvec-multi-dim.md": [],
+    "mydocs/context/docs/adr/0002-tenant-org-rbac.md": [],
+    "mydocs/context/docs/adr/0003-three-edge-model.md": [],
+    "mydocs/context/docs/adr/0004-http-mcp-server.md": [],
+    "mydocs/context/docs/adr/0005-self-signup-and-invitation.md": [],
+    "mydocs/context/docs/adr/0006-agent-runtime-byok.md": [],
+    "mydocs/context/docs/adr/0007-multi-source-mounting.md": [],
+    "mydocs/context/docs/adr/0008-mvp-scope.md": [],
+    "mydocs/context/docs/adr/0009-retrieval-architecture.md": []
+  },
+  "neighborMap": {}
+}

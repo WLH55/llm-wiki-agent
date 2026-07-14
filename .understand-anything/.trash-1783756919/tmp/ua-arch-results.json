@@ -1,0 +1,529 @@
+{
+  "scriptCompleted": true,
+  "commonPrefix": "",
+  "directoryGroups": {
+    "backend": [
+      "file:backend/app/auth/jwt_handler.py",
+      "file:backend/app/config/__init__.py",
+      "file:backend/app/config/dependencies.py",
+      "file:backend/app/config/logger_config.py",
+      "file:backend/app/config/settings.py",
+      "file:backend/app/database.py",
+      "file:backend/app/main.py",
+      "file:backend/app/services/embedding_service.py",
+      "file:backend/app/services/minio_service.py",
+      "file:backend/app/workers/chunker.py",
+      "file:backend/app/workers/parse_document.py",
+      "file:backend/app/workers/parsers.py",
+      "file:backend/app/workers/queue.py",
+      "file:backend/app/workers/worker.py",
+      "file:backend/app/auth/routes.py",
+      "file:backend/app/config/exceptions.py",
+      "file:backend/app/config/schemas.py",
+      "file:backend/app/deps.py",
+      "file:backend/app/routers/document.py",
+      "file:backend/app/routers/kb.py",
+      "file:backend/app/routers/search.py",
+      "file:backend/app/schemas/auth.py",
+      "file:backend/app/schemas/document.py",
+      "file:backend/app/schemas/kb.py",
+      "file:backend/app/schemas/search.py",
+      "file:backend/app/services/document_service.py",
+      "file:backend/app/services/kb_service.py",
+      "file:backend/app/services/search_service.py",
+      "file:backend/alembic/env.py",
+      "file:backend/app/models/__init__.py",
+      "file:backend/app/models/base.py",
+      "file:backend/app/models/chunk.py",
+      "file:backend/app/models/document.py",
+      "file:backend/app/models/kb.py",
+      "file:backend/app/models/reserved.py",
+      "file:backend/app/models/source.py",
+      "file:backend/app/models/user.py",
+      "file:backend/app/auth/bootstrap.py",
+      "file:backend/app/auth/password.py",
+      "file:backend/tests/test_auth.py",
+      "service:backend/Dockerfile",
+      "service:backend/Dockerfile:frontend-build",
+      "service:backend/Dockerfile:python",
+      "config:backend/alembic.ini",
+      "file:backend/alembic/script.py.mako",
+      "file:backend/alembic/versions/001_initial.py",
+      "table:backend/alembic/versions/001_initial.py:tenants",
+      "table:backend/alembic/versions/001_initial.py:users",
+      "table:backend/alembic/versions/001_initial.py:knowledge_bases",
+      "table:backend/alembic/versions/001_initial.py:sources",
+      "table:backend/alembic/versions/001_initial.py:documents",
+      "table:backend/alembic/versions/001_initial.py:content_chunks",
+      "table:backend/alembic/versions/001_initial.py:wiki_pages",
+      "file:backend/app/__init__.py",
+      "file:backend/app/auth/__init__.py",
+      "file:backend/app/plugins/__init__.py",
+      "file:backend/app/plugins/chunk_rerank.py",
+      "file:backend/app/routers/__init__.py",
+      "file:backend/app/schemas/__init__.py",
+      "file:backend/app/services/__init__.py",
+      "file:backend/app/workers/__init__.py",
+      "config:backend/pyproject.toml",
+      "file:backend/tests/__init__.py",
+      "file:backend/tests/conftest.py",
+      "file:backend/tests/test_document.py",
+      "file:backend/tests/test_halfvec.py",
+      "file:backend/tests/test_kb.py",
+      "file:backend/tests/test_search.py"
+    ],
+    "frontend": [
+      "file:frontend/src/main.tsx",
+      "file:frontend/src/App.tsx",
+      "file:frontend/src/api.ts",
+      "file:frontend/src/pages/Search.tsx",
+      "file:frontend/src/components/SearchBox.tsx",
+      "file:frontend/src/components/ResultList.tsx",
+      "file:frontend/index.html",
+      "config:frontend/package.json",
+      "config:frontend/tsconfig.json",
+      "config:frontend/postcss.config.js",
+      "file:frontend/src/index.css",
+      "config:frontend/tailwind.config.js",
+      "config:frontend/vite.config.ts"
+    ],
+    "postgres": [
+      "service:postgres/Dockerfile",
+      "service:postgres/Dockerfile:postgres",
+      "schema:postgres/init-extensions.sql"
+    ],
+    "<root>": [
+      "config:.env.example",
+      "config:Makefile",
+      "document:README.md",
+      "service:docker-compose.yml",
+      "service:docker-compose.yml:backend",
+      "service:docker-compose.yml:worker",
+      "service:docker-compose.yml:postgres",
+      "service:docker-compose.yml:minio",
+      "service:docker-compose.yml:redis"
+    ],
+    "mydocs": [
+      "document:mydocs/GBrain知识库设计剖析.md",
+      "document:mydocs/kb-architecture.md",
+      "document:mydocs/multi-tenant-architecture.md",
+      "document:mydocs/prd-v4.2.md",
+      "document:mydocs/rag-architecture.md",
+      "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "document:mydocs/wiki-architecture.md",
+      "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "document:mydocs/specs/llm-wiki-design-decision.html",
+      "document:mydocs/specs/obsidian-wiki-research.html",
+      "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "document:mydocs/context/CONTEXT.md"
+    ],
+    ".understand-anything": [
+      "file:.understand-anything/.understandignore",
+      "config:.understand-anything/intermediate/scan-result.json"
+    ]
+  },
+  "nodeTypeGroups": {
+    "file": [
+      "file:backend/app/auth/jwt_handler.py",
+      "file:backend/app/config/__init__.py",
+      "file:backend/app/config/dependencies.py",
+      "file:backend/app/config/logger_config.py",
+      "file:backend/app/config/settings.py",
+      "file:backend/app/database.py",
+      "file:backend/app/main.py",
+      "file:backend/app/services/embedding_service.py",
+      "file:backend/app/services/minio_service.py",
+      "file:backend/app/workers/chunker.py",
+      "file:backend/app/workers/parse_document.py",
+      "file:backend/app/workers/parsers.py",
+      "file:backend/app/workers/queue.py",
+      "file:backend/app/workers/worker.py",
+      "file:backend/app/auth/routes.py",
+      "file:backend/app/config/exceptions.py",
+      "file:backend/app/config/schemas.py",
+      "file:backend/app/deps.py",
+      "file:backend/app/routers/document.py",
+      "file:backend/app/routers/kb.py",
+      "file:backend/app/routers/search.py",
+      "file:backend/app/schemas/auth.py",
+      "file:backend/app/schemas/document.py",
+      "file:backend/app/schemas/kb.py",
+      "file:backend/app/schemas/search.py",
+      "file:backend/app/services/document_service.py",
+      "file:backend/app/services/kb_service.py",
+      "file:backend/app/services/search_service.py",
+      "file:backend/alembic/env.py",
+      "file:backend/app/models/__init__.py",
+      "file:backend/app/models/base.py",
+      "file:backend/app/models/chunk.py",
+      "file:backend/app/models/document.py",
+      "file:backend/app/models/kb.py",
+      "file:backend/app/models/reserved.py",
+      "file:backend/app/models/source.py",
+      "file:backend/app/models/user.py",
+      "file:frontend/src/main.tsx",
+      "file:frontend/src/App.tsx",
+      "file:frontend/src/api.ts",
+      "file:frontend/src/pages/Search.tsx",
+      "file:frontend/src/components/SearchBox.tsx",
+      "file:frontend/src/components/ResultList.tsx",
+      "file:backend/app/auth/bootstrap.py",
+      "file:backend/app/auth/password.py",
+      "file:backend/tests/test_auth.py",
+      "file:frontend/index.html",
+      "file:.understand-anything/.understandignore",
+      "file:backend/alembic/script.py.mako",
+      "file:backend/alembic/versions/001_initial.py",
+      "file:backend/app/__init__.py",
+      "file:backend/app/auth/__init__.py",
+      "file:backend/app/plugins/__init__.py",
+      "file:backend/app/plugins/chunk_rerank.py",
+      "file:backend/app/routers/__init__.py",
+      "file:backend/app/schemas/__init__.py",
+      "file:backend/app/services/__init__.py",
+      "file:backend/app/workers/__init__.py",
+      "file:backend/tests/__init__.py",
+      "file:backend/tests/conftest.py",
+      "file:backend/tests/test_document.py",
+      "file:backend/tests/test_halfvec.py",
+      "file:backend/tests/test_kb.py",
+      "file:backend/tests/test_search.py",
+      "file:frontend/src/index.css"
+    ],
+    "service": [
+      "service:backend/Dockerfile",
+      "service:backend/Dockerfile:frontend-build",
+      "service:backend/Dockerfile:python",
+      "service:postgres/Dockerfile",
+      "service:postgres/Dockerfile:postgres",
+      "service:docker-compose.yml",
+      "service:docker-compose.yml:backend",
+      "service:docker-compose.yml:worker",
+      "service:docker-compose.yml:postgres",
+      "service:docker-compose.yml:minio",
+      "service:docker-compose.yml:redis"
+    ],
+    "config": [
+      "config:.env.example",
+      "config:Makefile",
+      "config:frontend/package.json",
+      "config:frontend/tsconfig.json",
+      "config:.understand-anything/intermediate/scan-result.json",
+      "config:backend/alembic.ini",
+      "config:backend/pyproject.toml",
+      "config:frontend/postcss.config.js",
+      "config:frontend/tailwind.config.js",
+      "config:frontend/vite.config.ts"
+    ],
+    "document": [
+      "document:README.md",
+      "document:mydocs/GBrain知识库设计剖析.md",
+      "document:mydocs/kb-architecture.md",
+      "document:mydocs/multi-tenant-architecture.md",
+      "document:mydocs/prd-v4.2.md",
+      "document:mydocs/rag-architecture.md",
+      "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "document:mydocs/wiki-architecture.md",
+      "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "document:mydocs/specs/llm-wiki-design-decision.html",
+      "document:mydocs/specs/obsidian-wiki-research.html",
+      "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "document:mydocs/context/CONTEXT.md"
+    ],
+    "table": [
+      "table:backend/alembic/versions/001_initial.py:tenants",
+      "table:backend/alembic/versions/001_initial.py:users",
+      "table:backend/alembic/versions/001_initial.py:knowledge_bases",
+      "table:backend/alembic/versions/001_initial.py:sources",
+      "table:backend/alembic/versions/001_initial.py:documents",
+      "table:backend/alembic/versions/001_initial.py:content_chunks",
+      "table:backend/alembic/versions/001_initial.py:wiki_pages"
+    ],
+    "schema": [
+      "schema:postgres/init-extensions.sql"
+    ]
+  },
+  "crossCategoryEdges": [
+    {
+      "fromType": "document",
+      "toType": "document",
+      "edgeType": "related",
+      "count": 24
+    },
+    {
+      "fromType": "config",
+      "toType": "file",
+      "edgeType": "configures",
+      "count": 11
+    },
+    {
+      "fromType": "document",
+      "toType": "file",
+      "edgeType": "documents",
+      "count": 11
+    },
+    {
+      "fromType": "service",
+      "toType": "service",
+      "edgeType": "contains",
+      "count": 8
+    },
+    {
+      "fromType": "service",
+      "toType": "service",
+      "edgeType": "depends_on",
+      "count": 6
+    },
+    {
+      "fromType": "schema",
+      "toType": "file",
+      "edgeType": "defines_schema",
+      "count": 4
+    },
+    {
+      "fromType": "document",
+      "toType": "document",
+      "edgeType": "documents",
+      "count": 4
+    },
+    {
+      "fromType": "file",
+      "toType": "file",
+      "edgeType": "depends_on",
+      "count": 2
+    },
+    {
+      "fromType": "service",
+      "toType": "file",
+      "edgeType": "deploys",
+      "count": 2
+    },
+    {
+      "fromType": "document",
+      "toType": "service",
+      "edgeType": "documents",
+      "count": 2
+    },
+    {
+      "fromType": "config",
+      "toType": "service",
+      "edgeType": "configures",
+      "count": 1
+    },
+    {
+      "fromType": "document",
+      "toType": "config",
+      "edgeType": "documents",
+      "count": 1
+    },
+    {
+      "fromType": "config",
+      "toType": "service",
+      "edgeType": "triggers",
+      "count": 1
+    },
+    {
+      "fromType": "config",
+      "toType": "config",
+      "edgeType": "configures",
+      "count": 1
+    },
+    {
+      "fromType": "file",
+      "toType": "file",
+      "edgeType": "tested_by",
+      "count": 1
+    },
+    {
+      "fromType": "service",
+      "toType": "config",
+      "edgeType": "depends_on",
+      "count": 1
+    },
+    {
+      "fromType": "service",
+      "toType": "schema",
+      "edgeType": "depends_on",
+      "count": 1
+    }
+  ],
+  "interGroupImports": [],
+  "intraGroupDensity": {
+    "backend": {
+      "internalEdges": 102,
+      "totalEdges": 102,
+      "density": 1
+    },
+    "frontend": {
+      "internalEdges": 7,
+      "totalEdges": 7,
+      "density": 1
+    },
+    "postgres": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "<root>": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    "mydocs": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    },
+    ".understand-anything": {
+      "internalEdges": 0,
+      "totalEdges": 0,
+      "density": 0
+    }
+  },
+  "patternMatches": {
+    "backend": "service",
+    "frontend": "ui",
+    "postgres": "infrastructure",
+    "<root>": null,
+    "mydocs": "documentation",
+    ".understand-anything": null
+  },
+  "deploymentTopology": {
+    "hasDockerfile": true,
+    "hasCompose": true,
+    "hasK8s": false,
+    "hasTerraform": false,
+    "hasCI": false,
+    "infraFiles": [
+      "backend/Dockerfile",
+      "backend/Dockerfile",
+      "backend/Dockerfile",
+      "postgres/Dockerfile",
+      "postgres/Dockerfile",
+      "Makefile",
+      "docker-compose.yml",
+      "docker-compose.yml",
+      "docker-compose.yml",
+      "docker-compose.yml",
+      "docker-compose.yml",
+      "docker-compose.yml",
+      "postgres/init-extensions.sql"
+    ]
+  },
+  "dataPipeline": {
+    "schemaFiles": [
+      "postgres/init-extensions.sql"
+    ],
+    "migrationFiles": [
+      "backend/alembic/versions/001_initial.py",
+      "backend/alembic/versions/001_initial.py",
+      "backend/alembic/versions/001_initial.py",
+      "backend/alembic/versions/001_initial.py",
+      "backend/alembic/versions/001_initial.py",
+      "backend/alembic/versions/001_initial.py",
+      "backend/alembic/versions/001_initial.py",
+      "backend/alembic/versions/001_initial.py"
+    ],
+    "dataModelFiles": [
+      "backend/app/models/__init__.py",
+      "backend/app/models/base.py",
+      "backend/app/models/chunk.py",
+      "backend/app/models/document.py",
+      "backend/app/models/kb.py",
+      "backend/app/models/reserved.py",
+      "backend/app/models/source.py",
+      "backend/app/models/user.py"
+    ],
+    "apiHandlerFiles": [
+      "backend/app/routers/document.py",
+      "backend/app/routers/kb.py",
+      "backend/app/routers/search.py",
+      "backend/app/routers/__init__.py"
+    ]
+  },
+  "docCoverage": {
+    "groupsWithDocs": 2,
+    "totalGroups": 6,
+    "coverageRatio": 0.33,
+    "undocumentedGroups": [
+      "backend",
+      "frontend",
+      "postgres",
+      ".understand-anything"
+    ]
+  },
+  "dependencyDirection": [],
+  "fileStats": {
+    "totalFileNodes": 117,
+    "filesPerGroup": {
+      "backend": 68,
+      "frontend": 13,
+      "postgres": 3,
+      "<root>": 9,
+      "mydocs": 22,
+      ".understand-anything": 2
+    },
+    "nodeTypeCounts": {
+      "file": 65,
+      "service": 11,
+      "config": 10,
+      "document": 23,
+      "table": 7,
+      "schema": 1
+    }
+  },
+  "fileFanIn": {
+    "file:backend/app/config/settings.py": 14,
+    "file:backend/app/config/__init__.py": 12,
+    "file:backend/app/models/base.py": 8,
+    "file:backend/app/models/user.py": 7,
+    "file:backend/app/config/exceptions.py": 6,
+    "file:backend/app/config/schemas.py": 6,
+    "file:backend/app/deps.py": 4,
+    "file:backend/app/models/document.py": 4,
+    "file:backend/app/models/kb.py": 4,
+    "file:backend/app/auth/jwt_handler.py": 3,
+    "file:backend/app/services/kb_service.py": 3,
+    "file:backend/app/auth/password.py": 3,
+    "file:backend/app/database.py": 2,
+    "file:backend/app/services/embedding_service.py": 2,
+    "file:backend/app/services/minio_service.py": 2
+  },
+  "fileFanOut": {
+    "file:backend/alembic/env.py": 10,
+    "file:backend/app/workers/parse_document.py": 8,
+    "file:backend/app/auth/routes.py": 7,
+    "file:backend/app/services/document_service.py": 7,
+    "file:backend/app/models/__init__.py": 7,
+    "file:backend/app/services/search_service.py": 6,
+    "file:backend/app/config/dependencies.py": 5,
+    "file:backend/app/routers/search.py": 5,
+    "file:backend/app/config/__init__.py": 4,
+    "file:backend/app/routers/document.py": 4,
+    "file:backend/app/routers/kb.py": 4,
+    "file:backend/app/services/kb_service.py": 4,
+    "file:backend/app/auth/bootstrap.py": 4,
+    "file:backend/app/main.py": 3,
+    "file:backend/app/workers/worker.py": 3
+  }
+}

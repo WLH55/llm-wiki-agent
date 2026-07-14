@@ -1,0 +1,35 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "backend/app/auth/jwt_handler.py", "language": "python", "sizeLines": 46, "fileCategory": "code"},
+    {"path": "backend/app/config/__init__.py", "language": "python", "sizeLines": 19, "fileCategory": "code"},
+    {"path": "backend/app/config/dependencies.py", "language": "python", "sizeLines": 69, "fileCategory": "code"},
+    {"path": "backend/app/config/logger_config.py", "language": "python", "sizeLines": 89, "fileCategory": "code"},
+    {"path": "backend/app/config/settings.py", "language": "python", "sizeLines": 106, "fileCategory": "code"},
+    {"path": "backend/app/database.py", "language": "python", "sizeLines": 33, "fileCategory": "code"},
+    {"path": "backend/app/main.py", "language": "python", "sizeLines": 136, "fileCategory": "code"},
+    {"path": "backend/app/services/embedding_service.py", "language": "python", "sizeLines": 47, "fileCategory": "code"},
+    {"path": "backend/app/services/minio_service.py", "language": "python", "sizeLines": 68, "fileCategory": "code"},
+    {"path": "backend/app/workers/chunker.py", "language": "python", "sizeLines": 93, "fileCategory": "code"},
+    {"path": "backend/app/workers/parse_document.py", "language": "python", "sizeLines": 117, "fileCategory": "code"},
+    {"path": "backend/app/workers/parsers.py", "language": "python", "sizeLines": 61, "fileCategory": "code"},
+    {"path": "backend/app/workers/queue.py", "language": "python", "sizeLines": 33, "fileCategory": "code"},
+    {"path": "backend/app/workers/worker.py", "language": "python", "sizeLines": 27, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "backend/app/auth/jwt_handler.py": ["backend/app/config/__init__.py", "backend/app/config/settings.py"],
+    "backend/app/config/__init__.py": ["backend/app/config/exceptions.py", "backend/app/config/logger_config.py", "backend/app/config/schemas.py", "backend/app/config/settings.py"],
+    "backend/app/config/dependencies.py": ["backend/app/auth/jwt_handler.py", "backend/app/config/__init__.py", "backend/app/config/settings.py", "backend/app/database.py", "backend/app/models/user.py"],
+    "backend/app/config/logger_config.py": ["backend/app/config/settings.py"],
+    "backend/app/config/settings.py": [],
+    "backend/app/database.py": ["backend/app/config/__init__.py", "backend/app/config/settings.py"],
+    "backend/app/main.py": ["backend/app/config/__init__.py", "backend/app/config/exceptions.py", "backend/app/config/settings.py"],
+    "backend/app/services/embedding_service.py": ["backend/app/config/__init__.py", "backend/app/config/settings.py"],
+    "backend/app/services/minio_service.py": ["backend/app/config/__init__.py", "backend/app/config/settings.py"],
+    "backend/app/workers/chunker.py": [],
+    "backend/app/workers/parse_document.py": ["backend/app/config/__init__.py", "backend/app/config/settings.py", "backend/app/database.py", "backend/app/models/document.py", "backend/app/services/embedding_service.py", "backend/app/services/minio_service.py", "backend/app/workers/chunker.py", "backend/app/workers/parsers.py"],
+    "backend/app/workers/parsers.py": [],
+    "backend/app/workers/queue.py": ["backend/app/config/__init__.py", "backend/app/config/settings.py"],
+    "backend/app/workers/worker.py": ["backend/app/config/__init__.py", "backend/app/config/settings.py", "backend/app/workers/queue.py"]
+  }
+}

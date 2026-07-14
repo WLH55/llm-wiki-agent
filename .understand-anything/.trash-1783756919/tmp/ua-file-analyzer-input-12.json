@@ -1,0 +1,17 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md", "language": "markdown", "sizeLines": 531, "fileCategory": "docs"},
+    {"path": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md", "language": "markdown", "sizeLines": 1089, "fileCategory": "docs"},
+    {"path": "mydocs/specs/llm-wiki-design-decision.html", "language": "html", "sizeLines": 619, "fileCategory": "markup"},
+    {"path": "mydocs/specs/obsidian-wiki-research.html", "language": "html", "sizeLines": 1401, "fileCategory": "markup"},
+    {"path": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html", "language": "html", "sizeLines": 670, "fileCategory": "markup"}
+  ],
+  "batchImportData": {
+    "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md": [],
+    "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md": [],
+    "mydocs/specs/llm-wiki-design-decision.html": [],
+    "mydocs/specs/obsidian-wiki-research.html": [],
+    "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html": []
+  }
+}

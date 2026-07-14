@@ -1,0 +1,175 @@
+[
+  {
+    "id": "layer:api",
+    "name": "API 接口层",
+    "description": "FastAPI HTTP 入口与请求/响应契约，包括 routers/（document/kb/search 路由）、auth/routes、main.py 应用装配、deps.py 依赖注入以及 schemas/ 下基于 Pydantic 的请求/响应 DTO。",
+    "nodeIds": [
+      "file:backend/app/main.py",
+      "file:backend/app/auth/routes.py",
+      "file:backend/app/deps.py",
+      "file:backend/app/routers/document.py",
+      "file:backend/app/routers/kb.py",
+      "file:backend/app/routers/search.py",
+      "file:backend/app/schemas/auth.py",
+      "file:backend/app/schemas/document.py",
+      "file:backend/app/schemas/kb.py",
+      "file:backend/app/schemas/search.py",
+      "file:backend/app/routers/__init__.py",
+      "file:backend/app/schemas/__init__.py"
+    ]
+  },
+  {
+    "id": "layer:service",
+    "name": "业务服务层",
+    "description": "核心业务逻辑编排：services/（document_service、kb_service、search_service、embedding_service、minio_service）以及 auth/ 模块（jwt_handler、password、bootstrap）负责鉴权与首个管理员初始化。",
+    "nodeIds": [
+      "file:backend/app/auth/jwt_handler.py",
+      "file:backend/app/services/embedding_service.py",
+      "file:backend/app/services/minio_service.py",
+      "file:backend/app/services/document_service.py",
+      "file:backend/app/services/kb_service.py",
+      "file:backend/app/services/search_service.py",
+      "file:backend/app/auth/bootstrap.py",
+      "file:backend/app/auth/password.py",
+      "file:backend/app/auth/__init__.py",
+      "file:backend/app/services/__init__.py"
+    ]
+  },
+  {
+    "id": "layer:data",
+    "name": "数据模型与迁移层",
+    "description": "数据持久化层：SQLAlchemy ORM 模型（User/KB/Document/Chunk/Source/WikiPage 等）、Alembic 迁移脚本与版本（001_initial）、迁移产生的表节点以及 PostgreSQL 扩展初始化 SQL（pgvector/zhparser）。",
+    "nodeIds": [
+      "file:backend/alembic/env.py",
+      "file:backend/app/models/__init__.py",
+      "file:backend/app/models/base.py",
+      "file:backend/app/models/chunk.py",
+      "file:backend/app/models/document.py",
+      "file:backend/app/models/kb.py",
+      "file:backend/app/models/reserved.py",
+      "file:backend/app/models/source.py",
+      "file:backend/app/models/user.py",
+      "file:backend/alembic/script.py.mako",
+      "file:backend/alembic/versions/001_initial.py",
+      "table:backend/alembic/versions/001_initial.py:tenants",
+      "table:backend/alembic/versions/001_initial.py:users",
+      "table:backend/alembic/versions/001_initial.py:knowledge_bases",
+      "table:backend/alembic/versions/001_initial.py:sources",
+      "table:backend/alembic/versions/001_initial.py:documents",
+      "table:backend/alembic/versions/001_initial.py:content_chunks",
+      "table:backend/alembic/versions/001_initial.py:wiki_pages",
+      "schema:postgres/init-extensions.sql"
+    ]
+  },
+  {
+    "id": "layer:infrastructure",
+    "name": "异步任务与基础设施层",
+    "description": "跨切面基础设施与异步管道：config/（settings、exceptions、schemas、logger、dependencies）、database.py 异步引擎、RQ workers/（chunker、parsers、queue、worker）负责文档解析-分块-嵌入流水线，以及 plugins/chunk_rerank 重排插件。",
+    "nodeIds": [
+      "file:backend/app/config/__init__.py",
+      "file:backend/app/config/dependencies.py",
+      "file:backend/app/config/logger_config.py",
+      "file:backend/app/config/settings.py",
+      "file:backend/app/database.py",
+      "file:backend/app/workers/chunker.py",
+      "file:backend/app/workers/parse_document.py",
+      "file:backend/app/workers/parsers.py",
+      "file:backend/app/workers/queue.py",
+      "file:backend/app/workers/worker.py",
+      "file:backend/app/config/exceptions.py",
+      "file:backend/app/config/schemas.py",
+      "file:backend/app/__init__.py",
+      "file:backend/app/plugins/__init__.py",
+      "file:backend/app/plugins/chunk_rerank.py",
+      "file:backend/app/workers/__init__.py"
+    ]
+  },
+  {
+    "id": "layer:frontend",
+    "name": "前端 UI 层",
+    "description": "React + Vite + TailwindCSS 前端：Search 页面、SearchBox/ResultList 组件、App.tsx 路由装配、api.ts Axios 客户端以及 main.tsx Vite 入口。",
+    "nodeIds": [
+      "file:frontend/src/main.tsx",
+      "file:frontend/src/App.tsx",
+      "file:frontend/src/api.ts",
+      "file:frontend/src/pages/Search.tsx",
+      "file:frontend/src/components/SearchBox.tsx",
+      "file:frontend/src/components/ResultList.tsx",
+      "file:frontend/src/index.css"
+    ]
+  },
+  {
+    "id": "layer:config",
+    "name": "配置与容器编排层",
+    "description": "项目级配置与容器编排：根目录 docker-compose.yml（backend/worker/postgres/minio/redis 五服务）、backend/Dockerfile 多阶段构建（frontend-build + python）、postgres/Dockerfile、Makefile、.env.example、前后端构建配置（pyproject.toml、package.json、tsconfig.json、vite.config.ts、tailwind/postcss）以及 alembic.ini。",
+    "nodeIds": [
+      "service:backend/Dockerfile",
+      "service:backend/Dockerfile:frontend-build",
+      "service:backend/Dockerfile:python",
+      "service:postgres/Dockerfile",
+      "service:postgres/Dockerfile:postgres",
+      "config:.env.example",
+      "config:Makefile",
+      "service:docker-compose.yml",
+      "service:docker-compose.yml:backend",
+      "service:docker-compose.yml:worker",
+      "service:docker-compose.yml:postgres",
+      "service:docker-compose.yml:minio",
+      "service:docker-compose.yml:redis",
+      "config:frontend/package.json",
+      "config:frontend/tsconfig.json",
+      "file:.understand-anything/.understandignore",
+      "config:.understand-anything/intermediate/scan-result.json",
+      "config:backend/alembic.ini",
+      "config:backend/pyproject.toml",
+      "config:frontend/postcss.config.js",
+      "config:frontend/tailwind.config.js",
+      "config:frontend/vite.config.ts"
+    ]
+  },
+  {
+    "id": "layer:documentation",
+    "name": "项目文档层",
+    "description": "项目文档与设计资产：mydocs/ 下的 PRD v4.2、知识库/RAG/多租户架构设计、9 篇 ADR（0001-0009）、MVP P1 Batch 1 SDD 规范、Obsidian Wiki 调研对比、TS 指南以及根目录 README.md。",
+    "nodeIds": [
+      "document:README.md",
+      "file:frontend/index.html",
+      "document:mydocs/GBrain知识库设计剖析.md",
+      "document:mydocs/kb-architecture.md",
+      "document:mydocs/multi-tenant-architecture.md",
+      "document:mydocs/prd-v4.2.md",
+      "document:mydocs/rag-architecture.md",
+      "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "document:mydocs/wiki-architecture.md",
+      "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "document:mydocs/specs/llm-wiki-design-decision.html",
+      "document:mydocs/specs/obsidian-wiki-research.html",
+      "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "document:mydocs/context/CONTEXT.md"
+    ]
+  },
+  {
+    "id": "layer:test",
+    "name": "测试套件层",
+    "description": "pytest 测试套件：tests/ 下覆盖鉴权（test_auth）、知识库（test_kb）、文档（test_document）、检索（test_search）以及 pgvector 半精度向量（test_halfvec）的集成与单元测试，含 conftest.py 公共 fixture。",
+    "nodeIds": [
+      "file:backend/tests/test_auth.py",
+      "file:backend/tests/__init__.py",
+      "file:backend/tests/conftest.py",
+      "file:backend/tests/test_document.py",
+      "file:backend/tests/test_halfvec.py",
+      "file:backend/tests/test_kb.py",
+      "file:backend/tests/test_search.py"
+    ]
+  }
+]

@@ -1,0 +1,40 @@
+{
+  "nodes": [
+    {
+      "id": "service:postgres/Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "postgres/Dockerfile",
+      "summary": "定制版 postgres:16 镜像：apt 安装编译依赖后通过 git 拉取 pgvector v0.7.4 与 pg_zhparser 源码并完成 make install，将 init-extensions.sql 复制到容器启动钩子目录以自动启用向量检索与中文分词。",
+      "tags": ["containerization", "infrastructure", "postgres", "pgvector", "chinese-tokenizer"],
+      "complexity": "moderate",
+      "languageNotes": "pgvector 提供高维向量类型与 ivfflat/hnsw 索引；zhparser 基于 SCWS 支持中文全文检索，是双路径 RAG 检索的数据库侧基础。"
+    },
+    {
+      "id": "service:postgres/Dockerfile:postgres",
+      "type": "service",
+      "name": "postgres",
+      "filePath": "postgres/Dockerfile",
+      "lineRange": [1, 24],
+      "summary": "从 postgres:16 基础镜像出发，安装编译工具链，构建并安装 pgvector 与 pg_zhparser 扩展，作为向量检索与中文分词的运行时。",
+      "tags": ["containerization", "postgres", "extensions", "runtime"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:postgres/Dockerfile",
+      "target": "service:postgres/Dockerfile:postgres",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:postgres/Dockerfile",
+      "target": "file:postgres/init-extensions.sql",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

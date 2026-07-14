@@ -1,0 +1,547 @@
+{
+  "nodes": [
+    {
+      "id": "file:backend/app/auth/routes.py",
+      "type": "file",
+      "name": "routes.py",
+      "filePath": "backend/app/auth/routes.py",
+      "summary": "认证路由模块，提供 /login 登录接口（校验邮箱密码并签发 JWT）与 /me 接口（返回当前用户信息）。",
+      "tags": ["api-handler", "auth", "router", "jwt", "fastapi"],
+      "complexity": "moderate",
+      "languageNotes": "FastAPI 路由层仅做参数校验和响应组装，业务异常由 Service 层抛出。"
+    },
+    {
+      "id": "file:backend/app/config/exceptions.py",
+      "type": "file",
+      "name": "exceptions.py",
+      "filePath": "backend/app/config/exceptions.py",
+      "summary": "全局异常处理模块，定义业务异常类（BusinessValidationException、ResourceNotFoundException）并注册 FastAPI 异常处理器，统一错误响应格式并写入结构化日志。",
+      "tags": ["middleware", "exception-handler", "error-handling", "logging", "config"],
+      "complexity": "moderate",
+      "languageNotes": "通过 _log_exception 统一收集请求 ID、方法、路径、异常类型与堆栈，按级别写入 logger。"
+    },
+    {
+      "id": "file:backend/app/config/schemas.py",
+      "type": "file",
+      "name": "schemas.py",
+      "filePath": "backend/app/config/schemas.py",
+      "summary": "全局响应 Schema 定义，提供 ApiResponse 统一响应封装、PageResponse 分页响应封装及 ResponseCode 业务状态码枚举。",
+      "tags": ["type-definition", "response-envelope", "schema", "config", "serialization"],
+      "complexity": "simple",
+      "languageNotes": "使用 Pydantic 类方法 success/error/create 工厂模式构造响应，保证全项目响应结构一致。"
+    },
+    {
+      "id": "file:backend/app/deps.py",
+      "type": "file",
+      "name": "deps.py",
+      "filePath": "backend/app/deps.py",
+      "summary": "依赖注入快捷 re-export 模块，集中导出 DbDep、CurrentUserDep、get_db、get_current_user，简化路由层 import。",
+      "tags": ["barrel", "dependency-injection", "fastapi", "re-export", "config"],
+      "complexity": "simple",
+      "languageNotes": "典型的 Python 桶文件，仅做 re-export 不含逻辑。"
+    },
+    {
+      "id": "file:backend/app/routers/document.py",
+      "type": "file",
+      "name": "document.py",
+      "filePath": "backend/app/routers/document.py",
+      "summary": "文档路由模块，提供文档上传接口（接收文件并触发解析流水线）与文档状态查询接口。",
+      "tags": ["api-handler", "router", "document", "upload", "fastapi"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/routers/kb.py",
+      "type": "file",
+      "name": "kb.py",
+      "filePath": "backend/app/routers/kb.py",
+      "summary": "知识库管理路由模块，提供知识库的创建、查询、列表接口，所有操作均按当前用户租户隔离。",
+      "tags": ["api-handler", "router", "knowledge-base", "crud", "fastapi"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/routers/search.py",
+      "type": "file",
+      "name": "search.py",
+      "filePath": "backend/app/routers/search.py",
+      "summary": "搜索路由模块，提供知识库混合检索接口，支持 vector / keyword / hybrid 多种模式参数。",
+      "tags": ["api-handler", "router", "search", "rag", "fastapi"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/schemas/auth.py",
+      "type": "file",
+      "name": "auth.py",
+      "filePath": "backend/app/schemas/auth.py",
+      "summary": "认证相关 Pydantic Schema，定义 LoginRequest 登录请求、TokenResponse JWT 响应、UserResponse 用户信息响应。",
+      "tags": ["type-definition", "schema", "auth", "pydantic", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/schemas/document.py",
+      "type": "file",
+      "name": "document.py",
+      "filePath": "backend/app/schemas/document.py",
+      "summary": "文档相关 Pydantic Schema，定义 DocumentUploadResponse 上传响应与 DocumentStatusResponse 状态查询响应。",
+      "tags": ["type-definition", "schema", "document", "pydantic", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/schemas/kb.py",
+      "type": "file",
+      "name": "kb.py",
+      "filePath": "backend/app/schemas/kb.py",
+      "summary": "知识库相关 Pydantic Schema，定义 KBCreate 创建请求（含 embedding 维度与多路检索开关）与 KBResponse 响应。",
+      "tags": ["type-definition", "schema", "knowledge-base", "pydantic", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/schemas/search.py",
+      "type": "file",
+      "name": "search.py",
+      "filePath": "backend/app/schemas/search.py",
+      "summary": "搜索相关 Pydantic Schema，定义 ChunkHit 单条命中（含向量距离、BM25 排名等溯源字段）与 SearchResponse 响应。",
+      "tags": ["type-definition", "schema", "search", "rag", "pydantic"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/services/document_service.py",
+      "type": "file",
+      "name": "document_service.py",
+      "filePath": "backend/app/services/document_service.py",
+      "summary": "文档业务服务层，处理文档上传流水线（校验、MinIO 落桶、DB 落库、入队解析任务）与文档状态查询。",
+      "tags": ["service", "document", "upload-pipeline", "minio", "business-logic"],
+      "complexity": "moderate",
+      "languageNotes": "上传流程：get_kb 校验 → upload_bytes 落对象存储 → Document ORM 落库 → enqueue_parse_document 异步解析。"
+    },
+    {
+      "id": "file:backend/app/services/kb_service.py",
+      "type": "file",
+      "name": "kb_service.py",
+      "filePath": "backend/app/services/kb_service.py",
+      "summary": "知识库业务服务层，提供 create_kb / get_kb / list_kbs 三个核心函数，全部按 tenant_id 做数据隔离并支持软删除过滤。",
+      "tags": ["service", "knowledge-base", "crud", "multi-tenant", "business-logic"],
+      "complexity": "moderate",
+      "languageNotes": "使用 SQLAlchemy select + soft-delete（deleted_at IS NULL）模式。"
+    },
+    {
+      "id": "file:backend/app/services/search_service.py",
+      "type": "file",
+      "name": "search_service.py",
+      "filePath": "backend/app/services/search_service.py",
+      "summary": "混合检索核心服务，实现 pgvector halfvec 向量检索、Postgres BM25 关键词检索、RRF 融合算法及统一 search 入口（按 mode 分派 vector/keyword/hybrid）。",
+      "tags": ["service", "search", "rag", "rrf-fusion", "pgvector"],
+      "complexity": "complex",
+      "languageNotes": "RRF (Reciprocal Rank Fusion) 公式：score = 1/(k+rank)，将两路检索结果按 chunk_id 合并排序；向量检索动态拼装 embedding_dim 占位符。"
+    },
+
+    {
+      "id": "function:backend/app/auth/routes.py:login",
+      "type": "function",
+      "name": "login",
+      "filePath": "backend/app/auth/routes.py",
+      "lineRange": [22, 39],
+      "summary": "登录端点：按邮箱查 User、verify_password 校验，成功则 create_access_token 签发 JWT 并返回 TokenResponse。",
+      "tags": ["auth", "login", "jwt", "api-handler"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/auth/routes.py:get_me",
+      "type": "function",
+      "name": "get_me",
+      "filePath": "backend/app/auth/routes.py",
+      "lineRange": [43, 52],
+      "summary": "当前用户信息端点：依赖 CurrentUserDep 注入 User，构造 UserResponse 返回。",
+      "tags": ["auth", "profile", "api-handler"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "function:backend/app/config/exceptions.py:_log_exception",
+      "type": "function",
+      "name": "_log_exception",
+      "filePath": "backend/app/config/exceptions.py",
+      "lineRange": [14, 57],
+      "summary": "统一异常日志工具：收集请求 method/path/查询参数/请求体摘要/异常类型与堆栈，按 level 写入 logger，并附加 request_id 关联追踪。",
+      "tags": ["logging", "error-handling", "observability", "utility"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/app/config/exceptions.py:general_exception_handler",
+      "type": "function",
+      "name": "general_exception_handler",
+      "filePath": "backend/app/config/exceptions.py",
+      "lineRange": [77, 88],
+      "summary": "兜底异常处理器：捕获未处理异常，记录 ERROR 级日志并返回 500 + ApiResponse.error(INTERNAL_ERROR)。",
+      "tags": ["exception-handler", "error-handling", "middleware"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/config/exceptions.py:validation_exception_handler",
+      "type": "function",
+      "name": "validation_exception_handler",
+      "filePath": "backend/app/config/exceptions.py",
+      "lineRange": [91, 105],
+      "summary": "业务校验异常处理器：捕获 BusinessValidationException，记录 WARNING 级日志并返回 400 + ApiResponse.error(BAD_REQUEST)。",
+      "tags": ["exception-handler", "error-handling", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/config/exceptions.py:register_exception_handlers",
+      "type": "function",
+      "name": "register_exception_handlers",
+      "filePath": "backend/app/config/exceptions.py",
+      "lineRange": [108, 111],
+      "summary": "向 FastAPI app 注册全局异常处理器（通用异常 + 业务校验异常）。",
+      "tags": ["registration", "middleware", "lifecycle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/config/exceptions.py:BusinessValidationException",
+      "type": "class",
+      "name": "BusinessValidationException",
+      "filePath": "backend/app/config/exceptions.py",
+      "lineRange": [60, 66],
+      "summary": "业务校验异常，携带用户可读 message，由 validation_exception_handler 转为 400 响应。",
+      "tags": ["exception", "validation", "domain-error"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/config/exceptions.py:ResourceNotFoundException",
+      "type": "class",
+      "name": "ResourceNotFoundException",
+      "filePath": "backend/app/config/exceptions.py",
+      "lineRange": [69, 74],
+      "summary": "资源未找到异常，用于 Service 层标识按 ID 查询无结果的场景（典型 404）。",
+      "tags": ["exception", "not-found", "domain-error"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "class:backend/app/config/schemas.py:ApiResponse",
+      "type": "class",
+      "name": "ApiResponse",
+      "filePath": "backend/app/config/schemas.py",
+      "lineRange": [10, 25],
+      "summary": "统一响应封装：含 code/message/data 三字段，提供 success/error 工厂方法，是全项目 HTTP 响应的统一出口。",
+      "tags": ["response-envelope", "schema", "factory", "serialization"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/config/schemas.py:PageResponse",
+      "type": "class",
+      "name": "PageResponse",
+      "filePath": "backend/app/config/schemas.py",
+      "lineRange": [28, 53],
+      "summary": "分页响应封装：含 items/total/page/page_size/total_pages 字段，提供 create 工厂方法自动计算总页数。",
+      "tags": ["response-envelope", "pagination", "schema", "factory"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/config/schemas.py:ResponseCode",
+      "type": "class",
+      "name": "ResponseCode",
+      "filePath": "backend/app/config/schemas.py",
+      "lineRange": [56, 72],
+      "summary": "业务状态码枚举，定义 SUCCESS / BAD_REQUEST / UNAUTHORIZED / NOT_FOUND / INTERNAL_ERROR 等统一编码。",
+      "tags": ["enum", "status-code", "config", "constants"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "function:backend/app/routers/document.py:upload_document_endpoint",
+      "type": "function",
+      "name": "upload_document_endpoint",
+      "filePath": "backend/app/routers/document.py",
+      "lineRange": [17, 33],
+      "summary": "文档上传端点：读取 UploadFile 字节，调用 document_service.upload_document 完成上传流水线，返回 DocumentUploadResponse。",
+      "tags": ["api-handler", "upload", "document", "router"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/routers/document.py:get_status_endpoint",
+      "type": "function",
+      "name": "get_status_endpoint",
+      "filePath": "backend/app/routers/document.py",
+      "lineRange": [37, 45],
+      "summary": "文档状态查询端点：委托 document_service.get_document_status 返回解析进度/错误信息。",
+      "tags": ["api-handler", "status-query", "document", "router"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "function:backend/app/routers/kb.py:create_kb_endpoint",
+      "type": "function",
+      "name": "create_kb_endpoint",
+      "filePath": "backend/app/routers/kb.py",
+      "lineRange": [17, 24],
+      "summary": "创建知识库端点：接收 KBCreate，调用 kb_service.create_kb 持久化并以 KBResponse 返回。",
+      "tags": ["api-handler", "create", "knowledge-base", "router"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/routers/kb.py:get_kb_endpoint",
+      "type": "function",
+      "name": "get_kb_endpoint",
+      "filePath": "backend/app/routers/kb.py",
+      "lineRange": [28, 35],
+      "summary": "查询单个知识库端点：委托 kb_service.get_kb 返回 KBResponse。",
+      "tags": ["api-handler", "read", "knowledge-base", "router"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/routers/kb.py:list_kbs_endpoint",
+      "type": "function",
+      "name": "list_kbs_endpoint",
+      "filePath": "backend/app/routers/kb.py",
+      "lineRange": [39, 45],
+      "summary": "列出当前租户知识库端点：委托 kb_service.list_kbs 返回 KBResponse 列表。",
+      "tags": ["api-handler", "list", "knowledge-base", "router"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "function:backend/app/routers/search.py:search_endpoint",
+      "type": "function",
+      "name": "search_endpoint",
+      "filePath": "backend/app/routers/search.py",
+      "lineRange": [16, 40],
+      "summary": "搜索端点：接收 kb_id/q/mode/limit 查询参数，委托 search_service.search 执行混合检索，捕获 BusinessValidationException 返回错误响应。",
+      "tags": ["api-handler", "search", "rag", "router"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "function:backend/app/services/document_service.py:upload_document",
+      "type": "function",
+      "name": "upload_document",
+      "filePath": "backend/app/services/document_service.py",
+      "lineRange": [22, 61],
+      "summary": "文档上传核心流程：校验 KB 与文件大小 → uuid 生成对象 key → upload_bytes 落 MinIO → 创建 Document ORM 提交 DB → enqueue_parse_document 异步入队 → 返回 DocumentUploadResponse。",
+      "tags": ["service", "upload-pipeline", "minio", "document", "business-logic"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/app/services/document_service.py:get_document_status",
+      "type": "function",
+      "name": "get_document_status",
+      "filePath": "backend/app/services/document_service.py",
+      "lineRange": [64, 91],
+      "summary": "按 doc_id 查询文档状态：先校验 KB 归属，再按 tenant + kb 过滤查 Document，未找到抛 ResourceNotFoundException。",
+      "tags": ["service", "status-query", "document", "business-logic"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "function:backend/app/services/kb_service.py:create_kb",
+      "type": "function",
+      "name": "create_kb",
+      "filePath": "backend/app/services/kb_service.py",
+      "lineRange": [19, 36],
+      "summary": "创建知识库：按 KBCreate 构造 KnowledgeBase ORM（绑定 tenant_id），提交 DB 并 refresh，写日志后返回。",
+      "tags": ["service", "create", "knowledge-base", "business-logic"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/services/kb_service.py:get_kb",
+      "type": "function",
+      "name": "get_kb",
+      "filePath": "backend/app/services/kb_service.py",
+      "lineRange": [39, 53],
+      "summary": "按 kb_id 查询单个知识库：过滤 tenant_id 与软删除（deleted_at IS NULL），未找到抛 ResourceNotFoundException。",
+      "tags": ["service", "read", "knowledge-base", "business-logic"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/services/kb_service.py:list_kbs",
+      "type": "function",
+      "name": "list_kbs",
+      "filePath": "backend/app/services/kb_service.py",
+      "lineRange": [56, 66],
+      "summary": "列出当前租户全部知识库：过滤 tenant_id 与软删除，按 created_at 倒序返回。",
+      "tags": ["service", "list", "knowledge-base", "business-logic"],
+      "complexity": "simple"
+    },
+
+    {
+      "id": "function:backend/app/services/search_service.py:vector_search",
+      "type": "function",
+      "name": "vector_search",
+      "filePath": "backend/app/services/search_service.py",
+      "lineRange": [27, 74],
+      "summary": "pgvector halfvec 向量检索：动态拼装 embedding_dim 占位符，执行原生 SQL 近邻查询，结果封装为 ChunkHit 列表（含 distance 溯源）。",
+      "tags": ["search", "vector-search", "pgvector", "rag", "service"],
+      "complexity": "moderate",
+      "languageNotes": "使用 text() + 动态占位符规避 halfvec(N) 中 N 不能参数化的限制。"
+    },
+    {
+      "id": "function:backend/app/services/search_service.py:bm25_search",
+      "type": "function",
+      "name": "bm25_search",
+      "filePath": "backend/app/services/search_service.py",
+      "lineRange": [77, 112],
+      "summary": "Postgres BM25 关键词检索：调用 ts_vector 查询匹配 chunk，结果封装为 ChunkHit 列表（含 bm25_rank 溯源）。",
+      "tags": ["search", "bm25", "keyword-search", "rag", "service"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/app/services/search_service.py:rrf_fuse",
+      "type": "function",
+      "name": "rrf_fuse",
+      "filePath": "backend/app/services/search_service.py",
+      "lineRange": [115, 141],
+      "summary": "RRF (Reciprocal Rank Fusion) 融合算法：按 score = 1/(k+rank) 合并两路检索结果，按 chunk_id 聚合后排序，返回融合后的 ChunkHit 列表。",
+      "tags": ["search", "rrf-fusion", "ranking", "rag", "service"],
+      "complexity": "moderate",
+      "languageNotes": "经典 RRF 公式默认 k=60，通过 model_copy(update=) 保留元数据并改写 score。"
+    },
+    {
+      "id": "function:backend/app/services/search_service.py:search",
+      "type": "function",
+      "name": "search",
+      "filePath": "backend/app/services/search_service.py",
+      "lineRange": [144, 180],
+      "summary": "统一搜索入口：按 mode（vector/keyword/hybrid）分派，hybrid 模式 embed_one 生成 query 向量后并行执行两路检索并 rrf_fuse 融合。",
+      "tags": ["search", "dispatcher", "rag", "service", "orchestrator"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/app/services/search_service.py:get_kb_by_id",
+      "type": "function",
+      "name": "get_kb_by_id",
+      "filePath": "backend/app/services/search_service.py",
+      "lineRange": [183, 201],
+      "summary": "搜索服务内部使用的 KB 校验工具：按 kb_id + tenant_id 查 KnowledgeBase，未找到抛 ResourceNotFoundException。",
+      "tags": ["utility", "kb-validation", "search", "service"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "file:backend/app/auth/routes.py", "target": "function:backend/app/auth/routes.py:login", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/auth/routes.py", "target": "function:backend/app/auth/routes.py:get_me", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/auth/routes.py", "target": "function:backend/app/auth/routes.py:login", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/auth/routes.py", "target": "function:backend/app/auth/routes.py:get_me", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:_log_exception", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:general_exception_handler", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:validation_exception_handler", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:register_exception_handlers", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/exceptions.py", "target": "class:backend/app/config/exceptions.py:BusinessValidationException", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/exceptions.py", "target": "class:backend/app/config/exceptions.py:ResourceNotFoundException", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:_log_exception", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:general_exception_handler", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:validation_exception_handler", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/exceptions.py", "target": "function:backend/app/config/exceptions.py:register_exception_handlers", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/exceptions.py", "target": "class:backend/app/config/exceptions.py:BusinessValidationException", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/exceptions.py", "target": "class:backend/app/config/exceptions.py:ResourceNotFoundException", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/config/exceptions.py:general_exception_handler", "target": "function:backend/app/config/exceptions.py:_log_exception", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/config/exceptions.py:validation_exception_handler", "target": "function:backend/app/config/exceptions.py:_log_exception", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/config/schemas.py", "target": "class:backend/app/config/schemas.py:ApiResponse", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/schemas.py", "target": "class:backend/app/config/schemas.py:PageResponse", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/schemas.py", "target": "class:backend/app/config/schemas.py:ResponseCode", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/schemas.py", "target": "class:backend/app/config/schemas.py:ApiResponse", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/schemas.py", "target": "class:backend/app/config/schemas.py:PageResponse", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/schemas.py", "target": "class:backend/app/config/schemas.py:ResponseCode", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/routers/document.py", "target": "function:backend/app/routers/document.py:upload_document_endpoint", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/routers/document.py", "target": "function:backend/app/routers/document.py:get_status_endpoint", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/routers/document.py", "target": "function:backend/app/routers/document.py:upload_document_endpoint", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/routers/document.py", "target": "function:backend/app/routers/document.py:get_status_endpoint", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/routers/document.py:upload_document_endpoint", "target": "function:backend/app/services/document_service.py:upload_document", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/routers/document.py:get_status_endpoint", "target": "function:backend/app/services/document_service.py:get_document_status", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/routers/kb.py", "target": "function:backend/app/routers/kb.py:create_kb_endpoint", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/routers/kb.py", "target": "function:backend/app/routers/kb.py:get_kb_endpoint", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/routers/kb.py", "target": "function:backend/app/routers/kb.py:list_kbs_endpoint", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/routers/kb.py", "target": "function:backend/app/routers/kb.py:create_kb_endpoint", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/routers/kb.py", "target": "function:backend/app/routers/kb.py:get_kb_endpoint", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/routers/kb.py", "target": "function:backend/app/routers/kb.py:list_kbs_endpoint", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/routers/kb.py:create_kb_endpoint", "target": "function:backend/app/services/kb_service.py:create_kb", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/routers/kb.py:get_kb_endpoint", "target": "function:backend/app/services/kb_service.py:get_kb", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/routers/kb.py:list_kbs_endpoint", "target": "function:backend/app/services/kb_service.py:list_kbs", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/routers/search.py", "target": "function:backend/app/routers/search.py:search_endpoint", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/routers/search.py", "target": "function:backend/app/routers/search.py:search_endpoint", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/routers/search.py:search_endpoint", "target": "function:backend/app/services/search_service.py:search", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/services/document_service.py", "target": "function:backend/app/services/document_service.py:upload_document", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/document_service.py", "target": "function:backend/app/services/document_service.py:get_document_status", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/document_service.py", "target": "function:backend/app/services/document_service.py:upload_document", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/document_service.py", "target": "function:backend/app/services/document_service.py:get_document_status", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/document_service.py:upload_document", "target": "function:backend/app/services/kb_service.py:get_kb", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/document_service.py:get_document_status", "target": "function:backend/app/services/kb_service.py:get_kb", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/services/kb_service.py", "target": "function:backend/app/services/kb_service.py:create_kb", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/kb_service.py", "target": "function:backend/app/services/kb_service.py:get_kb", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/kb_service.py", "target": "function:backend/app/services/kb_service.py:list_kbs", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/kb_service.py", "target": "function:backend/app/services/kb_service.py:create_kb", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/kb_service.py", "target": "function:backend/app/services/kb_service.py:get_kb", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/kb_service.py", "target": "function:backend/app/services/kb_service.py:list_kbs", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:vector_search", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:bm25_search", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:rrf_fuse", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:search", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:get_kb_by_id", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:vector_search", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:bm25_search", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:rrf_fuse", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:search", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/search_service.py", "target": "function:backend/app/services/search_service.py:get_kb_by_id", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/search_service.py:search", "target": "function:backend/app/services/search_service.py:vector_search", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/search_service.py:search", "target": "function:backend/app/services/search_service.py:bm25_search", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/search_service.py:search", "target": "function:backend/app/services/search_service.py:rrf_fuse", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/search_service.py:search", "target": "function:backend/app/services/search_service.py:get_kb_by_id", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/auth/routes.py", "target": "file:backend/app/auth/jwt_handler.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/auth/routes.py", "target": "file:backend/app/auth/password.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/auth/routes.py", "target": "file:backend/app/config/exceptions.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/auth/routes.py", "target": "file:backend/app/config/schemas.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/auth/routes.py", "target": "file:backend/app/deps.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/auth/routes.py", "target": "file:backend/app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/auth/routes.py", "target": "file:backend/app/schemas/auth.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/config/exceptions.py", "target": "file:backend/app/config/schemas.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/deps.py", "target": "file:backend/app/config/dependencies.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/routers/document.py", "target": "file:backend/app/config/schemas.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/document.py", "target": "file:backend/app/deps.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/document.py", "target": "file:backend/app/schemas/document.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/document.py", "target": "file:backend/app/services/document_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/routers/kb.py", "target": "file:backend/app/config/schemas.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/kb.py", "target": "file:backend/app/deps.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/kb.py", "target": "file:backend/app/schemas/kb.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/kb.py", "target": "file:backend/app/services/kb_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/routers/search.py", "target": "file:backend/app/config/exceptions.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/search.py", "target": "file:backend/app/config/schemas.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/search.py", "target": "file:backend/app/deps.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/search.py", "target": "file:backend/app/schemas/search.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/routers/search.py", "target": "file:backend/app/services/search_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/services/document_service.py", "target": "file:backend/app/config/exceptions.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/document_service.py", "target": "file:backend/app/models/document.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/document_service.py", "target": "file:backend/app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/document_service.py", "target": "file:backend/app/schemas/document.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/document_service.py", "target": "file:backend/app/services/kb_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/document_service.py", "target": "file:backend/app/services/minio_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/document_service.py", "target": "file:backend/app/workers/queue.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/services/kb_service.py", "target": "file:backend/app/config/exceptions.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/kb_service.py", "target": "file:backend/app/models/kb.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/kb_service.py", "target": "file:backend/app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/kb_service.py", "target": "file:backend/app/schemas/kb.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/services/search_service.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/search_service.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/search_service.py", "target": "file:backend/app/models/kb.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/search_service.py", "target": "file:backend/app/schemas/search.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/search_service.py", "target": "file:backend/app/services/embedding_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/search_service.py", "target": "file:backend/app/services/kb_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "function:backend/app/auth/routes.py:login", "target": "function:backend/app/auth/password.py:verify_password", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/auth/routes.py:login", "target": "function:backend/app/auth/jwt_handler.py:create_access_token", "type": "calls", "direction": "forward", "weight": 0.8}
+  ]
+}

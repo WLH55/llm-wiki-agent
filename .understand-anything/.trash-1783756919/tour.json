@@ -1,0 +1,152 @@
+[
+  {
+    "order": 1,
+    "title": "项目总览：从 README 与五服务拓扑开始",
+    "description": "第一步先建立全局认知。README.md 是项目的「上手地图」，它解释了 LLM Wiki 3.0 的目标（MVP P1 Batch 1 的 RAG 基础闭环）、5 个服务如何协同、以及本地访问入口。docker-compose.yml 则是这套拓扑的物理实现：backend 与 worker 共用一份镜像（ADR 单一部署决策），postgres 内置 pgvector + zhparser 提供向量与中文全文检索，redis 承载 RQ 异步队列，minio 存放原始文档。先看懂这两份文件，后面所有代码都能在脑海中挂靠到对应的服务节点上。",
+    "nodeIds": [
+      "document:README.md",
+      "service:docker-compose.yml"
+    ],
+    "languageLesson": "docker-compose 的 depends_on 只保证容器启动顺序，不等于服务就绪；生产可读性更强的做法是配上 healthcheck，让依赖方等到 postgres 真正能接受连接后再启动 backend。本项目的 5 服务拓扑正是通过 healthcheck + 命名卷组合，把「单机一键起整套 RAG 链路」做到最简。"
+  },
+  {
+    "order": 2,
+    "title": "应用入口：FastAPI 工厂与路由装配",
+    "description": "main.py 是后端真正的起点。它采用 create_app() 工厂模式：先挂 CORS 与请求体缓存中间件、注册全局异常处理器，再依次 include auth / kb / document / search 四组路由，最后通过 StaticFiles 把前端构建产物挂在根路径——这样单镜像就能同时提供 API 和 SPA，省去 nginx。lifespan 钩子在应用启动时触发 bootstrap owner 初始化，确保首次部署自动创建管理员账号。理解这个文件，就掌握了整个请求链路的「入口视角」。",
+    "nodeIds": [
+      "file:backend/app/main.py"
+    ],
+    "languageLesson": "FastAPI 的 lifespan（async context manager）取代了旧的 startup/shutdown 事件：进入 with 时执行初始化、退出时执行清理。相比装饰器风格，lifespan 能保证初始化异常会阻止应用启动，并且资源生命周期清晰可见。"
+  },
+  {
+    "order": 3,
+    "title": "请求链路：HTTP 入口 → 依赖注入 → 响应封装",
+    "description": "HTTP 请求进入后要穿过三层关卡。routers/ 下的 search.py / document.py / kb.py 各自定义端点，仅负责参数校验与调用 service；deps.py + config/dependencies.py 提供 get_db（异步会话）与 get_current_user（JWT 解码）两个核心依赖，并通过 DbDep / CurrentUserDep 类型别名让路由签名干净；config/schemas.py 则定义 ApiResponse 与 PageResponse 统一响应封装，配合 config/exceptions.py 的全局处理器，把所有成功/失败响应都收口到一致的 JSON 结构。这三层一起构成了「每个请求都要走一遍」的横切管道。",
+    "nodeIds": [
+      "file:backend/app/routers/search.py",
+      "file:backend/app/routers/document.py",
+      "file:backend/app/routers/kb.py",
+      "file:backend/app/deps.py",
+      "file:backend/app/config/schemas.py",
+      "file:backend/app/config/exceptions.py"
+    ],
+    "languageLesson": "FastAPI 的 Annotated[T, Depends(...)] 语法（Pydantic v2 / FastAPI 0.95+）让依赖注入从「函数体参数」演化为「类型注解」：把 Depends 写进 Annotated 后，路由函数签名直接表达「我需要一个 DB 会话和当前用户」，可读性远超把 Depends 塞在默认参数里，并且能复用为 DbDep / CurrentUserDep 这样的类型别名。"
+  },
+  {
+    "order": 4,
+    "title": "业务核心：RRF 混合检索算法",
+    "description": "services/search_service.py 是 RAG 闭环的心脏。它按 mode 分派三种检索路径：vector 走 pgvector halfvec 余弦相似度（命中 partial HNSW 索引）、keyword 走 Postgres tsvector + zhparser 中文分词的 BM25 排序、hybrid 则并行执行两路再用 RRF（Reciprocal Rank Fusion）融合排名。整个文件 fan-out 高达 16（引用了 models、plugins、schemas、多个工具函数），是全项目最值得反复阅读的业务文件。配套的 plugins/chunk_rerank.py 则提供 rerank 插件协议，第二批将对 wiki chunk 加 1.3 boost 系数。",
+    "nodeIds": [
+      "file:backend/app/services/search_service.py",
+      "file:backend/app/plugins/chunk_rerank.py"
+    ],
+    "languageLesson": "RRF（倒数排名融合）公式 score = Σ 1/(k + rank_i)，k 常取 60。它把多路召回结果统一到「排名空间」而非「分数空间」，天然规避了向量余弦与 BM25 分数量纲不可比的问题，是无监督多路融合的最常用算法。"
+  },
+  {
+    "order": 5,
+    "title": "数据模型与多租户基线",
+    "description": "models/ 下定义了整个系统的领域对象。base.py 提供 TimestampMixin（created_at/updated_at/deleted_at 软删除）与 TenantMixin（tenant_id 多租户隔离）两个通用混入；user.py 同时定义 Tenant 与 User（含 role 三档 RBAC）；kb.py 的 KnowledgeBase 是核心组织实体，定义 embedding_model、embedding_dim 以及 vector/keyword/wiki/graph 四个能力开关（IndexingStrategy）；document.py 跟踪文档元数据与解析状态；chunk.py 则是 RAG 的物理载体——embedding(halfvec) 与 search_vector(tsvector) 两列的 DDL 在迁移文件中手写，因为 SQLAlchemy 原生不识别 pgvector 的 halfvec 类型。",
+    "nodeIds": [
+      "file:backend/app/models/base.py",
+      "file:backend/app/models/user.py",
+      "file:backend/app/models/kb.py",
+      "file:backend/app/models/document.py",
+      "file:backend/app/models/chunk.py",
+      "file:backend/app/models/__init__.py"
+    ],
+    "languageLesson": "SQLAlchemy 2.x 的 Mapped[T] / mapped_column 是新的声明式风格，相比旧的 Column(...) 它把类型信息直接挂在属性上，让 mypy / IDE 能推断出 user.role 的真实类型，再也不用写 cast。配合 TimestampMixin 这种 Mixin 模式，可以让软删除与多租户字段在所有表里保持一致。"
+  },
+  {
+    "order": 6,
+    "title": "数据库 Schema：Alembic 迁移与 halfvec 索引",
+    "description": "数据模型的物理实现集中在 alembic/versions/001_initial.py 与 init-extensions.sql。迁移脚本先 CREATE EXTENSION vector / zhparser，配置 chinese_zh 分词配置，再建 7 张表（含 P2+ 预留表），最关键的是在 content_chunks 上按 embedding_dim 分维度建立 partial HNSW 索引——这就是 ADR-0001「halfvec 多维度向量共存」方案的落地形态。同一个表可以同时承载 bge-m3（1024 维）、text-embedding-3-small（1536 维）等不同模型的向量，靠 embedding_dim 列分区检索。",
+    "nodeIds": [
+      "file:backend/alembic/versions/001_initial.py",
+      "file:backend/alembic/env.py",
+      "table:backend/alembic/versions/001_initial.py:content_chunks",
+      "table:backend/alembic/versions/001_initial.py:documents",
+      "schema:postgres/init-extensions.sql"
+    ],
+    "languageLesson": "pgvector 的 halfvec(N) 是「半精度浮点 + 固定维度」类型，比 real(N) 节省一半存储，配合 partial HNSW 索引（WHERE embedding_dim = 1024）可以让一张物理表服务多个 embedding 模型，无需为每个维度建一张表。这是 ADR-0001 的核心洞察。"
+  },
+  {
+    "order": 7,
+    "title": "异步文档管道：从上传到分块的完整链路",
+    "description": "文档上传走的是一条跨进程的异步流水线。routers/document.py 收到文件 → document_service.py 做校验、把原始文件丢进 MinIO（minio_service.py）、写一条 status=pending 的 Document 记录 → workers/queue.py 通过 RQ 把任务 enqueue 到 Redis 的 parse 队列 → worker.py 进程取出任务 → parse_document.py 异步执行：拉文件 → 按扩展名解析 → chunker.py 做中英文分块（默认 300 词、50 词 overlap）→ 调 embedding_service.py 批量嵌入 → raw SQL 写 content_chunks → 更新文档状态。任一步异常都会把 status 标记为 failed。",
+    "nodeIds": [
+      "file:backend/app/services/document_service.py",
+      "file:backend/app/services/minio_service.py",
+      "file:backend/app/services/embedding_service.py",
+      "file:backend/app/workers/queue.py",
+      "file:backend/app/workers/worker.py",
+      "file:backend/app/workers/parse_document.py",
+      "file:backend/app/workers/chunker.py"
+    ],
+    "languageLesson": "RQ（Redis Queue）是 Python 里比 Celery 更轻量的异步任务库：任务函数用普通 Python 函数定义，enqueue 时把函数名 + 参数序列化进 Redis，worker 进程反序列化后 asyncio.run 执行。parse_document 本身是 async def，所以 queue.py 提供了一个同步 wrapper run_parse_document 内部跑 asyncio.run，这是「同步任务壳 + 异步业务逻辑」的常见衔接模式。"
+  },
+  {
+    "order": 8,
+    "title": "认证模块：JWT + argon2 + bootstrap owner",
+    "description": "auth/ 模块是「极简鉴权」（ADR-0008）的完整实现。password.py 用 argon2 哈希密码（抗 GPU/ASIC 攻击的现代算法）；jwt_handler.py 用 HS256 签发 24 小时过期的 access token，不引入 refresh token；bootstrap.py 在应用首次启动时检查数据库是否已有 owner 角色，若无则按配置创建默认 Tenant + 管理员 User（对应 settings.py 里的 JWT_OWNER_* 配置）；routes.py 暴露 /login（校验邮箱密码并签发 JWT）与 /me（依赖 get_current_user 返回当前用户）。整套鉴权无第三方依赖、配置项极少，适合 MVP 单租户起步。",
+    "nodeIds": [
+      "file:backend/app/auth/password.py",
+      "file:backend/app/auth/jwt_handler.py",
+      "file:backend/app/auth/bootstrap.py",
+      "file:backend/app/auth/routes.py"
+    ],
+    "languageLesson": "argon2 是 2015 年 Password Hashing Competition 冠军，相比 bcrypt / scrypt 关键优势是可同时调 memory 与 time cost，抗 GPU/ASIC 攻击更强。Python 里用 argon2-cffi 库的 PasswordHasher() 即可，默认参数已满足 OWASP 2023 推荐。"
+  },
+  {
+    "order": 9,
+    "title": "配置中心：Pydantic Settings + 异步 SQLAlchemy",
+    "description": "config/ 与 database.py 是整个后端的「装配中枢」。settings.py 基于 Pydantic V2 BaseSettings，按 ENVIRONMENT 切换 .env 文件，统一管理应用/CORS/日志/Postgres/Redis/MinIO/JWT/Bootstrap owner/Embedding/RAG 全部配置——fan-in 高达 16，是全项目被依赖最多的文件。__init__.py 作为 barrel 聚合导出 settings、setup_logging、异常类与 ApiResponse，让其他模块只需 `from app.config import settings`。database.py 创建唯一的异步 SQLAlchemy engine（pool_pre_ping + pool_size=10）与 async_session_factory，是全应用 AsyncSession 的唯一来源。",
+    "nodeIds": [
+      "file:backend/app/config/settings.py",
+      "file:backend/app/config/__init__.py",
+      "file:backend/app/config/dependencies.py",
+      "file:backend/app/database.py",
+      "config:.env.example"
+    ],
+    "languageLesson": "Pydantic V2 BaseSettings 用 model_config = SettingsConfigDict(env_file=..., env_prefix=..., env_nested_delimiter='__') 替代了 V1 的 Config 内部类，性能比 V1 快 5-50 倍。配合 model_validator 能实现「按 ENVIRONMENT 动态选 .env」这种高级加载策略。SQLAlchemy 的 pool_pre_ping=True 会在每次借出连接前发 SELECT 1，避免拿到已经被数据库侧关闭的连接——异步引擎尤其需要这个保护。"
+  },
+  {
+    "order": 10,
+    "title": "前端搜索页：React + Vite + TailwindCSS",
+    "description": "前端是一个标准的 Vite + React + TypeScript SPA，最终会被构建成静态文件并由后端镜像托管（见 Step 11）。main.tsx 是 Vite 入口，挂载 React 根节点；App.tsx 用 React Router 配置路由表，把根路径指向 Search 页；Search.tsx 是搜索页容器，编排「登录引导 → 选知识库 → 提交查询 → 展示结果」的完整状态流转；它依赖 SearchBox.tsx（受控输入）与 ResultList.tsx（按 score 排序展示命中 chunk）两个组件，以及 api.ts 这个基于 axios 的 HTTP 客户端（封装 login / 知识库列表 / 搜索三个 /api/* 调用）。整个前端只需要 4 个核心文件就能跑通 RAG 搜索闭环。",
+    "nodeIds": [
+      "file:frontend/src/main.tsx",
+      "file:frontend/src/App.tsx",
+      "file:frontend/src/pages/Search.tsx",
+      "file:frontend/src/components/SearchBox.tsx",
+      "file:frontend/src/components/ResultList.tsx",
+      "file:frontend/src/api.ts"
+    ],
+    "languageLesson": "React 函数组件 + Hooks 的「状态上提、事件下传」模式：SearchBox 不持有查询状态，由父组件 Search 通过 props 传入 value 与 onChange，父组件再通过 onSearch 回调接收非空查询。这种单向数据流让搜索状态可被父组件的其它逻辑（如防抖、历史记录、URL 同步）统一编排。TypeScript 的好处在这里体现在 axios api.ts 的返回类型推断上——调用方拿到的就是 SearchResponse 类型，无需手写。"
+  },
+  {
+    "order": 11,
+    "title": "容器化：单镜像多阶段构建与定制 Postgres",
+    "description": "backend/Dockerfile 是 ADR 单一部署决策的物化——它是一个两阶段多 stage 构建：第一阶段用 node:20-alpine 跑 npm run build 生成前端 dist，第二阶段基于 python:3.11-slim 装入后端代码 + 前端 dist，最终在同一容器内依次跑 alembic migrate 与 uvicorn，对外暴露 8000 端口（同时提供 API 与 SPA）。postgres/Dockerfile 则是另一个定制点：基于 postgres:16，apt 装编译依赖后 git clone pgvector v0.7.4 与 pg_zhparser 源码并 make install，再把 init-extensions.sql 复制到 docker-entrypoint-initdb.d，让容器首次启动自动启用 pgvector + zhparser + chinese_zh 分词配置——这是 Step 6 SQL 的运行宿主。",
+    "nodeIds": [
+      "service:backend/Dockerfile",
+      "service:postgres/Dockerfile"
+    ],
+    "languageLesson": "Docker 多阶段构建的关键是「builder stage 里的工具链不会进最终镜像」：node_modules、TypeScript 编译器、source map 都留在 frontend-build 阶段，最终镜像只有压缩后的 dist 静态文件 + Python 运行时，通常能比单阶段构建小 50-80%。pgvector / pg_zhparser 这类需要从源码编译的 Postgres 扩展，标准做法是自建一个定制 postgres 镜像（而不是依赖宿主机安装），这样版本可锁定、可复现，避免「在我机器上能跑」的经典陷阱。"
+  },
+  {
+    "order": 12,
+    "title": "测试守卫与设计决策溯源",
+    "description": "最后一步是「为什么是这样设计」的溯源。tests/test_halfvec.py 是 ADR-0001 的关键守卫测试——它验证带 cast 的 halfvec 查询必须命中 hnsw 索引，不带 cast 会退化成 Seq Scan（开发陷阱），并验证 zhparser trigger 正常工作；tests/test_search.py 验证 RRF 中文/英文 query 都能召回，mode=wiki 第一批未实现返回 400。设计决策本身集中在 mydocs/：prd-v4.2.md 是总纲（双路径 + 两层 RBAC + BYOK Agent Runtime + P1-P6 交付计划），adr/0001 解释为什么选 halfvec 多维度而非 LanceDB，adr/0009 定义检索架构双路径（IndexingStrategy 四开关 + wiki_search 与普通 RAG 两路径），adr/0008 圈定 MVP 范围裁剪；specs/2026-07-10 的 SDD Spec 则是当前代码库的「实现规格书 + 执行日志 + 验收结论」三位一体。读懂这些，整个项目的「为什么」就全部串起来了。",
+    "nodeIds": [
+      "file:backend/tests/test_halfvec.py",
+      "file:backend/tests/test_search.py",
+      "file:backend/tests/test_auth.py",
+      "document:mydocs/prd-v4.2.md",
+      "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md"
+    ],
+    "languageLesson": "「守护型测试」（guard test）的价值不在于验证业务正确性，而在于把不可见的性能/正确性陷阱固化成可执行的断言：例如 test_halfvec.py 里「不带 cast 必须走 Seq Scan」这条断言，一旦未来有人重构查询忘了写 ::halfvec，CI 会立刻失败，把「生产环境检索慢 100 倍」这种问题拦截在合并前。ADR（Architecture Decision Record）则是「决策的版本控制」——记下当时考虑过哪些方案、为什么淘汰、选中的代价是什么，让半年后的回溯不会陷入「当时为什么这样写」的考古。"
+  }
+]

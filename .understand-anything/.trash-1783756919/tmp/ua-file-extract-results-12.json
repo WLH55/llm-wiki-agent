@@ -1,0 +1,593 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 531,
+      "nonEmptyLines": 420,
+      "sections": [
+        {
+          "heading": "Spec — 知识库客户端原型设计",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "0. Goal (目标)",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "0.1 In Scope / Out of Scope",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "1. Context Sources (上下文来源)",
+          "level": 2,
+          "line": 34
+        },
+        {
+          "heading": "1.5 Codemap Used",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "1.6 Context Bundle Snapshot (Lite)",
+          "level": 2,
+          "line": 48
+        },
+        {
+          "heading": "2. Research Findings (研究发现)",
+          "level": 2,
+          "line": 68
+        },
+        {
+          "heading": "2.1 关键冲突点：用户意图与 PLAN.md 的差异",
+          "level": 3,
+          "line": 70
+        },
+        {
+          "heading": "2.2 客户端需要的功能模块（基于 PLAN.md Phase 2 提炼）",
+          "level": 3,
+          "line": 83
+        },
+        {
+          "heading": "2.3 桌面客户端特有要素（PLAN.md 没覆盖）",
+          "level": 3,
+          "line": 95
+        },
+        {
+          "heading": "2.4 桌面技术栈对比（待用户选）",
+          "level": 3,
+          "line": 110
+        },
+        {
+          "heading": "3. Open Questions (已解决)",
+          "level": 2,
+          "line": 125
+        },
+        {
+          "heading": "Q1（最关键）：\"客户端\"如何理解？",
+          "level": 3,
+          "line": 129
+        },
+        {
+          "heading": "Q2：客户端要包含哪些功能模块？",
+          "level": 3,
+          "line": 135
+        },
+        {
+          "heading": "Q3：原型设计交付物形式？",
+          "level": 3,
+          "line": 146
+        },
+        {
+          "heading": "Q4：技术栈是否锁定为 Tauri + Next.js？",
+          "level": 3,
+          "line": 152
+        },
+        {
+          "heading": "Q5：比赛时间线是否调整？",
+          "level": 3,
+          "line": 156
+        },
+        {
+          "heading": "4. Next Actions (下一步动作)",
+          "level": 2,
+          "line": 164
+        },
+        {
+          "heading": "5. Plan (详细设计与实现)",
+          "level": 2,
+          "line": 172
+        },
+        {
+          "heading": "5.0 视觉设计系统（Editorial Knowledge Base）",
+          "level": 3,
+          "line": 176
+        },
+        {
+          "heading": "5.0.1 Typography（字体）",
+          "level": 4,
+          "line": 187
+        },
+        {
+          "heading": "5.0.2 Color（配色）",
+          "level": 4,
+          "line": 207
+        },
+        {
+          "heading": "5.0.3 Layout（布局）",
+          "level": 4,
+          "line": 236
+        },
+        {
+          "heading": "5.0.4 Motion（动效）",
+          "level": 4,
+          "line": 246
+        },
+        {
+          "heading": "5.0.5 Decoration（装饰元素）",
+          "level": 4,
+          "line": 256
+        },
+        {
+          "heading": "5.1 全局布局规范",
+          "level": 3,
+          "line": 265
+        },
+        {
+          "heading": "5.2 界面 1：AI 对话窗口（chat.html）",
+          "level": 3,
+          "line": 291
+        },
+        {
+          "heading": "5.3 界面 2：文档管理（documents.html）",
+          "level": 3,
+          "line": 324
+        },
+        {
+          "heading": "5.4 界面 3：知识图谱可视化（graph.html）",
+          "level": 3,
+          "line": 361
+        },
+        {
+          "heading": "5.5 界面 4：全局搜索（search.html）",
+          "level": 3,
+          "line": 404
+        },
+        {
+          "heading": "5.6 共享导航栏（所有界面共有）",
+          "level": 3,
+          "line": 447
+        },
+        {
+          "heading": "5.7 文件结构（File Changes）",
+          "level": 3,
+          "line": 455
+        },
+        {
+          "heading": "5.8 技术选型",
+          "level": 3,
+          "line": 471
+        },
+        {
+          "heading": "5.9 实现 Checklist（原子步骤）",
+          "level": 3,
+          "line": 483
+        },
+        {
+          "heading": "5.10 验证标准（Validation）",
+          "level": 3,
+          "line": 499
+        },
+        {
+          "heading": "6. Next Actions (下一步动作)",
+          "level": 2,
+          "line": 512
+        },
+        {
+          "heading": "7. Change Log",
+          "level": 2,
+          "line": 520
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 37
+      }
+    },
+    {
+      "path": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 1089,
+      "nonEmptyLines": 874,
+      "sections": [
+        {
+          "heading": "SDD Spec: MVP P1 Batch 1 - RAG Foundation",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "RIPER 状态",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "§0 Open Questions",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "§1 Requirements (Context)",
+          "level": 2,
+          "line": 49
+        },
+        {
+          "heading": "Goal",
+          "level": 3,
+          "line": 51
+        },
+        {
+          "heading": "In-Scope（第一批必做）",
+          "level": 3,
+          "line": 62
+        },
+        {
+          "heading": "Out-of-Scope（留给后续批次/P2+）",
+          "level": 3,
+          "line": 74
+        },
+        {
+          "heading": "验收标准（第一批）",
+          "level": 3,
+          "line": 94
+        },
+        {
+          "heading": "§1.1 Context Sources",
+          "level": 2,
+          "line": 111
+        },
+        {
+          "heading": "§1.5 Codemap Used",
+          "level": 2,
+          "line": 133
+        },
+        {
+          "heading": "§1.6 Context Bundle Snapshot",
+          "level": 2,
+          "line": 141
+        },
+        {
+          "heading": "§1.7 Scaffold + Frontend Strategy",
+          "level": 2,
+          "line": 150
+        },
+        {
+          "heading": "6 个可复用组件（来自脚手架模板）",
+          "level": 3,
+          "line": 154
+        },
+        {
+          "heading": "5 个适配决策（脚手架 → spec）",
+          "level": 3,
+          "line": 165
+        },
+        {
+          "heading": "前端栈决策（Next.js → Vite + React + 无 nginx）",
+          "level": 3,
+          "line": 175
+        },
+        {
+          "heading": "正式部署加 nginx 的预留（P2+）",
+          "level": 3,
+          "line": 186
+        },
+        {
+          "heading": "§2 Research Findings",
+          "level": 2,
+          "line": 197
+        },
+        {
+          "heading": "事实与约束",
+          "level": 3,
+          "line": 199
+        },
+        {
+          "heading": "风险与不确定项",
+          "level": 3,
+          "line": 234
+        },
+        {
+          "heading": "关键技术验证点（第一批必须验证）",
+          "level": 3,
+          "line": 262
+        },
+        {
+          "heading": "§2.1 Next Actions",
+          "level": 2,
+          "line": 271
+        },
+        {
+          "heading": "§3 Innovate (Optional: Options & Decision)",
+          "level": 2,
+          "line": 283
+        },
+        {
+          "heading": "Skip",
+          "level": 3,
+          "line": 285
+        },
+        {
+          "heading": "唯一小决策：嵌入 API provider",
+          "level": 3,
+          "line": 290
+        },
+        {
+          "heading": "§4 Plan (Contract)",
+          "level": 2,
+          "line": 301
+        },
+        {
+          "heading": "§4.1 File Changes（项目结构）",
+          "level": 3,
+          "line": 303
+        },
+        {
+          "heading": "§4.2 Signatures（核心签名）",
+          "level": 3,
+          "line": 425
+        },
+        {
+          "heading": "Python 后端",
+          "level": 4,
+          "line": 427
+        },
+        {
+          "heading": "TypeScript 前端",
+          "level": 4,
+          "line": 598
+        },
+        {
+          "heading": "关键 SQL（DDL）",
+          "level": 4,
+          "line": 617
+        },
+        {
+          "heading": "§4.3 Implementation Checklist（原子化，按依赖顺序）",
+          "level": 3,
+          "line": 666
+        },
+        {
+          "heading": "阶段 1A：脚手架初始化（复用 fastapi-scaffold 模板）",
+          "level": 4,
+          "line": 670
+        },
+        {
+          "heading": "阶段 1B：基础设施（Docker + 部署骨架）",
+          "level": 4,
+          "line": 688
+        },
+        {
+          "heading": "阶段 2：数据库 schema（Alembic migration）",
+          "level": 4,
+          "line": 701
+        },
+        {
+          "heading": "阶段 3：鉴权（bootstrap owner + JWT）",
+          "level": 4,
+          "line": 719
+        },
+        {
+          "heading": "阶段 4：KB 创建 API",
+          "level": 4,
+          "line": 731
+        },
+        {
+          "heading": "阶段 5：文档上传 + 异步解析",
+          "level": 4,
+          "line": 738
+        },
+        {
+          "heading": "阶段 6：路径 B 检索",
+          "level": 4,
+          "line": 751
+        },
+        {
+          "heading": "阶段 7：最小前端（Vite + React 18 SPA，搜索页）",
+          "level": 4,
+          "line": 768
+        },
+        {
+          "heading": "阶段 8：关键路径测试",
+          "level": 4,
+          "line": 787
+        },
+        {
+          "heading": "阶段 9：端到端验收",
+          "level": 4,
+          "line": 800
+        },
+        {
+          "heading": "§4.4 Spec Review Notes（建议性预审，Plan 完成后）",
+          "level": 3,
+          "line": 810
+        },
+        {
+          "heading": "§5 Execute Log",
+          "level": 2,
+          "line": 832
+        },
+        {
+          "heading": "阶段 1A：脚手架初始化 [完成]",
+          "level": 3,
+          "line": 836
+        },
+        {
+          "heading": "阶段 1B：Docker 编排 [完成]",
+          "level": 3,
+          "line": 848
+        },
+        {
+          "heading": "阶段 2：数据库 schema [完成]",
+          "level": 3,
+          "line": 856
+        },
+        {
+          "heading": "阶段 3：鉴权 [完成]",
+          "level": 3,
+          "line": 869
+        },
+        {
+          "heading": "阶段 4：KB 创建 API [完成]",
+          "level": 3,
+          "line": 878
+        },
+        {
+          "heading": "阶段 5：文档上传 + 异步解析 [完成]",
+          "level": 3,
+          "line": 884
+        },
+        {
+          "heading": "阶段 6：路径 B 检索 [完成]",
+          "level": 3,
+          "line": 897
+        },
+        {
+          "heading": "阶段 7：最小前端 [完成]",
+          "level": 3,
+          "line": 908
+        },
+        {
+          "heading": "阶段 8：关键路径测试 [完成]",
+          "level": 3,
+          "line": 922
+        },
+        {
+          "heading": "阶段 9：端到端验收 [待用户验证]",
+          "level": 3,
+          "line": 934
+        },
+        {
+          "heading": "Execute 阶段偏差记录",
+          "level": 3,
+          "line": 943
+        },
+        {
+          "heading": "§6 Review Verdict",
+          "level": 2,
+          "line": 952
+        },
+        {
+          "heading": "总评",
+          "level": 3,
+          "line": 956
+        },
+        {
+          "heading": "轴 1：Spec ↔ Code 一致性（PASS）",
+          "level": 3,
+          "line": 966
+        },
+        {
+          "heading": "轴 2：代码质量（WARNING）",
+          "level": 3,
+          "line": 985
+        },
+        {
+          "heading": "CRITICAL（2 个）",
+          "level": 4,
+          "line": 987
+        },
+        {
+          "heading": "HIGH（6 个）",
+          "level": 4,
+          "line": 999
+        },
+        {
+          "heading": "MEDIUM（7 个）",
+          "level": 4,
+          "line": 1024
+        },
+        {
+          "heading": "LOW（3 个）",
+          "level": 4,
+          "line": 1034
+        },
+        {
+          "heading": "亮点",
+          "level": 4,
+          "line": 1040
+        },
+        {
+          "heading": "轴 3：风险覆盖 + 安全（WARNING）",
+          "level": 3,
+          "line": 1049
+        },
+        {
+          "heading": "spec §2 标注的 5 大风险（全部 PASS）",
+          "level": 4,
+          "line": 1051
+        },
+        {
+          "heading": "新发现安全风险（CRITICAL + HIGH）",
+          "level": 4,
+          "line": 1061
+        },
+        {
+          "heading": "评审结论",
+          "level": 3,
+          "line": 1070
+        },
+        {
+          "heading": "§7 Plan-Execution Diff",
+          "level": 2,
+          "line": 1081
+        },
+        {
+          "heading": "§8 Archive Record",
+          "level": 2,
+          "line": 1087
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 69
+      }
+    },
+    {
+      "path": "mydocs/specs/llm-wiki-design-decision.html",
+      "language": "html",
+      "fileCategory": "markup",
+      "totalLines": 620,
+      "nonEmptyLines": 531,
+      "metrics": {}
+    },
+    {
+      "path": "mydocs/specs/obsidian-wiki-research.html",
+      "language": "html",
+      "fileCategory": "markup",
+      "totalLines": 1402,
+      "nonEmptyLines": 1191,
+      "metrics": {}
+    },
+    {
+      "path": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "language": "html",
+      "fileCategory": "markup",
+      "totalLines": 671,
+      "nonEmptyLines": 586,
+      "metrics": {}
+    }
+  ]
+}

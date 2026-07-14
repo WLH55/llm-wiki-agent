@@ -1,0 +1,44 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "backend/alembic/env.py", "language": "python", "sizeLines": 73, "fileCategory": "code"},
+    {"path": "backend/app/models/__init__.py", "language": "python", "sizeLines": 22, "fileCategory": "code"},
+    {"path": "backend/app/models/base.py", "language": "python", "sizeLines": 33, "fileCategory": "code"},
+    {"path": "backend/app/models/chunk.py", "language": "python", "sizeLines": 62, "fileCategory": "code"},
+    {"path": "backend/app/models/document.py", "language": "python", "sizeLines": 86, "fileCategory": "code"},
+    {"path": "backend/app/models/kb.py", "language": "python", "sizeLines": 78, "fileCategory": "code"},
+    {"path": "backend/app/models/reserved.py", "language": "python", "sizeLines": 15, "fileCategory": "code"},
+    {"path": "backend/app/models/source.py", "language": "python", "sizeLines": 62, "fileCategory": "code"},
+    {"path": "backend/app/models/user.py", "language": "python", "sizeLines": 59, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "backend/alembic/env.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/models/__init__.py",
+      "backend/app/models/base.py",
+      "backend/app/models/chunk.py",
+      "backend/app/models/document.py",
+      "backend/app/models/kb.py",
+      "backend/app/models/reserved.py",
+      "backend/app/models/source.py",
+      "backend/app/models/user.py"
+    ],
+    "backend/app/models/__init__.py": [
+      "backend/app/models/base.py",
+      "backend/app/models/chunk.py",
+      "backend/app/models/document.py",
+      "backend/app/models/kb.py",
+      "backend/app/models/reserved.py",
+      "backend/app/models/source.py",
+      "backend/app/models/user.py"
+    ],
+    "backend/app/models/base.py": [],
+    "backend/app/models/chunk.py": ["backend/app/models/base.py"],
+    "backend/app/models/document.py": ["backend/app/models/base.py"],
+    "backend/app/models/kb.py": ["backend/app/models/base.py"],
+    "backend/app/models/reserved.py": ["backend/app/models/base.py"],
+    "backend/app/models/source.py": ["backend/app/models/base.py"],
+    "backend/app/models/user.py": ["backend/app/models/base.py"]
+  }
+}

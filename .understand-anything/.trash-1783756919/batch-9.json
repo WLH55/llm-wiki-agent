@@ -1,0 +1,69 @@
+{
+  "nodes": [
+    {
+      "id": "file:frontend/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "frontend/index.html",
+      "summary": "前端 Vite SPA 入口 HTML，定义根挂载点 #root 并通过 module 脚本加载 /src/main.tsx 引导整个 React 应用。",
+      "tags": ["entry-point", "html", "spa", "vite"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:frontend/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "frontend/package.json",
+      "summary": "前端 npm 配置文件，声明 scripts（dev/build/preview）、运行时依赖（React 18、react-dom、react-router）与开发依赖（Vite、TypeScript、Tailwind CSS、autoprefixer、postcss），是构建与依赖管理的真相之源。",
+      "tags": ["configuration", "npm", "build-system", "react", "vite"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:frontend/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "frontend/tsconfig.json",
+      "summary": "TypeScript 编译器配置，启用 strict 严格模式，target ES2020、使用 bundler 模式的 moduleResolution，并配合 Vite 的 isoimport 支持，include 覆盖 src 全部 .ts/.tsx。",
+      "tags": ["configuration", "typescript", "strict-mode", "build-system"],
+      "complexity": "simple",
+      "languageNotes": "moduleResolution 设为 bundler，allowImportingTsExtensions 与 noEmit 配合 Vite 的转译流程，是 Vite + TS 项目的典型组合。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:frontend/index.html",
+      "target": "file:frontend/src/main.tsx",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:frontend/package.json",
+      "target": "file:frontend/src/main.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:frontend/package.json",
+      "target": "config:frontend/tsconfig.json",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:frontend/tsconfig.json",
+      "target": "file:frontend/src/App.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:frontend/tsconfig.json",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

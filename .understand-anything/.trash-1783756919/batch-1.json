@@ -1,0 +1,564 @@
+{
+  "nodes": [
+    {
+      "id": "file:backend/app/auth/jwt_handler.py",
+      "type": "file",
+      "name": "jwt_handler.py",
+      "filePath": "backend/app/auth/jwt_handler.py",
+      "summary": "JWT 鉴权模块，使用 HS256 算法签发与解码 access token，默认 24 小时过期，无 refresh token，遵循 ADR-0008 极简鉴权策略。",
+      "tags": ["auth", "jwt", "security", "token", "service"],
+      "complexity": "simple",
+      "languageNotes": "使用 python-jose 库实现 HS256 对称加密，sub claim 存 user_id 字符串。"
+    },
+    {
+      "id": "function:backend/app/auth/jwt_handler.py:create_access_token",
+      "type": "function",
+      "name": "create_access_token",
+      "filePath": "backend/app/auth/jwt_handler.py",
+      "lineRange": [17, 26],
+      "summary": "根据 user_id 生成 JWT access token，设置 iat 与 exp claim（按 JWT_EXPIRE_HOURS 计算过期时间）。",
+      "tags": ["jwt", "auth", "token-issuer"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/auth/jwt_handler.py:decode_token",
+      "type": "function",
+      "name": "decode_token",
+      "filePath": "backend/app/auth/jwt_handler.py",
+      "lineRange": [29, 36],
+      "summary": "解码并验证 JWT token，失败时抛出 JWTError。",
+      "tags": ["jwt", "auth", "decoder", "validation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/auth/jwt_handler.py:get_user_id_from_token",
+      "type": "function",
+      "name": "get_user_id_from_token",
+      "filePath": "backend/app/auth/jwt_handler.py",
+      "lineRange": [39, 46],
+      "summary": "便捷方法：从 token 中提取 user_id，任何异常返回 None（不抛错）。",
+      "tags": ["jwt", "auth", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/config/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/config/__init__.py",
+      "summary": "配置包 barrel，聚合导出 settings、setup_logging、异常类与响应封装（ApiResponse/PageResponse），是整个后端 config 层的统一入口。",
+      "tags": ["barrel", "entry-point", "config", "exports"],
+      "complexity": "simple",
+      "languageNotes": "Python 包级别 __init__.py 通过 __all__ 显式声明公开 API，便于 from app.config import xxx 单点导入。"
+    },
+    {
+      "id": "file:backend/app/config/dependencies.py",
+      "type": "file",
+      "name": "dependencies.py",
+      "filePath": "backend/app/config/dependencies.py",
+      "summary": "FastAPI 依赖注入模块，提供 get_db 异步会话依赖与 get_current_user JWT 鉴权依赖，并定义 DbDep/CurrentUserDep 类型别名简化路由签名。",
+      "tags": ["dependency-injection", "auth", "middleware", "database", "service"],
+      "complexity": "moderate",
+      "languageNotes": "使用 FastAPI Depends + Annotated 类型提示（PEP 593）+ OAuth2PasswordBearer 实现 Swagger UI 集成鉴权。"
+    },
+    {
+      "id": "function:backend/app/config/dependencies.py:get_db",
+      "type": "function",
+      "name": "get_db",
+      "filePath": "backend/app/config/dependencies.py",
+      "lineRange": [27, 37],
+      "summary": "异步数据库会话 yield 依赖，自动在异常时 rollback，正常结束由调用方决定 commit。",
+      "tags": ["dependency-injection", "database", "session"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/config/dependencies.py:get_current_user",
+      "type": "function",
+      "name": "get_current_user",
+      "filePath": "backend/app/config/dependencies.py",
+      "lineRange": [40, 63],
+      "summary": "从 JWT token 解析 user_id 并查询数据库验证用户（含 is_active / deleted_at 检查），失败返回 401 凭证错误。",
+      "tags": ["auth", "dependency-injection", "jwt", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/config/logger_config.py",
+      "type": "file",
+      "name": "logger_config.py",
+      "filePath": "backend/app/config/logger_config.py",
+      "summary": "日志系统配置模块，按日期轮转日志文件、自动 gzip 压缩旧日志、清理超过保留期的日志，同时输出到控制台和文件。",
+      "tags": ["logging", "config", "utility", "rotation"],
+      "complexity": "moderate",
+      "languageNotes": "使用 logging.handlers.TimedRotatingFileHandler + 自定义 rotator/namer 实现 gzip 压缩归档。"
+    },
+    {
+      "id": "function:backend/app/config/logger_config.py:setup_logging",
+      "type": "function",
+      "name": "setup_logging",
+      "filePath": "backend/app/config/logger_config.py",
+      "lineRange": [10, 61],
+      "summary": "配置根 logger：创建日志目录、注册控制台与按日轮转文件 handler、设置 gzip 压缩与自动清理。",
+      "tags": ["logging", "config", "initialization"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/app/config/logger_config.py:_rotator",
+      "type": "function",
+      "name": "_rotator",
+      "filePath": "backend/app/config/logger_config.py",
+      "lineRange": [64, 74],
+      "summary": "日志轮转时的压缩回调：将源文件 gzip 压缩到目标路径并删除原始文件，随后触发旧日志清理。",
+      "tags": ["logging", "gzip", "rotation", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/config/logger_config.py:_cleanup_old_logs",
+      "type": "function",
+      "name": "_cleanup_old_logs",
+      "filePath": "backend/app/config/logger_config.py",
+      "lineRange": [77, 89],
+      "summary": "扫描日志目录，按 mctime 删除超过 LOG_RETENTION_DAYS 的旧日志文件。",
+      "tags": ["logging", "cleanup", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/config/settings.py",
+      "type": "file",
+      "name": "settings.py",
+      "filePath": "backend/app/config/settings.py",
+      "summary": "基于 Pydantic V2 BaseSettings 的全局配置中心，按 ENVIRONMENT 切换 .env 文件，统一管理应用、CORS、日志、Postgres、Redis、MinIO、JWT、Bootstrap owner、Embedding、RAG 等所有配置项。",
+      "tags": ["config", "settings", "pydantic", "env", "service"],
+      "complexity": "moderate",
+      "languageNotes": "使用 Pydantic V2 SettingsConfigDict，case_sensitive=True 保证 env_file 大小写敏感匹配；env 文件按 ENVIRONMENT 多环境切换。"
+    },
+    {
+      "id": "function:backend/app/config/settings.py:get_env_file",
+      "type": "function",
+      "name": "get_env_file",
+      "filePath": "backend/app/config/settings.py",
+      "lineRange": [18, 27],
+      "summary": "根据 ENVIRONMENT 环境变量返回对应的 .env 文件绝对路径（development/production/test）。",
+      "tags": ["config", "env", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/config/settings.py:Settings",
+      "type": "class",
+      "name": "Settings",
+      "filePath": "backend/app/config/settings.py",
+      "lineRange": [30, 102],
+      "summary": "Pydantic V2 BaseSettings 配置类，声明 40+ 业务字段（应用、CORS、Postgres、Redis、MinIO、JWT、Embedding、RAG、前端静态托管），通过 env_file 自动注入。",
+      "tags": ["config", "pydantic", "settings", "data-model"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/database.py",
+      "type": "file",
+      "name": "database.py",
+      "filePath": "backend/app/database.py",
+      "summary": "数据库连接模块，创建异步 SQLAlchemy engine（pool_pre_ping + pool_size=10）与 async_session_factory，是全应用唯一的 AsyncSession 提供者。",
+      "tags": ["database", "sqlalchemy", "async", "session", "service"],
+      "complexity": "simple",
+      "languageNotes": "使用 SQLAlchemy 2.0 异步 API（create_async_engine + async_sessionmaker），expire_on_commit=False 避免 commit 后访问属性触发懒加载。"
+    },
+    {
+      "id": "file:backend/app/main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "backend/app/main.py",
+      "summary": "FastAPI 应用入口，create_app() 工厂模式组装中间件（CORS + 请求体缓存）、全局异常处理器、auth/kb/document/search 四组路由、健康检查与 SPA 静态托管（无 nginx）；lifespan 中触发 bootstrap owner 初始化。",
+      "tags": ["entry-point", "fastapi", "router", "middleware", "spa"],
+      "complexity": "moderate",
+      "languageNotes": "使用 FastAPI 0.100+ 的 lifespan 协议（@asynccontextmanager）替代已废弃的 @app.on_event；StaticFiles + spa_fallback 实现 SPA history 路由回退。"
+    },
+    {
+      "id": "function:backend/app/main.py:lifespan",
+      "type": "function",
+      "name": "lifespan",
+      "filePath": "backend/app/main.py",
+      "lineRange": [25, 45],
+      "summary": "应用生命周期管理：启动时初始化日志系统、打印启动信息、调用 ensure_bootstrap_owner 确保初始管理员账户存在。",
+      "tags": ["lifecycle", "initialization", "bootstrap"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/app/main.py:create_app",
+      "type": "function",
+      "name": "create_app",
+      "filePath": "backend/app/main.py",
+      "lineRange": [48, 121],
+      "summary": "FastAPI 应用工厂：组装 CORS 与请求体缓存中间件、注册全局异常处理器、挂载 auth/kb/document/search 路由、配置健康检查端点与 SPA 静态托管。",
+      "tags": ["factory", "fastapi", "router", "middleware"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:backend/app/services/embedding_service.py",
+      "type": "file",
+      "name": "embedding_service.py",
+      "filePath": "backend/app/services/embedding_service.py",
+      "summary": "嵌入服务：通过 OpenAI SDK 调用 SiliconFlow bge-m3 API，输出 1024 维向量，提供懒加载单例 client 与批量/单条嵌入接口。",
+      "tags": ["service", "embedding", "openai", "rag", "singleton"],
+      "complexity": "simple",
+      "languageNotes": "用 OpenAI SDK 通过 base_url 覆盖指向 SiliconFlow，兼容 OpenAI 协议；模块级 _client 实现懒加载单例。"
+    },
+    {
+      "id": "function:backend/app/services/embedding_service.py:get_client",
+      "type": "function",
+      "name": "get_client",
+      "filePath": "backend/app/services/embedding_service.py",
+      "lineRange": [19, 29],
+      "summary": "懒加载 OpenAI client 单例，未配置 API key 时仅打印警告但仍创建（base_url 指向 SiliconFlow）。",
+      "tags": ["singleton", "client", "lazy-init"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/services/embedding_service.py:embed_texts",
+      "type": "function",
+      "name": "embed_texts",
+      "filePath": "backend/app/services/embedding_service.py",
+      "lineRange": [32, 42],
+      "summary": "批量调用嵌入 API，返回 bge-m3 1024 维向量列表；空输入返回空列表。",
+      "tags": ["embedding", "batch", "rag"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/services/minio_service.py",
+      "type": "file",
+      "name": "minio_service.py",
+      "filePath": "backend/app/services/minio_service.py",
+      "summary": "MinIO 对象存储服务：提供懒加载单例 client、bucket 自动创建、字节流上传（返回 {bucket}/{key}）与下载接口，是文档原始文件的存取层。",
+      "tags": ["service", "minio", "storage", "singleton", "s3"],
+      "complexity": "simple",
+      "languageNotes": "使用 minio-py SDK；模块级 _client 单例避免重复建连；ensure_bucket 自动幂等创建 bucket。"
+    },
+    {
+      "id": "function:backend/app/services/minio_service.py:get_minio_client",
+      "type": "function",
+      "name": "get_minio_client",
+      "filePath": "backend/app/services/minio_service.py",
+      "lineRange": [17, 27],
+      "summary": "懒加载 MinIO client 单例，按 settings 配置 endpoint/access_key/secret_key/secure。",
+      "tags": ["singleton", "client", "lazy-init"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/services/minio_service.py:ensure_bucket",
+      "type": "function",
+      "name": "ensure_bucket",
+      "filePath": "backend/app/services/minio_service.py",
+      "lineRange": [30, 36],
+      "summary": "幂等确保 bucket 存在，不存在时创建并记录日志。",
+      "tags": ["minio", "bucket", "idempotent"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/services/minio_service.py:upload_bytes",
+      "type": "function",
+      "name": "upload_bytes",
+      "filePath": "backend/app/services/minio_service.py",
+      "lineRange": [39, 56],
+      "summary": "上传字节流到 MinIO（自动确保 bucket），返回 {bucket}/{key} 标识符。",
+      "tags": ["minio", "upload", "storage"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/services/minio_service.py:get_bytes",
+      "type": "function",
+      "name": "get_bytes",
+      "filePath": "backend/app/services/minio_service.py",
+      "lineRange": [59, 68],
+      "summary": "从 MinIO 下载对象字节流，finally 块中关闭 response 并释放连接。",
+      "tags": ["minio", "download", "storage"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/workers/chunker.py",
+      "type": "file",
+      "name": "chunker.py",
+      "filePath": "backend/app/workers/chunker.py",
+      "summary": "CJK 友好的文本分块器：按中英文句号切分、单句超长硬切、块间 overlap 保留上下文连续性（默认 300 词/50 词重叠），中文按字计、英文按 5 字符约 1 词估算。",
+      "tags": ["chunker", "rag", "text-processing", "cjk", "utility"],
+      "complexity": "moderate",
+      "languageNotes": "正则 [。\\.!?！？\\n] 兼容中英文句号切分；CJK 字符范围检测用 \"一\" <= c <= \"鿿\" 简易判断。"
+    },
+    {
+      "id": "function:backend/app/workers/chunker.py:chunk_text",
+      "type": "function",
+      "name": "chunk_text",
+      "filePath": "backend/app/workers/chunker.py",
+      "lineRange": [20, 72],
+      "summary": "主分块函数：按句号切分后累加成块，超长时硬切，块间保留 overlap 末尾词以维持上下文。",
+      "tags": ["chunker", "rag", "text-splitting"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/workers/parse_document.py",
+      "type": "file",
+      "name": "parse_document.py",
+      "filePath": "backend/app/workers/parse_document.py",
+      "summary": "异步文档解析主任务：从 MinIO 拉文件 → 按扩展名解析 → CJK 分块 → 调嵌入 API → raw SQL 写 content_chunks（halfvec cast）→ 更新文档状态；任何异常标记 failed。",
+      "tags": ["worker", "rag", "pipeline", "async", "document"],
+      "complexity": "moderate",
+      "languageNotes": "因 SQLAlchemy 不原生支持 pgvector halfvec，embedding 字段用 text() raw SQL + CAST(:embedding AS halfvec) 插入。"
+    },
+    {
+      "id": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "type": "function",
+      "name": "parse_document_task",
+      "filePath": "backend/app/workers/parse_document.py",
+      "lineRange": [32, 66],
+      "summary": "异步文档解析主流程：查文档记录 → 标记 processing → MinIO 拉取 → 解析 → 分块 → 嵌入 → 入库 content_chunks → 标记 processed，异常时标记 failed。",
+      "tags": ["worker", "rag", "pipeline", "async"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:backend/app/workers/parse_document.py:_insert_chunks",
+      "type": "function",
+      "name": "_insert_chunks",
+      "filePath": "backend/app/workers/parse_document.py",
+      "lineRange": [87, 117],
+      "summary": "批量插入 content_chunks 记录，embedding 字段格式化为 [x,y,z] 字符串后通过 raw SQL CAST AS halfvec 入库（绕过 SQLAlchemy halfvec 不支持）。",
+      "tags": ["database", "halfvec", "rag", "insert"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/workers/parsers.py",
+      "type": "file",
+      "name": "parsers.py",
+      "filePath": "backend/app/workers/parsers.py",
+      "summary": "文件解析器：按扩展名分派到 PDF（pdfplumber）/ Markdown / TXT / DOCX（优先 unstructured，回退 python-docx）解析器，未知扩展名按纯文本处理。",
+      "tags": ["parser", "document", "rag", "factory", "utility"],
+      "complexity": "moderate",
+      "languageNotes": "parse_docx 实现双层回退（unstructured → python-docx），ImportError 时切换；延迟导入避免未安装依赖时启动失败。"
+    },
+    {
+      "id": "function:backend/app/workers/parsers.py:parse_by_filename",
+      "type": "function",
+      "name": "parse_by_filename",
+      "filePath": "backend/app/workers/parsers.py",
+      "lineRange": [10, 22],
+      "summary": "按扩展名分派解析器：.pdf→parse_pdf，.md/.markdown→parse_markdown，.txt→parse_text，.docx→parse_docx，未知扩展名按文本处理并告警。",
+      "tags": ["parser", "dispatcher", "factory"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/workers/parsers.py:parse_pdf",
+      "type": "function",
+      "name": "parse_pdf",
+      "filePath": "backend/app/workers/parsers.py",
+      "lineRange": [25, 33],
+      "summary": "使用 pdfplumber 提取 PDF 文本，按页拼接（\\n\\n 分隔）。",
+      "tags": ["parser", "pdf", "extraction"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/workers/parsers.py:parse_docx",
+      "type": "function",
+      "name": "parse_docx",
+      "filePath": "backend/app/workers/parsers.py",
+      "lineRange": [46, 61],
+      "summary": "Word .docx 解析：优先用 unstructured.partition_docx，ImportError 时回退到 python-docx，两者皆不可用则抛错。",
+      "tags": ["parser", "docx", "fallback", "extraction"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/workers/queue.py",
+      "type": "file",
+      "name": "queue.py",
+      "filePath": "backend/app/workers/queue.py",
+      "summary": "RQ 任务队列定义：连接 Redis 创建 parse 队列，提供 enqueue_parse_document（入队）与 run_parse_document（同步 wrapper，内部 asyncio.run 跑异步任务）。",
+      "tags": ["queue", "redis", "rq", "worker", "async"],
+      "complexity": "simple",
+      "languageNotes": "RQ 只支持同步函数，通过 asyncio.run 桥接异步 parse_document_task；job_timeout=10m 限制长任务。"
+    },
+    {
+      "id": "function:backend/app/workers/queue.py:run_parse_document",
+      "type": "function",
+      "name": "run_parse_document",
+      "filePath": "backend/app/workers/queue.py",
+      "lineRange": [23, 27],
+      "summary": "同步 wrapper：RQ worker 调用此函数，内部用 asyncio.run 启动异步 parse_document_task。",
+      "tags": ["queue", "async-wrapper", "worker"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/workers/queue.py:enqueue_parse_document",
+      "type": "function",
+      "name": "enqueue_parse_document",
+      "filePath": "backend/app/workers/queue.py",
+      "lineRange": [30, 33],
+      "summary": "将文档解析任务入队 RQ parse 队列，job_timeout=10m，并记录日志。",
+      "tags": ["queue", "enqueue", "redis"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/workers/worker.py",
+      "type": "file",
+      "name": "worker.py",
+      "filePath": "backend/app/workers/worker.py",
+      "summary": "RQ worker 进程入口（python -m app.workers.worker）：配置基础日志、连接 Redis、启动 Worker 监听 parse 队列。",
+      "tags": ["entry-point", "worker", "rq", "redis"],
+      "complexity": "simple",
+      "languageNotes": "标准 RQ Worker 启动模式，与主 FastAPI 进程解耦，独立消费 parse 队列。"
+    },
+    {
+      "id": "function:backend/app/workers/worker.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "backend/app/workers/worker.py",
+      "lineRange": [15, 23],
+      "summary": "RQ worker 主入口：配置基础日志、连接 Redis、创建 Worker 监听 parse 队列并开始消费。",
+      "tags": ["entry-point", "worker", "initialization"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/config/__init__.py", "target": "file:backend/app/config/exceptions.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/config/__init__.py", "target": "file:backend/app/config/logger_config.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/config/__init__.py", "target": "file:backend/app/config/schemas.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/config/__init__.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/config/dependencies.py", "target": "file:backend/app/auth/jwt_handler.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/config/dependencies.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/config/dependencies.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/config/dependencies.py", "target": "file:backend/app/database.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/config/dependencies.py", "target": "file:backend/app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/config/logger_config.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/database.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/database.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/main.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/main.py", "target": "file:backend/app/config/exceptions.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/main.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/services/embedding_service.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/embedding_service.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/services/minio_service.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/services/minio_service.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/database.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/models/document.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/services/embedding_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/services/minio_service.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/workers/chunker.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "file:backend/app/workers/parsers.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/workers/queue.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/queue.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/workers/worker.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/worker.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/workers/worker.py", "target": "file:backend/app/workers/queue.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "function:backend/app/auth/jwt_handler.py:create_access_token", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "function:backend/app/auth/jwt_handler.py:decode_token", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "function:backend/app/auth/jwt_handler.py:get_user_id_from_token", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "function:backend/app/auth/jwt_handler.py:create_access_token", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "function:backend/app/auth/jwt_handler.py:decode_token", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/auth/jwt_handler.py", "target": "function:backend/app/auth/jwt_handler.py:get_user_id_from_token", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/auth/jwt_handler.py:get_user_id_from_token", "target": "function:backend/app/auth/jwt_handler.py:decode_token", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/config/dependencies.py", "target": "function:backend/app/config/dependencies.py:get_db", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/dependencies.py", "target": "function:backend/app/config/dependencies.py:get_current_user", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/config/dependencies.py", "target": "function:backend/app/config/dependencies.py:get_db", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/dependencies.py", "target": "function:backend/app/config/dependencies.py:get_current_user", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/config/dependencies.py:get_current_user", "target": "function:backend/app/auth/jwt_handler.py:decode_token", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/config/logger_config.py", "target": "function:backend/app/config/logger_config.py:setup_logging", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/logger_config.py", "target": "function:backend/app/config/logger_config.py:_rotator", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/logger_config.py", "target": "function:backend/app/config/logger_config.py:_cleanup_old_logs", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/config/logger_config.py", "target": "function:backend/app/config/logger_config.py:setup_logging", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/logger_config.py", "target": "function:backend/app/config/logger_config.py:_rotator", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/logger_config.py", "target": "function:backend/app/config/logger_config.py:_cleanup_old_logs", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/config/logger_config.py:_rotator", "target": "function:backend/app/config/logger_config.py:_cleanup_old_logs", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/config/settings.py", "target": "function:backend/app/config/settings.py:get_env_file", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/config/settings.py", "target": "class:backend/app/config/settings.py:Settings", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/config/settings.py", "target": "function:backend/app/config/settings.py:get_env_file", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/config/settings.py", "target": "class:backend/app/config/settings.py:Settings", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/main.py", "target": "function:backend/app/main.py:lifespan", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/main.py", "target": "function:backend/app/main.py:create_app", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/main.py", "target": "function:backend/app/main.py:lifespan", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/main.py", "target": "function:backend/app/main.py:create_app", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/main.py:lifespan", "target": "function:backend/app/config/logger_config.py:setup_logging", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/services/embedding_service.py", "target": "function:backend/app/services/embedding_service.py:get_client", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/embedding_service.py", "target": "function:backend/app/services/embedding_service.py:embed_texts", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/services/embedding_service.py", "target": "function:backend/app/services/embedding_service.py:get_client", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/embedding_service.py", "target": "function:backend/app/services/embedding_service.py:embed_texts", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/services/embedding_service.py:embed_texts", "target": "function:backend/app/services/embedding_service.py:get_client", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:get_minio_client", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:ensure_bucket", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:upload_bytes", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:get_bytes", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:get_minio_client", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:ensure_bucket", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:upload_bytes", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/services/minio_service.py", "target": "function:backend/app/services/minio_service.py:get_bytes", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/services/minio_service.py:ensure_bucket", "target": "function:backend/app/services/minio_service.py:get_minio_client", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/minio_service.py:upload_bytes", "target": "function:backend/app/services/minio_service.py:ensure_bucket", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/minio_service.py:upload_bytes", "target": "function:backend/app/services/minio_service.py:get_minio_client", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/services/minio_service.py:get_bytes", "target": "function:backend/app/services/minio_service.py:get_minio_client", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/workers/chunker.py", "target": "function:backend/app/workers/chunker.py:chunk_text", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/workers/chunker.py", "target": "function:backend/app/workers/chunker.py:chunk_text", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/workers/parse_document.py", "target": "function:backend/app/workers/parse_document.py:parse_document_task", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "function:backend/app/workers/parse_document.py:_insert_chunks", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/workers/parse_document.py", "target": "function:backend/app/workers/parse_document.py:parse_document_task", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/workers/parse_document.py", "target": "function:backend/app/workers/parse_document.py:_insert_chunks", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/workers/parse_document.py:parse_document_task", "target": "function:backend/app/services/minio_service.py:get_bytes", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/workers/parse_document.py:parse_document_task", "target": "function:backend/app/workers/parsers.py:parse_by_filename", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/workers/parse_document.py:parse_document_task", "target": "function:backend/app/workers/chunker.py:chunk_text", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/workers/parse_document.py:parse_document_task", "target": "function:backend/app/services/embedding_service.py:embed_texts", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/workers/parse_document.py:parse_document_task", "target": "function:backend/app/workers/parse_document.py:_insert_chunks", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/workers/parsers.py", "target": "function:backend/app/workers/parsers.py:parse_by_filename", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/workers/parsers.py", "target": "function:backend/app/workers/parsers.py:parse_pdf", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/workers/parsers.py", "target": "function:backend/app/workers/parsers.py:parse_docx", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/workers/parsers.py", "target": "function:backend/app/workers/parsers.py:parse_by_filename", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/workers/parsers.py", "target": "function:backend/app/workers/parsers.py:parse_pdf", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/workers/parsers.py", "target": "function:backend/app/workers/parsers.py:parse_docx", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/workers/parsers.py:parse_by_filename", "target": "function:backend/app/workers/parsers.py:parse_pdf", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/app/workers/parsers.py:parse_by_filename", "target": "function:backend/app/workers/parsers.py:parse_docx", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/workers/queue.py", "target": "function:backend/app/workers/queue.py:run_parse_document", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/workers/queue.py", "target": "function:backend/app/workers/queue.py:enqueue_parse_document", "type": "contains", "direction": "forward", "weight": 1.0},
+
+    {"source": "file:backend/app/workers/queue.py", "target": "function:backend/app/workers/queue.py:run_parse_document", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/workers/queue.py", "target": "function:backend/app/workers/queue.py:enqueue_parse_document", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/workers/queue.py:run_parse_document", "target": "function:backend/app/workers/parse_document.py:parse_document_task", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/workers/worker.py", "target": "function:backend/app/workers/worker.py:main", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/workers/worker.py", "target": "function:backend/app/workers/worker.py:main", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/app/workers/worker.py:main", "target": "function:backend/app/workers/queue.py:enqueue_parse_document", "type": "depends_on", "direction": "forward", "weight": 0.6}
+  ]
+}

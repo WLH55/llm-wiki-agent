@@ -1,0 +1,146 @@
+{
+  "nodes": [
+    {
+      "id": "document:mydocs/GBrain知识库设计剖析.md",
+      "type": "document",
+      "name": "GBrain知识库设计剖析.md",
+      "filePath": "mydocs/GBrain知识库设计剖析.md",
+      "summary": "对 GBrain 知识库（Postgres-native + PGLite/Supabase 双引擎）的深度剖析文档，覆盖 60+ 张表的实体关系、fact/take 结构化记忆层、chunks 多模态向量设计，并对比与 WeKnora 的根本差异及借鉴建议。",
+      "tags": ["documentation", "架构分析", "竞品研究", "知识图谱", "rag"],
+      "complexity": "complex",
+      "languageNotes": "覆盖 8 大章节 39 个小节，包含表分类速查、关键设计细节、与 WeKnora 对比三大维度。"
+    },
+    {
+      "id": "document:mydocs/kb-architecture.md",
+      "type": "document",
+      "name": "kb-architecture.md",
+      "filePath": "mydocs/kb-architecture.md",
+      "summary": "WeKnora 知识库（KB）架构文档，阐述 KnowledgeBase + IndexingStrategy（真正的行为开关）+ Type（遗留枚举）三层模型，详解 RAG/Wiki 两条独立检索路径及 Document/FAQ 两个 RAG 子模式。",
+      "tags": ["documentation", "架构", "知识库", "rag", "wiki"],
+      "complexity": "complex",
+      "languageNotes": "35 个小节，包含 UI 3 种 vs 代码 2 种 Type 的差异澄清，以及 wiki page 不进 chunks 表的设计原因。"
+    },
+    {
+      "id": "document:mydocs/multi-tenant-architecture.md",
+      "type": "document",
+      "name": "multi-tenant-architecture.md",
+      "filePath": "mydocs/multi-tenant-architecture.md",
+      "summary": "WeKnora 多租户与共享空间架构文档，定义 Tenant（工作空间/资源归属）+ Organization（共享空间/跨租户协作）双层模型，含 6 张核心表、双角色体系、3-D 上限规则、跨租户 Key 解析链路及资产传承语义。",
+      "tags": ["documentation", "多租户", "rbac", "架构", "权限模型"],
+      "complexity": "complex",
+      "languageNotes": "55 个小节，是批次中规模最大的文档（918 行），含 5 个关键设计权衡的详细论证。"
+    },
+    {
+      "id": "document:mydocs/prd-v4.2.md",
+      "type": "document",
+      "name": "prd-v4.2.md",
+      "filePath": "mydocs/prd-v4.2.md",
+      "summary": "PRD v4.2 产品需求文档：自部署 Web 知识库服务的总纲，确立 Wiki/RAG 双路径 + 两层 RBAC + 自注册邀请制 + Agent Runtime BYOK + 多源挂载等核心决策，并定义 P1-P6 六阶段交付计划。",
+      "tags": ["documentation", "prd", "产品需求", "路线图", "entry-point"],
+      "complexity": "complex",
+      "languageNotes": "34 个小节，包含 Problem/Solution/User Stories/Implementation Decisions 完整 PRD 结构，是后续所有 ADR 的根文档。"
+    },
+    {
+      "id": "document:mydocs/rag-architecture.md",
+      "type": "document",
+      "name": "rag-architecture.md",
+      "filePath": "mydocs/rag-architecture.md",
+      "summary": "WeKnora RAG 架构文档，详述摄取 5 串行 + 4 并行流水线、父子分块（small-to-large retrieval）、chunks 表 12 种 chunk_type、多向量库抽象、三向分区检索、RRF 融合及 Rerank 位置切分。",
+      "tags": ["documentation", "rag", "检索架构", "向量检索", "流水线"],
+      "complexity": "complex",
+      "languageNotes": "39 个小节，包含完整的 Knowledge 状态机与 Span 追踪机制说明。"
+    },
+    {
+      "id": "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "type": "document",
+      "name": "ts-nextjs-guide-for-python-java-vue-developer.md",
+      "filePath": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "summary": "面向 Python/Java/Vue 背景开发者的 TypeScript & Next.js 速成指南，覆盖 TS 类型系统、JSX/TSX、Server/Client Component、Next.js API Routes、Tree-shaking 等核心概念及项目高频代码模式。",
+      "tags": ["documentation", "typescript", "nextjs", "react", "onboarding"],
+      "complexity": "complex",
+      "languageNotes": "批次中最大文档（1689 行/1314 非空行/67 小节），含 Python TypedDict/dataclass 与 TS interface 完整对照表。"
+    },
+    {
+      "id": "document:mydocs/wiki-architecture.md",
+      "type": "document",
+      "name": "wiki-architecture.md",
+      "filePath": "mydocs/wiki-architecture.md",
+      "summary": "WeKnora Wiki 系统架构文档，定义 wiki_pages/wiki_folders/wiki_page_issues/wiki_log_entries 四张专属表 + 通用任务队列，阐述文档→Wiki 的 Map-Reduce 转换管道、图片处理链路、并发模型及与向量数据的分离关系。",
+      "tags": ["documentation", "wiki", "架构", "map-reduce", "并发模型"],
+      "complexity": "complex",
+      "languageNotes": "70 个小节，含 Redis 锁串行化、folder_id 三冗余缓存、version 精细策略等 5 个设计权衡。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/kb-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/wiki-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/rag-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/multi-tenant-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/kb-architecture.md",
+      "target": "document:mydocs/wiki-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/kb-architecture.md",
+      "target": "document:mydocs/rag-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/GBrain知识库设计剖析.md",
+      "target": "document:mydocs/rag-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/GBrain知识库设计剖析.md",
+      "target": "document:mydocs/kb-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/wiki-architecture.md",
+      "target": "document:mydocs/multi-tenant-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/rag-architecture.md",
+      "target": "document:mydocs/multi-tenant-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

@@ -1,0 +1,316 @@
+{
+  "nodes": [
+    {
+      "id": "file:frontend/src/main.tsx",
+      "type": "file",
+      "name": "main.tsx",
+      "filePath": "frontend/src/main.tsx",
+      "summary": "Vite 应用入口，挂载 React 根节点并加载全局样式与 App 组件。",
+      "tags": ["entry-point", "vite", "react-bootstrap"],
+      "complexity": "simple",
+      "languageNotes": "使用 ReactDOM.createRoot 将 App 渲染到 #root 容器。"
+    },
+    {
+      "id": "file:frontend/src/App.tsx",
+      "type": "file",
+      "name": "App.tsx",
+      "filePath": "frontend/src/App.tsx",
+      "summary": "React Router 根组件，配置路由表将根路径指向 Search 搜索页。",
+      "tags": ["entry-point", "router", "component"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:frontend/src/api.ts",
+      "type": "file",
+      "name": "api.ts",
+      "filePath": "frontend/src/api.ts",
+      "summary": "基于 axios 的 HTTP 客户端，封装登录、知识库列表与搜索三个 /api/* 接口调用。",
+      "tags": ["api-handler", "http-client", "service"],
+      "complexity": "simple",
+      "languageNotes": "通过请求拦截器注入 Bearer Token，使用 axios 实例统一管理 baseURL 与超时。"
+    },
+    {
+      "id": "file:frontend/src/pages/Search.tsx",
+      "type": "file",
+      "name": "Search.tsx",
+      "filePath": "frontend/src/pages/Search.tsx",
+      "summary": "搜索页容器组件，编排登录引导、知识库选择、查询提交与结果展示的完整状态流转。",
+      "tags": ["page", "component", "state-management", "search"],
+      "complexity": "moderate",
+      "languageNotes": "使用多个 useState 管理 token/KBs/选中 KB/查询结果/错误/加载状态，并通过 useEffect 在挂载时执行自动登录与 KB 列表引导。"
+    },
+    {
+      "id": "file:frontend/src/components/SearchBox.tsx",
+      "type": "file",
+      "name": "SearchBox.tsx",
+      "filePath": "frontend/src/components/SearchBox.tsx",
+      "summary": "搜索输入组件，受控管理查询文本并通过 onSearch 回调将非空查询提交给父组件。",
+      "tags": ["component", "form", "search", "controlled-input"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:frontend/src/components/ResultList.tsx",
+      "type": "file",
+      "name": "ResultList.tsx",
+      "filePath": "frontend/src/components/ResultList.tsx",
+      "summary": "搜索结果列表组件，按 score 排序展示每个 chunk 命中的文档标题、内容片段与相似度分数。",
+      "tags": ["component", "list", "search", "presentation"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:frontend/src/App.tsx:App",
+      "type": "function",
+      "name": "App",
+      "filePath": "frontend/src/App.tsx",
+      "lineRange": [4, 11],
+      "summary": "应用根组件，声明 BrowserRouter 与 Routes，将根路径映射到 SearchPage。",
+      "tags": ["component", "router", "entry-point"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:frontend/src/api.ts:login",
+      "type": "function",
+      "name": "login",
+      "filePath": "frontend/src/api.ts",
+      "lineRange": [44, 47],
+      "summary": "调用 POST /api/auth/login 提交邮箱密码并返回 JWT Token。",
+      "tags": ["api-handler", "auth", "http-post"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:frontend/src/api.ts:listKBs",
+      "type": "function",
+      "name": "listKBs",
+      "filePath": "frontend/src/api.ts",
+      "lineRange": [49, 54],
+      "summary": "携带 Token 调用 GET /api/kbs 返回当前用户可见的知识库列表。",
+      "tags": ["api-handler", "http-get", "knowledge-base"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:frontend/src/api.ts:search",
+      "type": "function",
+      "name": "search",
+      "filePath": "frontend/src/api.ts",
+      "lineRange": [56, 68],
+      "summary": "携带 Token 调用 GET /api/search 执行向量+BM25 混合检索并返回 chunk 命中结果。",
+      "tags": ["api-handler", "http-get", "search", "rag"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "type": "function",
+      "name": "SearchPage",
+      "filePath": "frontend/src/pages/Search.tsx",
+      "lineRange": [10, 87],
+      "summary": "搜索页主组件，管理登录引导、KB 选择、查询提交与结果展示的完整状态机，并组合 SearchBox 与 ResultList 子组件。",
+      "tags": ["component", "page", "state-management", "orchestrator"],
+      "complexity": "moderate",
+      "languageNotes": "内嵌 bootstrap 与 handleSearch 两个闭包函数，分别负责初始化（登录+拉取 KB 列表）与执行搜索。"
+    },
+    {
+      "id": "function:frontend/src/components/SearchBox.tsx:SearchBox",
+      "type": "function",
+      "name": "SearchBox",
+      "filePath": "frontend/src/components/SearchBox.tsx",
+      "lineRange": [8, 37],
+      "summary": "搜索表单组件，受控管理 query 文本，提交时调用 onSearch 回调；支持 loading 状态禁用按钮。",
+      "tags": ["component", "form", "controlled-input", "callback"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:frontend/src/components/ResultList.tsx:ResultList",
+      "type": "function",
+      "name": "ResultList",
+      "filePath": "frontend/src/components/ResultList.tsx",
+      "lineRange": [7, 34],
+      "summary": "结果展示组件，接收 results 数组并以列表形式渲染每个 chunk 的文档标题、文本片段与相似度分数。",
+      "tags": ["component", "list", "presentation", "search"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:frontend/src/main.tsx",
+      "target": "file:frontend/src/App.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:frontend/src/main.tsx",
+      "target": "file:frontend/src/index.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:frontend/src/App.tsx",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:frontend/src/components/ResultList.tsx",
+      "target": "file:frontend/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "file:frontend/src/api.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "file:frontend/src/components/ResultList.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "file:frontend/src/components/SearchBox.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:frontend/src/App.tsx",
+      "target": "function:frontend/src/App.tsx:App",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:frontend/src/App.tsx",
+      "target": "function:frontend/src/App.tsx:App",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:login",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:login",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:listKBs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:listKBs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:search",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:search",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:frontend/src/components/SearchBox.tsx",
+      "target": "function:frontend/src/components/SearchBox.tsx:SearchBox",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:frontend/src/components/SearchBox.tsx",
+      "target": "function:frontend/src/components/SearchBox.tsx:SearchBox",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:frontend/src/components/ResultList.tsx",
+      "target": "function:frontend/src/components/ResultList.tsx:ResultList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:frontend/src/components/ResultList.tsx",
+      "target": "function:frontend/src/components/ResultList.tsx:ResultList",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/api.ts:login",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/api.ts:listKBs",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/api.ts:search",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/components/SearchBox.tsx:SearchBox",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/components/ResultList.tsx:ResultList",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

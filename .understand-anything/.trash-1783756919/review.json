@@ -1,0 +1,46 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md' has no edges (orphan)",
+    "Node 'file:.understand-anything/.understandignore' has no edges (orphan)",
+    "Node 'config:.understand-anything/intermediate/scan-result.json' has no edges (orphan)",
+    "Node 'file:backend/app/auth/__init__.py' has no edges (orphan)",
+    "Node 'file:backend/app/plugins/__init__.py' has no edges (orphan)",
+    "Node 'file:backend/app/routers/__init__.py' has no edges (orphan)",
+    "Node 'file:backend/app/schemas/__init__.py' has no edges (orphan)",
+    "Node 'file:backend/app/services/__init__.py' has no edges (orphan)",
+    "Node 'file:backend/app/workers/__init__.py' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 226,
+    "totalEdges": 455,
+    "totalLayers": 8,
+    "tourSteps": 12,
+    "nodeTypes": {
+      "file": 65,
+      "function": 85,
+      "class": 24,
+      "service": 11,
+      "config": 10,
+      "document": 23,
+      "table": 7,
+      "schema": 1
+    },
+    "edgeTypes": {
+      "imports": 109,
+      "contains": 117,
+      "exports": 90,
+      "calls": 43,
+      "depends_on": 13,
+      "inherits": 13,
+      "deploys": 2,
+      "configures": 13,
+      "documents": 18,
+      "triggers": 1,
+      "related": 24,
+      "migrates": 7,
+      "tested_by": 1,
+      "defines_schema": 4
+    }
+  }
+}

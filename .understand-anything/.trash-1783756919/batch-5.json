@@ -1,0 +1,277 @@
+{
+  "nodes": [
+    {
+      "id": "file:backend/app/auth/bootstrap.py",
+      "type": "file",
+      "name": "bootstrap.py",
+      "filePath": "backend/app/auth/bootstrap.py",
+      "summary": "系统首次启动时初始化 owner 租户与管理员账号的引导模块；若数据库中尚无 owner 角色用户，则按配置创建默认 Tenant 与 User。",
+      "tags": ["auth", "bootstrap", "initialization", "multi-tenant", "owner"],
+      "complexity": "moderate",
+      "languageNotes": "依赖 Settings 注入 BOOTSTRAP_OWNER_EMAIL/PASSWORD，避免将初始凭证硬编码进源码。"
+    },
+    {
+      "id": "function:backend/app/auth/bootstrap.py:ensure_bootstrap_owner",
+      "type": "function",
+      "name": "ensure_bootstrap_owner",
+      "filePath": "backend/app/auth/bootstrap.py",
+      "lineRange": [20, 52],
+      "summary": "查询数据库判断是否已存在 owner 用户；若不存在则创建 Tenant 与首个 owner 用户并提交事务，用于系统首次启动引导。",
+      "tags": ["auth", "bootstrap", "owner", "initialization", "database-seed"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/auth/password.py",
+      "type": "file",
+      "name": "password.py",
+      "filePath": "backend/app/auth/password.py",
+      "summary": "密码哈希与校验工具模块，基于 argon2 算法封装 hash_password / verify_password 两个函数，供登录与引导流程复用。",
+      "tags": ["auth", "password", "argon2", "security", "utility"],
+      "complexity": "simple",
+      "languageNotes": "使用 passlib 的 CryptContext，scheme 指定为 argon2，自动处理盐值与哈希参数。"
+    },
+    {
+      "id": "function:backend/app/auth/password.py:hash_password",
+      "type": "function",
+      "name": "hash_password",
+      "filePath": "backend/app/auth/password.py",
+      "lineRange": [11, 13],
+      "summary": "将明文密码使用 argon2 上下文转换为哈希字符串返回。",
+      "tags": ["auth", "password", "argon2", "hashing", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/app/auth/password.py:verify_password",
+      "type": "function",
+      "name": "verify_password",
+      "filePath": "backend/app/auth/password.py",
+      "lineRange": [16, 18],
+      "summary": "对明文与已哈希密码进行 argon2 校验，返回布尔值表示是否匹配。",
+      "tags": ["auth", "password", "argon2", "verification", "security"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/tests/test_auth.py",
+      "type": "file",
+      "name": "test_auth.py",
+      "filePath": "backend/tests/test_auth.py",
+      "summary": "认证模块集成测试，覆盖密码哈希/校验、JWT 令牌签发解析、登录成功与失败、/me 接口鉴权五条关键路径。",
+      "tags": ["test", "auth", "jwt", "login", "integration-test"],
+      "complexity": "moderate",
+      "languageNotes": "借助 conftest.py 提供的 client 与 auth_token fixture 完成 API 端到端测试。"
+    },
+    {
+      "id": "function:backend/tests/test_auth.py:test_password_hash_and_verify",
+      "type": "function",
+      "name": "test_password_hash_and_verify",
+      "filePath": "backend/tests/test_auth.py",
+      "lineRange": [10, 16],
+      "summary": "验证 hash_password 与 verify_password 的正向匹配与负向不匹配行为。",
+      "tags": ["test", "password", "argon2", "unit-test"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/test_auth.py:test_jwt_create_and_decode",
+      "type": "function",
+      "name": "test_jwt_create_and_decode",
+      "filePath": "backend/tests/test_auth.py",
+      "lineRange": [19, 24],
+      "summary": "验证 create_access_token 签发的 JWT 可被 decode_token 正确解析并保留 user_id。",
+      "tags": ["test", "jwt", "token", "unit-test"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/test_auth.py:test_login_success",
+      "type": "function",
+      "name": "test_login_success",
+      "filePath": "backend/tests/test_auth.py",
+      "lineRange": [28, 37],
+      "summary": "通过 TestClient 调用 /auth/login 端点验证正确凭据返回 token 与用户信息。",
+      "tags": ["test", "auth", "login", "integration-test"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/test_auth.py:test_login_wrong_password",
+      "type": "function",
+      "name": "test_login_wrong_password",
+      "filePath": "backend/tests/test_auth.py",
+      "lineRange": [41, 47],
+      "summary": "验证错误密码登录请求返回 401/失败状态，确保认证失败路径正确处理。",
+      "tags": ["test", "auth", "login", "negative-test"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/tests/test_auth.py:test_me_with_token",
+      "type": "function",
+      "name": "test_me_with_token",
+      "filePath": "backend/tests/test_auth.py",
+      "lineRange": [51, 60],
+      "summary": "携带 auth_token 调用 /auth/me 接口，验证 JWT 鉴权后能正确返回当前用户信息。",
+      "tags": ["test", "auth", "jwt", "me-endpoint", "integration-test"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/auth/password.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "file:backend/app/auth/jwt_handler.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "file:backend/app/auth/password.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "function:backend/app/auth/bootstrap.py:ensure_bootstrap_owner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "function:backend/app/auth/bootstrap.py:ensure_bootstrap_owner",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:verify_password",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:verify_password",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_password_hash_and_verify",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_jwt_create_and_decode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_login_success",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_login_wrong_password",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_me_with_token",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:backend/app/auth/bootstrap.py:ensure_bootstrap_owner",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "file:backend/app/auth/routes.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_password_hash_and_verify",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_password_hash_and_verify",
+      "target": "function:backend/app/auth/password.py:verify_password",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_jwt_create_and_decode",
+      "target": "function:backend/app/auth/jwt_handler.py:create_access_token",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_jwt_create_and_decode",
+      "target": "function:backend/app/auth/jwt_handler.py:decode_token",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

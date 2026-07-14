@@ -1,0 +1,166 @@
+{
+  "nodes": [
+    {
+      "id": "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "type": "document",
+      "name": "0001-halfvec-multi-dim.md",
+      "filePath": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "summary": "ADR 0001：选用 pgvector halfvec 实现多维度向量共存方案，对比 single-dim LanceDB 等候选，确立 halfvec 多列共存 + cast 查询的实现路径与后果。",
+      "tags": ["documentation", "adr", "架构决策", "pgvector", "向量存储"],
+      "complexity": "simple",
+      "languageNotes": "极简 ADR（25 行），含 Considered Options + Consequences + 参考实现三段式。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "document",
+      "name": "0002-tenant-org-rbac.md",
+      "filePath": "mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "summary": "ADR 0002：确立 Tenant + Organization 两层 RBAC 模型，定义 fall-through 三步短路的权限合并算法及「空间视角下显示只读」的语义解释。",
+      "tags": ["documentation", "adr", "rbac", "多租户", "权限模型"],
+      "complexity": "moderate",
+      "languageNotes": "8 个小节，含完整合并算法描述与多个 Considered Options 对比。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "type": "document",
+      "name": "0003-three-edge-model.md",
+      "filePath": "mydocs/context/docs/adr/0003-three-edge-model.md",
+      "summary": "ADR 0003：定义三套边并存模型 —— 链接图边（无类型/无权/有向）+ 目录树边（两套父子结构）+ 溯源边（页面→原文档），并约束 7 种页面类型。",
+      "tags": ["documentation", "adr", "图模型", "知识图谱", "数据模型"],
+      "complexity": "moderate",
+      "languageNotes": "11 个小节，每种边类型均有独立的语义与约束说明。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "type": "document",
+      "name": "0004-http-mcp-server.md",
+      "filePath": "mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "summary": "ADR 0004：选择 HTTP + MCP 双协议 server 方案对外暴露 Agent 工具集，对比 stdio MCP、纯 HTTP API 等候选，列出遗留待 grill 的开放问题。",
+      "tags": ["documentation", "adr", "mcp", "api设计", "agent"],
+      "complexity": "simple",
+      "languageNotes": "7 个小节，含 Open Questions 段落明确未决问题。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "type": "document",
+      "name": "0005-self-signup-and-invitation.md",
+      "filePath": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "summary": "ADR 0005：确立自注册 + 邀请制账户体系，覆盖自注册流程、organization 创建、邀请加入、workspace context 切换及鉴权机制（含 OIDC SSO 占位）。",
+      "tags": ["documentation", "adr", "认证", "账户体系", "邀请制"],
+      "complexity": "moderate",
+      "languageNotes": "12 个小节，含完整流程描述与鉴权细节。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "type": "document",
+      "name": "0006-agent-runtime-byok.md",
+      "filePath": "mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "summary": "ADR 0006：定义 Agent Runtime + BYOK + 双 AI 通道方案 —— 嵌入模型与 LLM 模型分离、LLM Provider Registry、用户自带 Key 机制；并标注零 LLM 意图分类方案已于 2026-07-09 弃用。",
+      "tags": ["documentation", "adr", "agent", "byok", "llm"],
+      "complexity": "moderate",
+      "languageNotes": "13 个小节，含明确的弃用标记（❌ 2026-07-09）。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "type": "document",
+      "name": "0007-multi-source-mounting.md",
+      "filePath": "mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "summary": "ADR 0007：确立多源挂载方案 —— 统一 Source 抽象（source_type + config + sync_cursor）、SourceAdapter 接口、无优先级 + 冲突处理 + RBAC，并按 Phase 划分 P1/P4/P5/P6 各阶段范围。",
+      "tags": ["documentation", "adr", "数据源", "挂载", "adapter"],
+      "complexity": "moderate",
+      "languageNotes": "12 个小节，含 sources 表 schema 与各 source_type 的 config 详解。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "type": "document",
+      "name": "0008-mvp-scope.md",
+      "filePath": "mydocs/context/docs/adr/0008-mvp-scope.md",
+      "summary": "ADR 0008：明确 MVP（P1）范围裁剪决策 —— 实现 6 个核心模块 + 鉴权极简 + 7 张空表 schema 预留（Organization/OrgMember/KBShare/LLMProvider 等），并列出完全不做的项。",
+      "tags": ["documentation", "adr", "mvp", "范围裁剪", "路线图"],
+      "complexity": "moderate",
+      "languageNotes": "11 个小节，明确划分「实现 / schema 预留 / 完全不做」三档。"
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "type": "document",
+      "name": "0009-retrieval-architecture.md",
+      "filePath": "mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "summary": "ADR 0009：定义检索架构双路径 —— IndexingStrategy 四开关 + 三种典型 KB 配置 + wiki_search（POSIX 正则 + 字段权重）与普通 RAG（+ wiki chunk boost 1.3）两条路径 + KB 类型推断（替代已弃用的意图分类）。",
+      "tags": ["documentation", "adr", "检索架构", "rag", "wiki"],
+      "complexity": "moderate",
+      "languageNotes": "13 个小节（200 行），是 9 个 ADR 中最大的一个，与 0001 halfvec 决策紧密耦合。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "target": "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "target": "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "target": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

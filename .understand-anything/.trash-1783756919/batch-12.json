@@ -1,0 +1,144 @@
+{
+  "nodes": [
+    {
+      "id": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "type": "document",
+      "name": "2026-06-14_12-44_知识库客户端原型设计.md",
+      "filePath": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "summary": "知识库客户端原型设计 Spec，定义 Editorial 视觉系统（字体/配色/布局/动效）与四大界面（AI 对话、文档管理、知识图谱、全局搜索），并给出技术选型与原子化实现 Checklist。",
+      "tags": ["documentation", "spec", "prototype-design", "ui-ux", "sdd"],
+      "complexity": "complex",
+      "languageNotes": "采用 SDD 方法论 Spec 模板，含 RIPER 状态、Open Questions、Plan、Validation 等标准段落。"
+    },
+    {
+      "id": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "type": "document",
+      "name": "2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "filePath": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "summary": "MVP P1 第一批 RAG 基础闭环的 SDD Spec（当前代码库已实现版本），覆盖脚手架初始化、Docker 编排、Alembic schema、JWT 鉴权、KB API、文档异步解析、路径 B 检索、最小前端与端到端验收，附完整 Execute Log 与 Review Verdict。",
+      "tags": ["documentation", "spec", "rag", "mvp", "sdd", "implementation-spec"],
+      "complexity": "complex",
+      "languageNotes": "Spec↔Code 一致性已通过 Review（含 CRITICAL/HIGH/MEDIUM/LOW 分级问题清单），是当前 backend/ 与 frontend/ 代码的实现来源。"
+    },
+    {
+      "id": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "type": "document",
+      "name": "llm-wiki-design-decision.html",
+      "filePath": "mydocs/specs/llm-wiki-design-decision.html",
+      "summary": "LLM Wiki 设计决策研究文档（HTML 形式），记录 v4.2 设计阶段的关键技术选型与权衡，作为 PRD 与 ADR 的补充背景资料。",
+      "tags": ["documentation", "design-decision", "research", "html"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:mydocs/specs/obsidian-wiki-research.html",
+      "type": "document",
+      "name": "obsidian-wiki-research.html",
+      "filePath": "mydocs/specs/obsidian-wiki-research.html",
+      "summary": "Obsidian Wiki 调研报告（HTML 形式），系统梳理 Obsidian 在知识库场景的能力、插件生态、双向链接与图谱机制，作为本项目设计参考。",
+      "tags": ["documentation", "research", "obsidian", "knowledge-graph", "html"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "type": "document",
+      "name": "obsidian-wiki-vs-gbrain-comparison.html",
+      "filePath": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "summary": "Obsidian Wiki 与 GBrain（同工作区参考实现）对比分析报告（HTML 形式），从架构、检索、图谱、扩展性等维度对比两套方案，为本项目设计取舍提供依据。",
+      "tags": ["documentation", "comparison", "research", "architecture", "html"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/app/main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/alembic/versions/001_initial.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/app/services/search_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/app/services/document_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/Dockerfile",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "target": "file:frontend/src/App.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "document:mydocs/specs/obsidian-wiki-research.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/obsidian-wiki-research.html",
+      "target": "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "file:backend/app/main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

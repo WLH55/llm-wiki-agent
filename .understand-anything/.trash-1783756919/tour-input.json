@@ -1,0 +1,3894 @@
+{
+  "fileNodes": [
+    {
+      "id": "file:backend/app/auth/jwt_handler.py",
+      "name": "jwt_handler.py",
+      "filePath": "backend/app/auth/jwt_handler.py",
+      "summary": "JWT 鉴权模块，使用 HS256 算法签发与解码 access token，默认 24 小时过期，无 refresh token，遵循 ADR-0008 极简鉴权策略。",
+      "type": "file",
+      "tags": [
+        "auth",
+        "jwt",
+        "security",
+        "token",
+        "service"
+      ]
+    },
+    {
+      "id": "file:backend/app/config/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/config/__init__.py",
+      "summary": "配置包 barrel，聚合导出 settings、setup_logging、异常类与响应封装（ApiResponse/PageResponse），是整个后端 config 层的统一入口。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "config",
+        "exports"
+      ]
+    },
+    {
+      "id": "file:backend/app/config/dependencies.py",
+      "name": "dependencies.py",
+      "filePath": "backend/app/config/dependencies.py",
+      "summary": "FastAPI 依赖注入模块，提供 get_db 异步会话依赖与 get_current_user JWT 鉴权依赖，并定义 DbDep/CurrentUserDep 类型别名简化路由签名。",
+      "type": "file",
+      "tags": [
+        "dependency-injection",
+        "auth",
+        "middleware",
+        "database",
+        "service"
+      ]
+    },
+    {
+      "id": "file:backend/app/config/logger_config.py",
+      "name": "logger_config.py",
+      "filePath": "backend/app/config/logger_config.py",
+      "summary": "日志系统配置模块，按日期轮转日志文件、自动 gzip 压缩旧日志、清理超过保留期的日志，同时输出到控制台和文件。",
+      "type": "file",
+      "tags": [
+        "logging",
+        "config",
+        "utility",
+        "rotation"
+      ]
+    },
+    {
+      "id": "file:backend/app/config/settings.py",
+      "name": "settings.py",
+      "filePath": "backend/app/config/settings.py",
+      "summary": "基于 Pydantic V2 BaseSettings 的全局配置中心，按 ENVIRONMENT 切换 .env 文件，统一管理应用、CORS、日志、Postgres、Redis、MinIO、JWT、Bootstrap owner、Embedding、RAG 等所有配置项。",
+      "type": "file",
+      "tags": [
+        "config",
+        "settings",
+        "pydantic",
+        "env",
+        "service"
+      ]
+    },
+    {
+      "id": "file:backend/app/database.py",
+      "name": "database.py",
+      "filePath": "backend/app/database.py",
+      "summary": "数据库连接模块，创建异步 SQLAlchemy engine（pool_pre_ping + pool_size=10）与 async_session_factory，是全应用唯一的 AsyncSession 提供者。",
+      "type": "file",
+      "tags": [
+        "database",
+        "sqlalchemy",
+        "async",
+        "session",
+        "service"
+      ]
+    },
+    {
+      "id": "file:backend/app/main.py",
+      "name": "main.py",
+      "filePath": "backend/app/main.py",
+      "summary": "FastAPI 应用入口，create_app() 工厂模式组装中间件（CORS + 请求体缓存）、全局异常处理器、auth/kb/document/search 四组路由、健康检查与 SPA 静态托管（无 nginx）；lifespan 中触发 bootstrap owner 初始化。",
+      "type": "file",
+      "tags": [
+        "entry-point",
+        "fastapi",
+        "router",
+        "middleware",
+        "spa"
+      ]
+    },
+    {
+      "id": "file:backend/app/services/embedding_service.py",
+      "name": "embedding_service.py",
+      "filePath": "backend/app/services/embedding_service.py",
+      "summary": "嵌入服务：通过 OpenAI SDK 调用 SiliconFlow bge-m3 API，输出 1024 维向量，提供懒加载单例 client 与批量/单条嵌入接口。",
+      "type": "file",
+      "tags": [
+        "service",
+        "embedding",
+        "openai",
+        "rag",
+        "singleton"
+      ]
+    },
+    {
+      "id": "file:backend/app/services/minio_service.py",
+      "name": "minio_service.py",
+      "filePath": "backend/app/services/minio_service.py",
+      "summary": "MinIO 对象存储服务：提供懒加载单例 client、bucket 自动创建、字节流上传（返回 {bucket}/{key}）与下载接口，是文档原始文件的存取层。",
+      "type": "file",
+      "tags": [
+        "service",
+        "minio",
+        "storage",
+        "singleton",
+        "s3"
+      ]
+    },
+    {
+      "id": "file:backend/app/workers/chunker.py",
+      "name": "chunker.py",
+      "filePath": "backend/app/workers/chunker.py",
+      "summary": "CJK 友好的文本分块器：按中英文句号切分、单句超长硬切、块间 overlap 保留上下文连续性（默认 300 词/50 词重叠），中文按字计、英文按 5 字符约 1 词估算。",
+      "type": "file",
+      "tags": [
+        "chunker",
+        "rag",
+        "text-processing",
+        "cjk",
+        "utility"
+      ]
+    },
+    {
+      "id": "file:backend/app/workers/parse_document.py",
+      "name": "parse_document.py",
+      "filePath": "backend/app/workers/parse_document.py",
+      "summary": "异步文档解析主任务：从 MinIO 拉文件 → 按扩展名解析 → CJK 分块 → 调嵌入 API → raw SQL 写 content_chunks（halfvec cast）→ 更新文档状态；任何异常标记 failed。",
+      "type": "file",
+      "tags": [
+        "worker",
+        "rag",
+        "pipeline",
+        "async",
+        "document"
+      ]
+    },
+    {
+      "id": "file:backend/app/workers/parsers.py",
+      "name": "parsers.py",
+      "filePath": "backend/app/workers/parsers.py",
+      "summary": "文件解析器：按扩展名分派到 PDF（pdfplumber）/ Markdown / TXT / DOCX（优先 unstructured，回退 python-docx）解析器，未知扩展名按纯文本处理。",
+      "type": "file",
+      "tags": [
+        "parser",
+        "document",
+        "rag",
+        "factory",
+        "utility"
+      ]
+    },
+    {
+      "id": "file:backend/app/workers/queue.py",
+      "name": "queue.py",
+      "filePath": "backend/app/workers/queue.py",
+      "summary": "RQ 任务队列定义：连接 Redis 创建 parse 队列，提供 enqueue_parse_document（入队）与 run_parse_document（同步 wrapper，内部 asyncio.run 跑异步任务）。",
+      "type": "file",
+      "tags": [
+        "queue",
+        "redis",
+        "rq",
+        "worker",
+        "async"
+      ]
+    },
+    {
+      "id": "file:backend/app/workers/worker.py",
+      "name": "worker.py",
+      "filePath": "backend/app/workers/worker.py",
+      "summary": "RQ worker 进程入口（python -m app.workers.worker）：配置基础日志、连接 Redis、启动 Worker 监听 parse 队列。",
+      "type": "file",
+      "tags": [
+        "entry-point",
+        "worker",
+        "rq",
+        "redis"
+      ]
+    },
+    {
+      "id": "file:backend/app/auth/routes.py",
+      "name": "routes.py",
+      "filePath": "backend/app/auth/routes.py",
+      "summary": "认证路由模块，提供 /login 登录接口（校验邮箱密码并签发 JWT）与 /me 接口（返回当前用户信息）。",
+      "type": "file",
+      "tags": [
+        "api-handler",
+        "auth",
+        "router",
+        "jwt",
+        "fastapi"
+      ]
+    },
+    {
+      "id": "file:backend/app/config/exceptions.py",
+      "name": "exceptions.py",
+      "filePath": "backend/app/config/exceptions.py",
+      "summary": "全局异常处理模块，定义业务异常类（BusinessValidationException、ResourceNotFoundException）并注册 FastAPI 异常处理器，统一错误响应格式并写入结构化日志。",
+      "type": "file",
+      "tags": [
+        "middleware",
+        "exception-handler",
+        "error-handling",
+        "logging",
+        "config"
+      ]
+    },
+    {
+      "id": "file:backend/app/config/schemas.py",
+      "name": "schemas.py",
+      "filePath": "backend/app/config/schemas.py",
+      "summary": "全局响应 Schema 定义，提供 ApiResponse 统一响应封装、PageResponse 分页响应封装及 ResponseCode 业务状态码枚举。",
+      "type": "file",
+      "tags": [
+        "type-definition",
+        "response-envelope",
+        "schema",
+        "config",
+        "serialization"
+      ]
+    },
+    {
+      "id": "file:backend/app/deps.py",
+      "name": "deps.py",
+      "filePath": "backend/app/deps.py",
+      "summary": "依赖注入快捷 re-export 模块，集中导出 DbDep、CurrentUserDep、get_db、get_current_user，简化路由层 import。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "dependency-injection",
+        "fastapi",
+        "re-export",
+        "config"
+      ]
+    },
+    {
+      "id": "file:backend/app/routers/document.py",
+      "name": "document.py",
+      "filePath": "backend/app/routers/document.py",
+      "summary": "文档路由模块，提供文档上传接口（接收文件并触发解析流水线）与文档状态查询接口。",
+      "type": "file",
+      "tags": [
+        "api-handler",
+        "router",
+        "document",
+        "upload",
+        "fastapi"
+      ]
+    },
+    {
+      "id": "file:backend/app/routers/kb.py",
+      "name": "kb.py",
+      "filePath": "backend/app/routers/kb.py",
+      "summary": "知识库管理路由模块，提供知识库的创建、查询、列表接口，所有操作均按当前用户租户隔离。",
+      "type": "file",
+      "tags": [
+        "api-handler",
+        "router",
+        "knowledge-base",
+        "crud",
+        "fastapi"
+      ]
+    },
+    {
+      "id": "file:backend/app/routers/search.py",
+      "name": "search.py",
+      "filePath": "backend/app/routers/search.py",
+      "summary": "搜索路由模块，提供知识库混合检索接口，支持 vector / keyword / hybrid 多种模式参数。",
+      "type": "file",
+      "tags": [
+        "api-handler",
+        "router",
+        "search",
+        "rag",
+        "fastapi"
+      ]
+    },
+    {
+      "id": "file:backend/app/schemas/auth.py",
+      "name": "auth.py",
+      "filePath": "backend/app/schemas/auth.py",
+      "summary": "认证相关 Pydantic Schema，定义 LoginRequest 登录请求、TokenResponse JWT 响应、UserResponse 用户信息响应。",
+      "type": "file",
+      "tags": [
+        "type-definition",
+        "schema",
+        "auth",
+        "pydantic",
+        "serialization"
+      ]
+    },
+    {
+      "id": "file:backend/app/schemas/document.py",
+      "name": "document.py",
+      "filePath": "backend/app/schemas/document.py",
+      "summary": "文档相关 Pydantic Schema，定义 DocumentUploadResponse 上传响应与 DocumentStatusResponse 状态查询响应。",
+      "type": "file",
+      "tags": [
+        "type-definition",
+        "schema",
+        "document",
+        "pydantic",
+        "serialization"
+      ]
+    },
+    {
+      "id": "file:backend/app/schemas/kb.py",
+      "name": "kb.py",
+      "filePath": "backend/app/schemas/kb.py",
+      "summary": "知识库相关 Pydantic Schema，定义 KBCreate 创建请求（含 embedding 维度与多路检索开关）与 KBResponse 响应。",
+      "type": "file",
+      "tags": [
+        "type-definition",
+        "schema",
+        "knowledge-base",
+        "pydantic",
+        "serialization"
+      ]
+    },
+    {
+      "id": "file:backend/app/schemas/search.py",
+      "name": "search.py",
+      "filePath": "backend/app/schemas/search.py",
+      "summary": "搜索相关 Pydantic Schema，定义 ChunkHit 单条命中（含向量距离、BM25 排名等溯源字段）与 SearchResponse 响应。",
+      "type": "file",
+      "tags": [
+        "type-definition",
+        "schema",
+        "search",
+        "rag",
+        "pydantic"
+      ]
+    },
+    {
+      "id": "file:backend/app/services/document_service.py",
+      "name": "document_service.py",
+      "filePath": "backend/app/services/document_service.py",
+      "summary": "文档业务服务层，处理文档上传流水线（校验、MinIO 落桶、DB 落库、入队解析任务）与文档状态查询。",
+      "type": "file",
+      "tags": [
+        "service",
+        "document",
+        "upload-pipeline",
+        "minio",
+        "business-logic"
+      ]
+    },
+    {
+      "id": "file:backend/app/services/kb_service.py",
+      "name": "kb_service.py",
+      "filePath": "backend/app/services/kb_service.py",
+      "summary": "知识库业务服务层，提供 create_kb / get_kb / list_kbs 三个核心函数，全部按 tenant_id 做数据隔离并支持软删除过滤。",
+      "type": "file",
+      "tags": [
+        "service",
+        "knowledge-base",
+        "crud",
+        "multi-tenant",
+        "business-logic"
+      ]
+    },
+    {
+      "id": "file:backend/app/services/search_service.py",
+      "name": "search_service.py",
+      "filePath": "backend/app/services/search_service.py",
+      "summary": "混合检索核心服务，实现 pgvector halfvec 向量检索、Postgres BM25 关键词检索、RRF 融合算法及统一 search 入口（按 mode 分派 vector/keyword/hybrid）。",
+      "type": "file",
+      "tags": [
+        "service",
+        "search",
+        "rag",
+        "rrf-fusion",
+        "pgvector"
+      ]
+    },
+    {
+      "id": "file:backend/alembic/env.py",
+      "name": "env.py",
+      "filePath": "backend/alembic/env.py",
+      "summary": "Alembic 迁移环境配置，使用 asyncpg 异步引擎从 POSTGRES_DSN 注入 DSN，导入全部 ORM model 触发 Base.metadata 注册以支持 autogenerate。",
+      "type": "file",
+      "tags": [
+        "migration",
+        "alembic",
+        "infrastructure",
+        "asyncpg"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/models/__init__.py",
+      "summary": "Models 包入口，统一导入所有 ORM model 触发 Base.metadata 注册（Alembic autogenerate 依赖），并对外暴露 __all__ 列表。",
+      "type": "file",
+      "tags": [
+        "entry-point",
+        "barrel",
+        "data-model",
+        "orm"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/base.py",
+      "name": "base.py",
+      "filePath": "backend/app/models/base.py",
+      "summary": "SQLAlchemy 2.x declarative Base 定义，以及 TimestampMixin（created_at/updated_at/deleted_at 软删除）和 TenantMixin（tenant_id 多租户字段）两个通用混入。",
+      "type": "file",
+      "tags": [
+        "data-model",
+        "orm",
+        "mixin",
+        "base-class"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/chunk.py",
+      "name": "chunk.py",
+      "filePath": "backend/app/models/chunk.py",
+      "summary": "ContentChunk 模型：内容块表，承载向量检索 + 全文检索双路径。embedding(halfvec) 与 search_vector(tsvector) 列 DDL 在 migration 手写（SQLAlchemy 原生不支持 halfvec）。",
+      "type": "file",
+      "tags": [
+        "data-model",
+        "orm",
+        "pgvector",
+        "halfvec",
+        "hybrid-search"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/document.py",
+      "name": "document.py",
+      "filePath": "backend/app/models/document.py",
+      "summary": "Document 模型：上传文档元数据表，记录 minio_key、解析状态（status/error_message）和处理时间，由 worker 异步解析后产出 ContentChunk。",
+      "type": "file",
+      "tags": [
+        "data-model",
+        "orm",
+        "document-upload"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/kb.py",
+      "name": "kb.py",
+      "filePath": "backend/app/models/kb.py",
+      "summary": "KnowledgeBase 模型：知识库元数据表，定义 embedding_model、embedding_dim 维度及 vector/keyword/wiki/graph 四个能力开关，是整个系统的核心组织实体。",
+      "type": "file",
+      "tags": [
+        "data-model",
+        "orm",
+        "knowledge-base",
+        "core-entity"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/reserved.py",
+      "name": "reserved.py",
+      "filePath": "backend/app/models/reserved.py",
+      "summary": "P2+ 预留模型集合：Organization/OrgMember/KBShare（组织共享）、LLMProvider/UserLLMKey（密钥管理）、WikiFolder/WikiPage（Wiki 体系）。MVP 阶段定义但不在主链路使用。",
+      "type": "file",
+      "tags": [
+        "data-model",
+        "orm",
+        "reserved",
+        "p2-future"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/source.py",
+      "name": "source.py",
+      "filePath": "backend/app/models/source.py",
+      "summary": "Source 模型：知识库数据源表（source_type、config、sync_cursor），用于增量同步外部数据源的游标管理。",
+      "type": "file",
+      "tags": [
+        "data-model",
+        "orm",
+        "data-source",
+        "sync"
+      ]
+    },
+    {
+      "id": "file:backend/app/models/user.py",
+      "name": "user.py",
+      "filePath": "backend/app/models/user.py",
+      "summary": "Tenant 与 User 模型：租户表 + 用户表（email 登录、password_hash、role 三档 RBAC、is_active 状态）。",
+      "type": "file",
+      "tags": [
+        "data-model",
+        "orm",
+        "user",
+        "auth",
+        "rbac"
+      ]
+    },
+    {
+      "id": "file:frontend/src/main.tsx",
+      "name": "main.tsx",
+      "filePath": "frontend/src/main.tsx",
+      "summary": "Vite 应用入口，挂载 React 根节点并加载全局样式与 App 组件。",
+      "type": "file",
+      "tags": [
+        "entry-point",
+        "vite",
+        "react-bootstrap"
+      ]
+    },
+    {
+      "id": "file:frontend/src/App.tsx",
+      "name": "App.tsx",
+      "filePath": "frontend/src/App.tsx",
+      "summary": "React Router 根组件，配置路由表将根路径指向 Search 搜索页。",
+      "type": "file",
+      "tags": [
+        "entry-point",
+        "router",
+        "component"
+      ]
+    },
+    {
+      "id": "file:frontend/src/api.ts",
+      "name": "api.ts",
+      "filePath": "frontend/src/api.ts",
+      "summary": "基于 axios 的 HTTP 客户端，封装登录、知识库列表与搜索三个 /api/* 接口调用。",
+      "type": "file",
+      "tags": [
+        "api-handler",
+        "http-client",
+        "service"
+      ]
+    },
+    {
+      "id": "file:frontend/src/pages/Search.tsx",
+      "name": "Search.tsx",
+      "filePath": "frontend/src/pages/Search.tsx",
+      "summary": "搜索页容器组件，编排登录引导、知识库选择、查询提交与结果展示的完整状态流转。",
+      "type": "file",
+      "tags": [
+        "page",
+        "component",
+        "state-management",
+        "search"
+      ]
+    },
+    {
+      "id": "file:frontend/src/components/SearchBox.tsx",
+      "name": "SearchBox.tsx",
+      "filePath": "frontend/src/components/SearchBox.tsx",
+      "summary": "搜索输入组件，受控管理查询文本并通过 onSearch 回调将非空查询提交给父组件。",
+      "type": "file",
+      "tags": [
+        "component",
+        "form",
+        "search",
+        "controlled-input"
+      ]
+    },
+    {
+      "id": "file:frontend/src/components/ResultList.tsx",
+      "name": "ResultList.tsx",
+      "filePath": "frontend/src/components/ResultList.tsx",
+      "summary": "搜索结果列表组件，按 score 排序展示每个 chunk 命中的文档标题、内容片段与相似度分数。",
+      "type": "file",
+      "tags": [
+        "component",
+        "list",
+        "search",
+        "presentation"
+      ]
+    },
+    {
+      "id": "file:backend/app/auth/bootstrap.py",
+      "name": "bootstrap.py",
+      "filePath": "backend/app/auth/bootstrap.py",
+      "summary": "系统首次启动时初始化 owner 租户与管理员账号的引导模块；若数据库中尚无 owner 角色用户，则按配置创建默认 Tenant 与 User。",
+      "type": "file",
+      "tags": [
+        "auth",
+        "bootstrap",
+        "initialization",
+        "multi-tenant",
+        "owner"
+      ]
+    },
+    {
+      "id": "file:backend/app/auth/password.py",
+      "name": "password.py",
+      "filePath": "backend/app/auth/password.py",
+      "summary": "密码哈希与校验工具模块，基于 argon2 算法封装 hash_password / verify_password 两个函数，供登录与引导流程复用。",
+      "type": "file",
+      "tags": [
+        "auth",
+        "password",
+        "argon2",
+        "security",
+        "utility"
+      ]
+    },
+    {
+      "id": "file:backend/tests/test_auth.py",
+      "name": "test_auth.py",
+      "filePath": "backend/tests/test_auth.py",
+      "summary": "认证模块集成测试，覆盖密码哈希/校验、JWT 令牌签发解析、登录成功与失败、/me 接口鉴权五条关键路径。",
+      "type": "file",
+      "tags": [
+        "test",
+        "auth",
+        "jwt",
+        "login",
+        "integration-test"
+      ]
+    },
+    {
+      "id": "service:backend/Dockerfile",
+      "name": "Dockerfile",
+      "filePath": "backend/Dockerfile",
+      "summary": "后端单镜像多阶段构建：第一阶段用 node:20-alpine 构建前端静态产物，第二阶段基于 python:3.11-slim 装入后端代码与前端 dist，最终在同一容器内运行 alembic 迁移与 uvicorn 服务，对外暴露 8000 端口。",
+      "type": "service",
+      "tags": [
+        "containerization",
+        "infrastructure",
+        "deployment",
+        "multi-stage-build",
+        "single-image"
+      ]
+    },
+    {
+      "id": "service:backend/Dockerfile:frontend-build",
+      "name": "frontend-build",
+      "filePath": "backend/Dockerfile",
+      "summary": "构建阶段一：基于 node:20-alpine，安装 npm 依赖并执行 npm run build 产出前端 dist 静态产物。",
+      "type": "service",
+      "tags": [
+        "containerization",
+        "build-stage",
+        "frontend",
+        "node"
+      ]
+    },
+    {
+      "id": "service:backend/Dockerfile:python",
+      "name": "python",
+      "filePath": "backend/Dockerfile",
+      "summary": "构建阶段二（运行时）：基于 python:3.11-slim 安装后端依赖，COPY 前端 dist 到 static/，启动时先运行 alembic 迁移再以 uvicorn 启动 FastAPI，对外暴露 8000。",
+      "type": "service",
+      "tags": [
+        "containerization",
+        "runtime",
+        "python",
+        "fastapi",
+        "uvicorn"
+      ]
+    },
+    {
+      "id": "service:postgres/Dockerfile",
+      "name": "Dockerfile",
+      "filePath": "postgres/Dockerfile",
+      "summary": "定制版 postgres:16 镜像：apt 安装编译依赖后通过 git 拉取 pgvector v0.7.4 与 pg_zhparser 源码并完成 make install，将 init-extensions.sql 复制到容器启动钩子目录以自动启用向量检索与中文分词。",
+      "type": "service",
+      "tags": [
+        "containerization",
+        "infrastructure",
+        "postgres",
+        "pgvector",
+        "chinese-tokenizer"
+      ]
+    },
+    {
+      "id": "service:postgres/Dockerfile:postgres",
+      "name": "postgres",
+      "filePath": "postgres/Dockerfile",
+      "summary": "从 postgres:16 基础镜像出发，安装编译工具链，构建并安装 pgvector 与 pg_zhparser 扩展，作为向量检索与中文分词的运行时。",
+      "type": "service",
+      "tags": [
+        "containerization",
+        "postgres",
+        "extensions",
+        "runtime"
+      ]
+    },
+    {
+      "id": "config:.env.example",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "项目环境变量示例文件，按 Postgres、MinIO、JWT、Bootstrap Owner、Embedding 五个分组列出所有必需运行参数，作为 .env 的复制模板。",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "environment-variables",
+        "template",
+        "secrets"
+      ]
+    },
+    {
+      "id": "config:Makefile",
+      "name": "Makefile",
+      "filePath": "Makefile",
+      "summary": "封装常用 docker compose 操作的 Makefile，提供 up/down/logs/ps/migrate/test/shell/psql/redis-cli 等开发与运维命令别名。",
+      "type": "config",
+      "tags": [
+        "build-system",
+        "developer-tools",
+        "docker-compose",
+        "automation"
+      ]
+    },
+    {
+      "id": "document:README.md",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "项目主入口文档，涵盖架构总览、5 服务快速启动、访问入口、常用命令、前后端本地开发指南与文档索引，是新成员上手的首选入口。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "quickstart",
+        "overview"
+      ]
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "顶层编排文件，定义 backend、worker、postgres、minio、redis 五个服务的容器规格、依赖关系、健康检查与命名卷网络；按单一部署 ADR 把前后端合入 backend 镜像。",
+      "type": "service",
+      "tags": [
+        "orchestration",
+        "infrastructure",
+        "docker-compose",
+        "multi-service"
+      ]
+    },
+    {
+      "id": "service:docker-compose.yml:backend",
+      "name": "backend",
+      "filePath": "docker-compose.yml",
+      "summary": "backend 服务：基于 backend/Dockerfile 构建，运行时通过 env_file 注入配置，依赖 postgres 与 minio 的健康检查通过后启动。",
+      "type": "service",
+      "tags": [
+        "orchestration",
+        "service",
+        "backend",
+        "compose"
+      ]
+    },
+    {
+      "id": "service:docker-compose.yml:worker",
+      "name": "worker",
+      "filePath": "docker-compose.yml",
+      "summary": "worker 服务：与 backend 共用同一镜像但覆盖 entrypoint 启动后台解析 worker，异步处理文档解析、分块与向量化任务。",
+      "type": "service",
+      "tags": [
+        "orchestration",
+        "service",
+        "worker",
+        "background-task"
+      ]
+    },
+    {
+      "id": "service:docker-compose.yml:postgres",
+      "name": "postgres",
+      "filePath": "docker-compose.yml",
+      "summary": "postgres 服务：基于定制 postgres/Dockerfile 镜像构建，挂载持久化卷，向 backend 与 worker 提供向量检索与中文全文检索能力。",
+      "type": "service",
+      "tags": [
+        "orchestration",
+        "service",
+        "postgres",
+        "database"
+      ]
+    },
+    {
+      "id": "service:docker-compose.yml:minio",
+      "name": "minio",
+      "filePath": "docker-compose.yml",
+      "summary": "minio 服务：对象存储后端，存储上传的原始文档二进制，供 backend 上传、worker 拉取解析。",
+      "type": "service",
+      "tags": [
+        "orchestration",
+        "service",
+        "minio",
+        "object-storage"
+      ]
+    },
+    {
+      "id": "service:docker-compose.yml:redis",
+      "name": "redis",
+      "filePath": "docker-compose.yml",
+      "summary": "redis 服务：作为队列与缓存后端，承接任务队列与可能的会话/结果缓存。",
+      "type": "service",
+      "tags": [
+        "orchestration",
+        "service",
+        "redis",
+        "queue"
+      ]
+    },
+    {
+      "id": "file:frontend/index.html",
+      "name": "index.html",
+      "filePath": "frontend/index.html",
+      "summary": "前端 Vite SPA 入口 HTML，定义根挂载点 #root 并通过 module 脚本加载 /src/main.tsx 引导整个 React 应用。",
+      "type": "file",
+      "tags": [
+        "entry-point",
+        "html",
+        "spa",
+        "vite"
+      ]
+    },
+    {
+      "id": "config:frontend/package.json",
+      "name": "package.json",
+      "filePath": "frontend/package.json",
+      "summary": "前端 npm 配置文件，声明 scripts（dev/build/preview）、运行时依赖（React 18、react-dom、react-router）与开发依赖（Vite、TypeScript、Tailwind CSS、autoprefixer、postcss），是构建与依赖管理的真相之源",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "npm",
+        "build-system",
+        "react",
+        "vite"
+      ]
+    },
+    {
+      "id": "config:frontend/tsconfig.json",
+      "name": "tsconfig.json",
+      "filePath": "frontend/tsconfig.json",
+      "summary": "TypeScript 编译器配置，启用 strict 严格模式，target ES2020、使用 bundler 模式的 moduleResolution，并配合 Vite 的 isoimport 支持，include 覆盖 src 全部 .ts/.tsx。",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "typescript",
+        "strict-mode",
+        "build-system"
+      ]
+    },
+    {
+      "id": "document:mydocs/GBrain知识库设计剖析.md",
+      "name": "GBrain知识库设计剖析.md",
+      "filePath": "mydocs/GBrain知识库设计剖析.md",
+      "summary": "对 GBrain 知识库（Postgres-native + PGLite/Supabase 双引擎）的深度剖析文档，覆盖 60+ 张表的实体关系、fact/take 结构化记忆层、chunks 多模态向量设计，并对比与 WeKnora 的根本差异及借鉴建议。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "架构分析",
+        "竞品研究",
+        "知识图谱",
+        "rag"
+      ]
+    },
+    {
+      "id": "document:mydocs/kb-architecture.md",
+      "name": "kb-architecture.md",
+      "filePath": "mydocs/kb-architecture.md",
+      "summary": "WeKnora 知识库（KB）架构文档，阐述 KnowledgeBase + IndexingStrategy（真正的行为开关）+ Type（遗留枚举）三层模型，详解 RAG/Wiki 两条独立检索路径及 Document/FAQ 两个 RAG 子模式。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "架构",
+        "知识库",
+        "rag",
+        "wiki"
+      ]
+    },
+    {
+      "id": "document:mydocs/multi-tenant-architecture.md",
+      "name": "multi-tenant-architecture.md",
+      "filePath": "mydocs/multi-tenant-architecture.md",
+      "summary": "WeKnora 多租户与共享空间架构文档，定义 Tenant（工作空间/资源归属）+ Organization（共享空间/跨租户协作）双层模型，含 6 张核心表、双角色体系、3-D 上限规则、跨租户 Key 解析链路及资产传承语义。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "多租户",
+        "rbac",
+        "架构",
+        "权限模型"
+      ]
+    },
+    {
+      "id": "document:mydocs/prd-v4.2.md",
+      "name": "prd-v4.2.md",
+      "filePath": "mydocs/prd-v4.2.md",
+      "summary": "PRD v4.2 产品需求文档：自部署 Web 知识库服务的总纲，确立 Wiki/RAG 双路径 + 两层 RBAC + 自注册邀请制 + Agent Runtime BYOK + 多源挂载等核心决策，并定义 P1-P6 六阶段交付计划。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "prd",
+        "产品需求",
+        "路线图",
+        "entry-point"
+      ]
+    },
+    {
+      "id": "document:mydocs/rag-architecture.md",
+      "name": "rag-architecture.md",
+      "filePath": "mydocs/rag-architecture.md",
+      "summary": "WeKnora RAG 架构文档，详述摄取 5 串行 + 4 并行流水线、父子分块（small-to-large retrieval）、chunks 表 12 种 chunk_type、多向量库抽象、三向分区检索、RRF 融合及 Rerank 位置切分。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "rag",
+        "检索架构",
+        "向量检索",
+        "流水线"
+      ]
+    },
+    {
+      "id": "document:mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "name": "ts-nextjs-guide-for-python-java-vue-developer.md",
+      "filePath": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "summary": "面向 Python/Java/Vue 背景开发者的 TypeScript & Next.js 速成指南，覆盖 TS 类型系统、JSX/TSX、Server/Client Component、Next.js API Routes、Tree-shaking 等核心概念及项目高频代码模式。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "typescript",
+        "nextjs",
+        "react",
+        "onboarding"
+      ]
+    },
+    {
+      "id": "document:mydocs/wiki-architecture.md",
+      "name": "wiki-architecture.md",
+      "filePath": "mydocs/wiki-architecture.md",
+      "summary": "WeKnora Wiki 系统架构文档，定义 wiki_pages/wiki_folders/wiki_page_issues/wiki_log_entries 四张专属表 + 通用任务队列，阐述文档→Wiki 的 Map-Reduce 转换管道、图片处理链路、并发模型及与向量数据的分离关系。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "wiki",
+        "架构",
+        "map-reduce",
+        "并发模型"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "name": "0001-halfvec-multi-dim.md",
+      "filePath": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "summary": "ADR 0001：选用 pgvector halfvec 实现多维度向量共存方案，对比 single-dim LanceDB 等候选，确立 halfvec 多列共存 + cast 查询的实现路径与后果。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "架构决策",
+        "pgvector",
+        "向量存储"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "name": "0002-tenant-org-rbac.md",
+      "filePath": "mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "summary": "ADR 0002：确立 Tenant + Organization 两层 RBAC 模型，定义 fall-through 三步短路的权限合并算法及「空间视角下显示只读」的语义解释。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "rbac",
+        "多租户",
+        "权限模型"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "name": "0003-three-edge-model.md",
+      "filePath": "mydocs/context/docs/adr/0003-three-edge-model.md",
+      "summary": "ADR 0003：定义三套边并存模型 —— 链接图边（无类型/无权/有向）+ 目录树边（两套父子结构）+ 溯源边（页面→原文档），并约束 7 种页面类型。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "图模型",
+        "知识图谱",
+        "数据模型"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "name": "0004-http-mcp-server.md",
+      "filePath": "mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "summary": "ADR 0004：选择 HTTP + MCP 双协议 server 方案对外暴露 Agent 工具集，对比 stdio MCP、纯 HTTP API 等候选，列出遗留待 grill 的开放问题。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "mcp",
+        "api设计",
+        "agent"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "name": "0005-self-signup-and-invitation.md",
+      "filePath": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "summary": "ADR 0005：确立自注册 + 邀请制账户体系，覆盖自注册流程、organization 创建、邀请加入、workspace context 切换及鉴权机制（含 OIDC SSO 占位）。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "认证",
+        "账户体系",
+        "邀请制"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "name": "0006-agent-runtime-byok.md",
+      "filePath": "mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "summary": "ADR 0006：定义 Agent Runtime + BYOK + 双 AI 通道方案 —— 嵌入模型与 LLM 模型分离、LLM Provider Registry、用户自带 Key 机制；并标注零 LLM 意图分类方案已于 2026-07-09 弃用。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "agent",
+        "byok",
+        "llm"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "name": "0007-multi-source-mounting.md",
+      "filePath": "mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "summary": "ADR 0007：确立多源挂载方案 —— 统一 Source 抽象（source_type + config + sync_cursor）、SourceAdapter 接口、无优先级 + 冲突处理 + RBAC，并按 Phase 划分 P1/P4/P5/P6 各阶段范围。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "数据源",
+        "挂载",
+        "adapter"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "name": "0008-mvp-scope.md",
+      "filePath": "mydocs/context/docs/adr/0008-mvp-scope.md",
+      "summary": "ADR 0008：明确 MVP（P1）范围裁剪决策 —— 实现 6 个核心模块 + 鉴权极简 + 7 张空表 schema 预留（Organization/OrgMember/KBShare/LLMProvider 等），并列出完全不做的项。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "mvp",
+        "范围裁剪",
+        "路线图"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "name": "0009-retrieval-architecture.md",
+      "filePath": "mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "summary": "ADR 0009：定义检索架构双路径 —— IndexingStrategy 四开关 + 三种典型 KB 配置 + wiki_search（POSIX 正则 + 字段权重）与普通 RAG（+ wiki chunk boost 1.3）两条路径 + KB 类型推断（替代已弃用的意图分类）。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "adr",
+        "检索架构",
+        "rag",
+        "wiki"
+      ]
+    },
+    {
+      "id": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "name": "2026-06-14_12-44_知识库客户端原型设计.md",
+      "filePath": "mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "summary": "知识库客户端原型设计 Spec，定义 Editorial 视觉系统（字体/配色/布局/动效）与四大界面（AI 对话、文档管理、知识图谱、全局搜索），并给出技术选型与原子化实现 Checklist。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "spec",
+        "prototype-design",
+        "ui-ux",
+        "sdd"
+      ]
+    },
+    {
+      "id": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "name": "2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "filePath": "mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "summary": "MVP P1 第一批 RAG 基础闭环的 SDD Spec（当前代码库已实现版本），覆盖脚手架初始化、Docker 编排、Alembic schema、JWT 鉴权、KB API、文档异步解析、路径 B 检索、最小前端与端到端验收，附完整 Execute Log 与 Review Verdict。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "spec",
+        "rag",
+        "mvp",
+        "sdd",
+        "implementation-spec"
+      ]
+    },
+    {
+      "id": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "name": "llm-wiki-design-decision.html",
+      "filePath": "mydocs/specs/llm-wiki-design-decision.html",
+      "summary": "LLM Wiki 设计决策研究文档（HTML 形式），记录 v4.2 设计阶段的关键技术选型与权衡，作为 PRD 与 ADR 的补充背景资料。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "design-decision",
+        "research",
+        "html"
+      ]
+    },
+    {
+      "id": "document:mydocs/specs/obsidian-wiki-research.html",
+      "name": "obsidian-wiki-research.html",
+      "filePath": "mydocs/specs/obsidian-wiki-research.html",
+      "summary": "Obsidian Wiki 调研报告（HTML 形式），系统梳理 Obsidian 在知识库场景的能力、插件生态、双向链接与图谱机制，作为本项目设计参考。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "research",
+        "obsidian",
+        "knowledge-graph",
+        "html"
+      ]
+    },
+    {
+      "id": "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "name": "obsidian-wiki-vs-gbrain-comparison.html",
+      "filePath": "mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "summary": "Obsidian Wiki 与 GBrain（同工作区参考实现）对比分析报告（HTML 形式），从架构、检索、图谱、扩展性等维度对比两套方案，为本项目设计取舍提供依据。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "comparison",
+        "research",
+        "architecture",
+        "html"
+      ]
+    },
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "name": ".understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "summary": "understand-anything 工具的忽略规则配置文件，定义扫描器应跳过的目录和文件模式（语法同 .gitignore）。",
+      "type": "file",
+      "tags": [
+        "configuration",
+        "ignore-rules",
+        "build-system",
+        "tooling"
+      ]
+    },
+    {
+      "id": "config:.understand-anything/intermediate/scan-result.json",
+      "name": "scan-result.json",
+      "filePath": ".understand-anything/intermediate/scan-result.json",
+      "summary": "understand-anything 扫描阶段的结构化快照产物，包含项目文件清单、复杂度估算与 importMap，供后续 batch 分析消费。",
+      "type": "config",
+      "tags": [
+        "transient",
+        "intermediate",
+        "scan-snapshot",
+        "tooling"
+      ]
+    },
+    {
+      "id": "config:backend/alembic.ini",
+      "name": "alembic.ini",
+      "filePath": "backend/alembic.ini",
+      "summary": "Alembic 迁移工具配置：声明脚本目录、日志器与格式，DSN 故意不在此文件写入，由 env.py 从 settings 动态注入。",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "alembic",
+        "database",
+        "migration"
+      ]
+    },
+    {
+      "id": "file:backend/alembic/script.py.mako",
+      "name": "script.py.mako",
+      "filePath": "backend/alembic/script.py.mako",
+      "summary": "Alembic 新建迁移文件的 Mako 模板，定义 revision/down_revision 元数据头与 upgrade/downgrade 函数骨架。",
+      "type": "file",
+      "tags": [
+        "template",
+        "alembic",
+        "migration",
+        "scaffold"
+      ]
+    },
+    {
+      "id": "file:backend/alembic/versions/001_initial.py",
+      "name": "001_initial.py",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "项目初始 Alembic 迁移：启用 vector + zhparser 扩展、创建 chinese_zh 分词配置、定义核心表（tenants/users/knowledge_bases/sources/documents/content_chunks）与 P2+ 预留表，并建立 halfvec ",
+      "type": "file",
+      "tags": [
+        "migration",
+        "database",
+        "schema",
+        "alembic",
+        "postgresql",
+        "tested"
+      ]
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:tenants",
+      "name": "tenants",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "多租户根表：每个租户作为数据隔离边界，users/knowledge_bases 等核心表均外键引用。",
+      "type": "table",
+      "tags": [
+        "database",
+        "multi-tenant",
+        "schema",
+        "core-table"
+      ]
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:users",
+      "name": "users",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "用户表：含 email/password_hash/role/is_active 字段，软删除（deleted_at），按 tenant_id 隔离。",
+      "type": "table",
+      "tags": [
+        "database",
+        "user",
+        "authentication",
+        "core-table"
+      ]
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:knowledge_bases",
+      "name": "knowledge_bases",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "知识库主表：定义 embedding_model/dim 及 vector/keyword/wiki/graph 四个开关，决定该 KB 启用哪些检索能力。",
+      "type": "table",
+      "tags": [
+        "database",
+        "knowledge-base",
+        "configuration",
+        "core-table"
+      ]
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:sources",
+      "name": "sources",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "文档来源表：记录 source_type、同步游标 sync_cursor 和 JSONB config，支撑手动上传与未来外部源同步。",
+      "type": "table",
+      "tags": [
+        "database",
+        "source",
+        "ingestion",
+        "core-table"
+      ]
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:documents",
+      "name": "documents",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "文档元数据表：跟踪 original_filename、minio_key、status(pending/processed/failed) 与 processed_at，支撑异步解析流程。",
+      "type": "table",
+      "tags": [
+        "database",
+        "document",
+        "ingestion",
+        "core-table"
+      ]
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:content_chunks",
+      "name": "content_chunks",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "RAG 核心表：存储 chunk 文本 + halfvec embedding（无固定 N）+ tsvector search_vector，按 embedding_dim 分维度建立 partial HNSW 索引，是 ADR-0001 多维度向量策略的物理载体。",
+      "type": "table",
+      "tags": [
+        "database",
+        "chunk",
+        "vector-search",
+        "core-table",
+        "rag"
+      ]
+    },
+    {
+      "id": "table:backend/alembic/versions/001_initial.py:wiki_pages",
+      "name": "wiki_pages",
+      "filePath": "backend/alembic/versions/001_initial.py",
+      "summary": "Wiki 页面预留表（P2+）：按 page_type 区分 source/entity/concept/synthesis，content_chunks.wiki_page_id 引用它建立实体即页面关联。",
+      "type": "table",
+      "tags": [
+        "database",
+        "wiki",
+        "reserved",
+        "p2-feature"
+      ]
+    },
+    {
+      "id": "file:backend/app/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/__init__.py",
+      "summary": "app 顶层 Python 包标记文件，使 backend/app 成为可导入包。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "python"
+      ]
+    },
+    {
+      "id": "file:backend/app/auth/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/auth/__init__.py",
+      "summary": "auth 子包标记文件，承载 JWT 认证与登录相关模块。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "authentication"
+      ]
+    },
+    {
+      "id": "file:backend/app/plugins/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/plugins/__init__.py",
+      "summary": "plugins 子包标记文件，承载可替换的插件协议（如 chunk_rerank）。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "plugin"
+      ]
+    },
+    {
+      "id": "file:backend/app/plugins/chunk_rerank.py",
+      "name": "chunk_rerank.py",
+      "filePath": "backend/app/plugins/chunk_rerank.py",
+      "summary": "CHUNK_RERANK 插件协议与默认实现：定义 Protocol 接口与 DefaultChunkRerankPlugin（第一批不 boost，第二批对 wiki chunk 加 1.3 系数），并通过 get/set 全局管理激活插件。",
+      "type": "file",
+      "tags": [
+        "plugin",
+        "rerank",
+        "protocol",
+        "extension-point"
+      ]
+    },
+    {
+      "id": "file:backend/app/routers/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/routers/__init__.py",
+      "summary": "routers 子包标记文件，承载 FastAPI 路由模块。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "router"
+      ]
+    },
+    {
+      "id": "file:backend/app/schemas/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/schemas/__init__.py",
+      "summary": "schemas 子包标记文件，承载 Pydantic 请求/响应 schema 定义。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "schema"
+      ]
+    },
+    {
+      "id": "file:backend/app/services/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/services/__init__.py",
+      "summary": "services 子包标记文件，承载业务服务层（KB、检索、文档处理等）。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "service-layer"
+      ]
+    },
+    {
+      "id": "file:backend/app/workers/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/app/workers/__init__.py",
+      "summary": "workers 子包标记文件，承载 RQ 异步任务消费者（文档解析、embedding 等）。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "worker"
+      ]
+    },
+    {
+      "id": "config:backend/pyproject.toml",
+      "name": "pyproject.toml",
+      "filePath": "backend/pyproject.toml",
+      "summary": "后端 Python 工程配置：使用 hatchling 构建后端，声明 FastAPI/SQLAlchemy/asyncpg/alembic/openai/minio/redis/rq 等核心依赖，并配置 pytest-asyncio、ruff lint 规则。",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "python",
+        "dependencies",
+        "build-system"
+      ]
+    },
+    {
+      "id": "file:backend/tests/__init__.py",
+      "name": "__init__.py",
+      "filePath": "backend/tests/__init__.py",
+      "summary": "tests 包标记文件（空文件），使 backend/tests 成为可被 pytest 发现的测试包。",
+      "type": "file",
+      "tags": [
+        "barrel",
+        "package-marker",
+        "test"
+      ]
+    },
+    {
+      "id": "file:backend/tests/conftest.py",
+      "name": "conftest.py",
+      "filePath": "backend/tests/conftest.py",
+      "summary": "pytest 全局 fixtures：提供 session 级 event_loop、异步 db_session、ASGI AsyncClient 与基于 bootstrap owner 的 auth_token，是所有集成测试的共用前置。",
+      "type": "file",
+      "tags": [
+        "test",
+        "fixture",
+        "pytest",
+        "infrastructure"
+      ]
+    },
+    {
+      "id": "file:backend/tests/test_document.py",
+      "name": "test_document.py",
+      "filePath": "backend/tests/test_document.py",
+      "summary": "文档上传 + 异步解析集成测试：上传 MD 后轮询状态（最多 60s），验证 worker 异步流水线能将文档推进到 processed。",
+      "type": "file",
+      "tags": [
+        "test",
+        "integration",
+        "document",
+        "async-pipeline"
+      ]
+    },
+    {
+      "id": "file:backend/tests/test_halfvec.py",
+      "name": "test_halfvec.py",
+      "filePath": "backend/tests/test_halfvec.py",
+      "summary": "【ADR-0001 关键守卫测试】验证 halfvec 多维度 partial HNSW 索引的正确使用：带 cast 的查询必须命中 hnsw 索引，不带 cast 的会退化 Seq Scan（开发陷阱），并验证 zhparser 中文分词 trigger 正常工作。",
+      "type": "file",
+      "tags": [
+        "test",
+        "integration",
+        "vector-search",
+        "adr-guard",
+        "postgresql"
+      ]
+    },
+    {
+      "id": "file:backend/tests/test_kb.py",
+      "name": "test_kb.py",
+      "filePath": "backend/tests/test_kb.py",
+      "summary": "知识库 CRUD 集成测试：验证创建 KB 默认配置（bge-m3/1024 维/混合 indexing）、列出 KB、查询不存在 KB 返回 400。",
+      "type": "file",
+      "tags": [
+        "test",
+        "integration",
+        "knowledge-base",
+        "crud"
+      ]
+    },
+    {
+      "id": "file:backend/tests/test_search.py",
+      "name": "test_search.py",
+      "filePath": "backend/tests/test_search.py",
+      "summary": "【RAG 检索核心测试】验证 RRF 混合检索：中文 query、英文 query 都能成功召回；mode=wiki 第一批未实现应返回 400。",
+      "type": "file",
+      "tags": [
+        "test",
+        "integration",
+        "search",
+        "rag",
+        "rrf"
+      ]
+    },
+    {
+      "id": "config:frontend/postcss.config.js",
+      "name": "postcss.config.js",
+      "filePath": "frontend/postcss.config.js",
+      "summary": "前端 PostCSS 配置：启用 tailwindcss 与 autoprefixer 两个插件，将 Tailwind 指令与自动前缀注入构建管线。",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "postcss",
+        "tailwind",
+        "build-system"
+      ]
+    },
+    {
+      "id": "file:frontend/src/index.css",
+      "name": "index.css",
+      "filePath": "frontend/src/index.css",
+      "summary": "前端全局 CSS 入口：仅注入 Tailwind 三大指令（base/components/utilities），由 PostCSS 编译为最终样式。",
+      "type": "file",
+      "tags": [
+        "css",
+        "tailwind",
+        "entry-point",
+        "styles"
+      ]
+    },
+    {
+      "id": "config:frontend/tailwind.config.js",
+      "name": "tailwind.config.js",
+      "filePath": "frontend/tailwind.config.js",
+      "summary": "Tailwind 配置：声明 content 扫描路径（index.html 与 src 下所有 js/ts/jsx/tsx），未扩展主题或插件。",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "tailwind",
+        "build-system",
+        "frontend"
+      ]
+    },
+    {
+      "id": "config:frontend/vite.config.ts",
+      "name": "vite.config.ts",
+      "filePath": "frontend/vite.config.ts",
+      "summary": "Vite 构建配置：启用 React 插件、开发模式将 /api 代理到 localhost:8000（后端 FastAPI）、构建产物输出到 dist。",
+      "type": "config",
+      "tags": [
+        "configuration",
+        "vite",
+        "build-system",
+        "dev-server"
+      ]
+    },
+    {
+      "id": "document:mydocs/context/CONTEXT.md",
+      "name": "CONTEXT.md",
+      "filePath": "mydocs/context/CONTEXT.md",
+      "summary": "项目主上下文文档（v4.2 设计中），系统化梳理部署访问、知识资产、数据模型与存储、页面与图谱模型、AI 子系统、技术栈、隔离认证与权限模型，并标注 v4.1→v4.2 已弃用术语，是整个项目的复合简报。",
+      "type": "document",
+      "tags": [
+        "documentation",
+        "context",
+        "architecture",
+        "overview",
+        "ubiquitous-language"
+      ]
+    },
+    {
+      "id": "schema:postgres/init-extensions.sql",
+      "name": "init-extensions.sql",
+      "filePath": "postgres/init-extensions.sql",
+      "summary": "Postgres 数据库初始化脚本，创建 pgvector（向量存储）与 zhparser（中文分词）扩展，并配置 chinese_zh 全文搜索配置，是混合检索（向量 + BM25 中文）能力的 schema 前置依赖。",
+      "type": "schema",
+      "tags": [
+        "schema-definition",
+        "postgres",
+        "pgvector",
+        "zhparser",
+        "full-text-search"
+      ]
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:api",
+      "name": "API 接口层",
+      "description": "FastAPI HTTP 入口与请求/响应契约，包括 routers/（document/kb/search 路由）、auth/routes、main.py 应用装配、deps.py 依赖注入以及 schemas/ 下基于 Pydantic 的请求/响应 DTO。"
+    },
+    {
+      "id": "layer:service",
+      "name": "业务服务层",
+      "description": "核心业务逻辑编排：services/（document_service、kb_service、search_service、embedding_service、minio_service）以及 auth/ 模块（jwt_handler、password、bootstrap）负责鉴权与首个管理员初始化。"
+    },
+    {
+      "id": "layer:data",
+      "name": "数据模型与迁移层",
+      "description": "数据持久化层：SQLAlchemy ORM 模型（User/KB/Document/Chunk/Source/WikiPage 等）、Alembic 迁移脚本与版本（001_initial）、迁移产生的表节点以及 PostgreSQL 扩展初始化 SQL（pgvector/zhparser）。"
+    },
+    {
+      "id": "layer:infrastructure",
+      "name": "异步任务与基础设施层",
+      "description": "跨切面基础设施与异步管道：config/（settings、exceptions、schemas、logger、dependencies）、database.py 异步引擎、RQ workers/（chunker、parsers、queue、worker）负责文档解析-分块-嵌入流水线，以及 plugins/chunk_rerank 重排插件。"
+    },
+    {
+      "id": "layer:frontend",
+      "name": "前端 UI 层",
+      "description": "React + Vite + TailwindCSS 前端：Search 页面、SearchBox/ResultList 组件、App.tsx 路由装配、api.ts Axios 客户端以及 main.tsx Vite 入口。"
+    },
+    {
+      "id": "layer:config",
+      "name": "配置与容器编排层",
+      "description": "项目级配置与容器编排：根目录 docker-compose.yml（backend/worker/postgres/minio/redis 五服务）、backend/Dockerfile 多阶段构建（frontend-build + python）、postgres/Dockerfile、Makefile、.env.example、前后端构建配置（pyproject.toml、package.json、tsconfig.json、vite.config.ts、tailwind/postcss）以及 alembic.ini。"
+    },
+    {
+      "id": "layer:documentation",
+      "name": "项目文档层",
+      "description": "项目文档与设计资产：mydocs/ 下的 PRD v4.2、知识库/RAG/多租户架构设计、9 篇 ADR（0001-0009）、MVP P1 Batch 1 SDD 规范、Obsidian Wiki 调研对比、TS 指南以及根目录 README.md。"
+    },
+    {
+      "id": "layer:test",
+      "name": "测试套件层",
+      "description": "pytest 测试套件：tests/ 下覆盖鉴权（test_auth）、知识库（test_kb）、文档（test_document）、检索（test_search）以及 pgvector 半精度向量（test_halfvec）的集成与单元测试，含 conftest.py 公共 fixture。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/__init__.py",
+      "target": "file:backend/app/config/exceptions.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/__init__.py",
+      "target": "file:backend/app/config/logger_config.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/__init__.py",
+      "target": "file:backend/app/config/schemas.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/__init__.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "file:backend/app/auth/jwt_handler.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "file:backend/app/database.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/logger_config.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/database.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/database.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/main.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/main.py",
+      "target": "file:backend/app/config/exceptions.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/main.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/embedding_service.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/embedding_service.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/database.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/models/document.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/services/embedding_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/services/minio_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/workers/chunker.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "file:backend/app/workers/parsers.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/queue.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/queue.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/worker.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/worker.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/workers/worker.py",
+      "target": "file:backend/app/workers/queue.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "function:backend/app/auth/jwt_handler.py:create_access_token",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "function:backend/app/auth/jwt_handler.py:decode_token",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "function:backend/app/auth/jwt_handler.py:get_user_id_from_token",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "function:backend/app/auth/jwt_handler.py:create_access_token",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "function:backend/app/auth/jwt_handler.py:decode_token",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/auth/jwt_handler.py",
+      "target": "function:backend/app/auth/jwt_handler.py:get_user_id_from_token",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/auth/jwt_handler.py:get_user_id_from_token",
+      "target": "function:backend/app/auth/jwt_handler.py:decode_token",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "function:backend/app/config/dependencies.py:get_db",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "function:backend/app/config/dependencies.py:get_current_user",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "function:backend/app/config/dependencies.py:get_db",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/dependencies.py",
+      "target": "function:backend/app/config/dependencies.py:get_current_user",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/config/dependencies.py:get_current_user",
+      "target": "function:backend/app/auth/jwt_handler.py:decode_token",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/config/logger_config.py",
+      "target": "function:backend/app/config/logger_config.py:setup_logging",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/logger_config.py",
+      "target": "function:backend/app/config/logger_config.py:_rotator",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/logger_config.py",
+      "target": "function:backend/app/config/logger_config.py:_cleanup_old_logs",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/logger_config.py",
+      "target": "function:backend/app/config/logger_config.py:setup_logging",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/logger_config.py",
+      "target": "function:backend/app/config/logger_config.py:_rotator",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/logger_config.py",
+      "target": "function:backend/app/config/logger_config.py:_cleanup_old_logs",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/config/logger_config.py:_rotator",
+      "target": "function:backend/app/config/logger_config.py:_cleanup_old_logs",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/config/settings.py",
+      "target": "function:backend/app/config/settings.py:get_env_file",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/settings.py",
+      "target": "class:backend/app/config/settings.py:Settings",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/settings.py",
+      "target": "function:backend/app/config/settings.py:get_env_file",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/settings.py",
+      "target": "class:backend/app/config/settings.py:Settings",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/main.py",
+      "target": "function:backend/app/main.py:lifespan",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/main.py",
+      "target": "function:backend/app/main.py:create_app",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/main.py",
+      "target": "function:backend/app/main.py:lifespan",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/main.py",
+      "target": "function:backend/app/main.py:create_app",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/main.py:lifespan",
+      "target": "function:backend/app/config/logger_config.py:setup_logging",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/services/embedding_service.py",
+      "target": "function:backend/app/services/embedding_service.py:get_client",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/embedding_service.py",
+      "target": "function:backend/app/services/embedding_service.py:embed_texts",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/embedding_service.py",
+      "target": "function:backend/app/services/embedding_service.py:get_client",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/embedding_service.py",
+      "target": "function:backend/app/services/embedding_service.py:embed_texts",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/services/embedding_service.py:embed_texts",
+      "target": "function:backend/app/services/embedding_service.py:get_client",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:get_minio_client",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:ensure_bucket",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:upload_bytes",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:get_bytes",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:get_minio_client",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:ensure_bucket",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:upload_bytes",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/minio_service.py",
+      "target": "function:backend/app/services/minio_service.py:get_bytes",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/services/minio_service.py:ensure_bucket",
+      "target": "function:backend/app/services/minio_service.py:get_minio_client",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/services/minio_service.py:upload_bytes",
+      "target": "function:backend/app/services/minio_service.py:ensure_bucket",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/services/minio_service.py:upload_bytes",
+      "target": "function:backend/app/services/minio_service.py:get_minio_client",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/services/minio_service.py:get_bytes",
+      "target": "function:backend/app/services/minio_service.py:get_minio_client",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/workers/chunker.py",
+      "target": "function:backend/app/workers/chunker.py:chunk_text",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/chunker.py",
+      "target": "function:backend/app/workers/chunker.py:chunk_text",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "function:backend/app/workers/parse_document.py:_insert_chunks",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/workers/parse_document.py",
+      "target": "function:backend/app/workers/parse_document.py:_insert_chunks",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "target": "function:backend/app/services/minio_service.py:get_bytes",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "target": "function:backend/app/workers/parsers.py:parse_by_filename",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "target": "function:backend/app/workers/chunker.py:chunk_text",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "target": "function:backend/app/services/embedding_service.py:embed_texts",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "target": "function:backend/app/workers/parse_document.py:_insert_chunks",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/workers/parsers.py",
+      "target": "function:backend/app/workers/parsers.py:parse_by_filename",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/parsers.py",
+      "target": "function:backend/app/workers/parsers.py:parse_pdf",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/parsers.py",
+      "target": "function:backend/app/workers/parsers.py:parse_docx",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/parsers.py",
+      "target": "function:backend/app/workers/parsers.py:parse_by_filename",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/workers/parsers.py",
+      "target": "function:backend/app/workers/parsers.py:parse_pdf",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/workers/parsers.py",
+      "target": "function:backend/app/workers/parsers.py:parse_docx",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/workers/parsers.py:parse_by_filename",
+      "target": "function:backend/app/workers/parsers.py:parse_pdf",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/workers/parsers.py:parse_by_filename",
+      "target": "function:backend/app/workers/parsers.py:parse_docx",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/workers/queue.py",
+      "target": "function:backend/app/workers/queue.py:run_parse_document",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/queue.py",
+      "target": "function:backend/app/workers/queue.py:enqueue_parse_document",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/queue.py",
+      "target": "function:backend/app/workers/queue.py:run_parse_document",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/workers/queue.py",
+      "target": "function:backend/app/workers/queue.py:enqueue_parse_document",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/workers/queue.py:run_parse_document",
+      "target": "function:backend/app/workers/parse_document.py:parse_document_task",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/workers/worker.py",
+      "target": "function:backend/app/workers/worker.py:main",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/workers/worker.py",
+      "target": "function:backend/app/workers/worker.py:main",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/workers/worker.py:main",
+      "target": "function:backend/app/workers/queue.py:enqueue_parse_document",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "function:backend/app/auth/routes.py:login",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "function:backend/app/auth/routes.py:get_me",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "function:backend/app/auth/routes.py:login",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "function:backend/app/auth/routes.py:get_me",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:_log_exception",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:general_exception_handler",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:validation_exception_handler",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:register_exception_handlers",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "class:backend/app/config/exceptions.py:BusinessValidationException",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "class:backend/app/config/exceptions.py:ResourceNotFoundException",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:_log_exception",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:general_exception_handler",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:validation_exception_handler",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "function:backend/app/config/exceptions.py:register_exception_handlers",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "class:backend/app/config/exceptions.py:BusinessValidationException",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "class:backend/app/config/exceptions.py:ResourceNotFoundException",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/config/exceptions.py:general_exception_handler",
+      "target": "function:backend/app/config/exceptions.py:_log_exception",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/config/exceptions.py:validation_exception_handler",
+      "target": "function:backend/app/config/exceptions.py:_log_exception",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/config/schemas.py",
+      "target": "class:backend/app/config/schemas.py:ApiResponse",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/schemas.py",
+      "target": "class:backend/app/config/schemas.py:PageResponse",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/schemas.py",
+      "target": "class:backend/app/config/schemas.py:ResponseCode",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/config/schemas.py",
+      "target": "class:backend/app/config/schemas.py:ApiResponse",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/schemas.py",
+      "target": "class:backend/app/config/schemas.py:PageResponse",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/config/schemas.py",
+      "target": "class:backend/app/config/schemas.py:ResponseCode",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "function:backend/app/routers/document.py:upload_document_endpoint",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "function:backend/app/routers/document.py:get_status_endpoint",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "function:backend/app/routers/document.py:upload_document_endpoint",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "function:backend/app/routers/document.py:get_status_endpoint",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/routers/document.py:upload_document_endpoint",
+      "target": "function:backend/app/services/document_service.py:upload_document",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/routers/document.py:get_status_endpoint",
+      "target": "function:backend/app/services/document_service.py:get_document_status",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "function:backend/app/routers/kb.py:create_kb_endpoint",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "function:backend/app/routers/kb.py:get_kb_endpoint",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "function:backend/app/routers/kb.py:list_kbs_endpoint",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "function:backend/app/routers/kb.py:create_kb_endpoint",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "function:backend/app/routers/kb.py:get_kb_endpoint",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "function:backend/app/routers/kb.py:list_kbs_endpoint",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/routers/kb.py:create_kb_endpoint",
+      "target": "function:backend/app/services/kb_service.py:create_kb",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/routers/kb.py:get_kb_endpoint",
+      "target": "function:backend/app/services/kb_service.py:get_kb",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/routers/kb.py:list_kbs_endpoint",
+      "target": "function:backend/app/services/kb_service.py:list_kbs",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/routers/search.py",
+      "target": "function:backend/app/routers/search.py:search_endpoint",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/routers/search.py",
+      "target": "function:backend/app/routers/search.py:search_endpoint",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/routers/search.py:search_endpoint",
+      "target": "function:backend/app/services/search_service.py:search",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "function:backend/app/services/document_service.py:upload_document",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "function:backend/app/services/document_service.py:get_document_status",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "function:backend/app/services/document_service.py:upload_document",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "function:backend/app/services/document_service.py:get_document_status",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/services/document_service.py:upload_document",
+      "target": "function:backend/app/services/kb_service.py:get_kb",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/services/document_service.py:get_document_status",
+      "target": "function:backend/app/services/kb_service.py:get_kb",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "function:backend/app/services/kb_service.py:create_kb",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "function:backend/app/services/kb_service.py:get_kb",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "function:backend/app/services/kb_service.py:list_kbs",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "function:backend/app/services/kb_service.py:create_kb",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "function:backend/app/services/kb_service.py:get_kb",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "function:backend/app/services/kb_service.py:list_kbs",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:vector_search",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:bm25_search",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:rrf_fuse",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:search",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:get_kb_by_id",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:vector_search",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:bm25_search",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:rrf_fuse",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:search",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "function:backend/app/services/search_service.py:get_kb_by_id",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/app/services/search_service.py:search",
+      "target": "function:backend/app/services/search_service.py:vector_search",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/services/search_service.py:search",
+      "target": "function:backend/app/services/search_service.py:bm25_search",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/services/search_service.py:search",
+      "target": "function:backend/app/services/search_service.py:rrf_fuse",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/services/search_service.py:search",
+      "target": "function:backend/app/services/search_service.py:get_kb_by_id",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "file:backend/app/auth/jwt_handler.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "file:backend/app/auth/password.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "file:backend/app/config/exceptions.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "file:backend/app/config/schemas.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "file:backend/app/deps.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/routes.py",
+      "target": "file:backend/app/schemas/auth.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/config/exceptions.py",
+      "target": "file:backend/app/config/schemas.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/deps.py",
+      "target": "file:backend/app/config/dependencies.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "file:backend/app/config/schemas.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "file:backend/app/deps.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "file:backend/app/schemas/document.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/document.py",
+      "target": "file:backend/app/services/document_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "file:backend/app/config/schemas.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "file:backend/app/deps.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "file:backend/app/schemas/kb.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/kb.py",
+      "target": "file:backend/app/services/kb_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/search.py",
+      "target": "file:backend/app/config/exceptions.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/search.py",
+      "target": "file:backend/app/config/schemas.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/search.py",
+      "target": "file:backend/app/deps.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/search.py",
+      "target": "file:backend/app/schemas/search.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/routers/search.py",
+      "target": "file:backend/app/services/search_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "file:backend/app/config/exceptions.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "file:backend/app/models/document.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "file:backend/app/schemas/document.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "file:backend/app/services/kb_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "file:backend/app/services/minio_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/document_service.py",
+      "target": "file:backend/app/workers/queue.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "file:backend/app/config/exceptions.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "file:backend/app/models/kb.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/kb_service.py",
+      "target": "file:backend/app/schemas/kb.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "file:backend/app/models/kb.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "file:backend/app/schemas/search.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "file:backend/app/services/embedding_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/services/search_service.py",
+      "target": "file:backend/app/services/kb_service.py",
+      "type": "imports"
+    },
+    {
+      "source": "function:backend/app/auth/routes.py:login",
+      "target": "function:backend/app/auth/password.py:verify_password",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/app/auth/routes.py:login",
+      "target": "function:backend/app/auth/jwt_handler.py:create_access_token",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/chunk.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/document.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/kb.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/reserved.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/source.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/__init__.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/__init__.py",
+      "target": "file:backend/app/models/chunk.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/__init__.py",
+      "target": "file:backend/app/models/document.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/__init__.py",
+      "target": "file:backend/app/models/kb.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/__init__.py",
+      "target": "file:backend/app/models/reserved.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/__init__.py",
+      "target": "file:backend/app/models/source.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/__init__.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/chunk.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/document.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/kb.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/source.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/models/user.py",
+      "target": "file:backend/app/models/base.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:run_migrations_offline",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:do_run_migrations",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:run_async_migrations",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:run_migrations_online",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:run_migrations_offline",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:do_run_migrations",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:run_async_migrations",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "function:backend/alembic/env.py:run_migrations_online",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/alembic/env.py:run_migrations_online",
+      "target": "function:backend/alembic/env.py:run_async_migrations",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/alembic/env.py:run_async_migrations",
+      "target": "function:backend/alembic/env.py:do_run_migrations",
+      "type": "calls"
+    },
+    {
+      "source": "file:backend/app/models/base.py",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/base.py",
+      "target": "class:backend/app/models/base.py:TimestampMixin",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/base.py",
+      "target": "class:backend/app/models/base.py:TenantMixin",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/base.py",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/base.py",
+      "target": "class:backend/app/models/base.py:TimestampMixin",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/base.py",
+      "target": "class:backend/app/models/base.py:TenantMixin",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/chunk.py",
+      "target": "class:backend/app/models/chunk.py:ContentChunk",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/chunk.py",
+      "target": "class:backend/app/models/chunk.py:ContentChunk",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/document.py",
+      "target": "class:backend/app/models/document.py:Document",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/document.py",
+      "target": "class:backend/app/models/document.py:Document",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/kb.py",
+      "target": "class:backend/app/models/kb.py:KnowledgeBase",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/kb.py",
+      "target": "class:backend/app/models/kb.py:KnowledgeBase",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:Organization",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:OrgMember",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:KBShare",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:LLMProvider",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:UserLLMKey",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:WikiFolder",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:WikiPage",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:Organization",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:OrgMember",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:KBShare",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:LLMProvider",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:UserLLMKey",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:WikiFolder",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/reserved.py",
+      "target": "class:backend/app/models/reserved.py:WikiPage",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/source.py",
+      "target": "class:backend/app/models/source.py:Source",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/source.py",
+      "target": "class:backend/app/models/source.py:Source",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/user.py",
+      "target": "class:backend/app/models/user.py:Tenant",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/user.py",
+      "target": "class:backend/app/models/user.py:User",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/models/user.py",
+      "target": "class:backend/app/models/user.py:Tenant",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/models/user.py",
+      "target": "class:backend/app/models/user.py:User",
+      "type": "exports"
+    },
+    {
+      "source": "class:backend/app/models/chunk.py:ContentChunk",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/document.py:Document",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/kb.py:KnowledgeBase",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/source.py:Source",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/user.py:Tenant",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/user.py:User",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/reserved.py:Organization",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/reserved.py:OrgMember",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/reserved.py:KBShare",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/reserved.py:LLMProvider",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/reserved.py:UserLLMKey",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/reserved.py:WikiFolder",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "class:backend/app/models/reserved.py:WikiPage",
+      "target": "class:backend/app/models/base.py:Base",
+      "type": "inherits"
+    },
+    {
+      "source": "file:backend/alembic/env.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:frontend/src/main.tsx",
+      "target": "file:frontend/src/App.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "file:frontend/src/main.tsx",
+      "target": "file:frontend/src/index.css",
+      "type": "imports"
+    },
+    {
+      "source": "file:frontend/src/App.tsx",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "file:frontend/src/components/ResultList.tsx",
+      "target": "file:frontend/src/api.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "file:frontend/src/api.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "file:frontend/src/components/ResultList.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "file:frontend/src/components/SearchBox.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "file:frontend/src/App.tsx",
+      "target": "function:frontend/src/App.tsx:App",
+      "type": "contains"
+    },
+    {
+      "source": "file:frontend/src/App.tsx",
+      "target": "function:frontend/src/App.tsx:App",
+      "type": "exports"
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:login",
+      "type": "contains"
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:login",
+      "type": "exports"
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:listKBs",
+      "type": "contains"
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:listKBs",
+      "type": "exports"
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:search",
+      "type": "contains"
+    },
+    {
+      "source": "file:frontend/src/api.ts",
+      "target": "function:frontend/src/api.ts:search",
+      "type": "exports"
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "type": "contains"
+    },
+    {
+      "source": "file:frontend/src/pages/Search.tsx",
+      "target": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "type": "exports"
+    },
+    {
+      "source": "file:frontend/src/components/SearchBox.tsx",
+      "target": "function:frontend/src/components/SearchBox.tsx:SearchBox",
+      "type": "contains"
+    },
+    {
+      "source": "file:frontend/src/components/SearchBox.tsx",
+      "target": "function:frontend/src/components/SearchBox.tsx:SearchBox",
+      "type": "exports"
+    },
+    {
+      "source": "file:frontend/src/components/ResultList.tsx",
+      "target": "function:frontend/src/components/ResultList.tsx:ResultList",
+      "type": "contains"
+    },
+    {
+      "source": "file:frontend/src/components/ResultList.tsx",
+      "target": "function:frontend/src/components/ResultList.tsx:ResultList",
+      "type": "exports"
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/api.ts:login",
+      "type": "calls"
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/api.ts:listKBs",
+      "type": "calls"
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/api.ts:search",
+      "type": "calls"
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/components/SearchBox.tsx:SearchBox",
+      "type": "depends_on"
+    },
+    {
+      "source": "function:frontend/src/pages/Search.tsx:SearchPage",
+      "target": "function:frontend/src/components/ResultList.tsx:ResultList",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/auth/password.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/config/__init__.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/config/settings.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "file:backend/app/models/user.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "file:backend/app/auth/jwt_handler.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "file:backend/app/auth/password.py",
+      "type": "imports"
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "function:backend/app/auth/bootstrap.py:ensure_bootstrap_owner",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/bootstrap.py",
+      "target": "function:backend/app/auth/bootstrap.py:ensure_bootstrap_owner",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:verify_password",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/auth/password.py",
+      "target": "function:backend/app/auth/password.py:verify_password",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_password_hash_and_verify",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_jwt_create_and_decode",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_login_success",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_login_wrong_password",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_auth.py",
+      "target": "function:backend/tests/test_auth.py:test_me_with_token",
+      "type": "contains"
+    },
+    {
+      "source": "function:backend/app/auth/bootstrap.py:ensure_bootstrap_owner",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_password_hash_and_verify",
+      "target": "function:backend/app/auth/password.py:hash_password",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_password_hash_and_verify",
+      "target": "function:backend/app/auth/password.py:verify_password",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_jwt_create_and_decode",
+      "target": "function:backend/app/auth/jwt_handler.py:create_access_token",
+      "type": "calls"
+    },
+    {
+      "source": "function:backend/tests/test_auth.py:test_jwt_create_and_decode",
+      "target": "function:backend/app/auth/jwt_handler.py:decode_token",
+      "type": "calls"
+    },
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "service:backend/Dockerfile:frontend-build",
+      "type": "contains"
+    },
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "service:backend/Dockerfile:python",
+      "type": "contains"
+    },
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "file:backend/app/main.py",
+      "type": "deploys"
+    },
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "file:backend/alembic/env.py",
+      "type": "deploys"
+    },
+    {
+      "source": "service:postgres/Dockerfile",
+      "target": "service:postgres/Dockerfile:postgres",
+      "type": "contains"
+    },
+    {
+      "source": "config:.env.example",
+      "target": "service:docker-compose.yml",
+      "type": "configures"
+    },
+    {
+      "source": "config:.env.example",
+      "target": "file:backend/app/config/settings.py",
+      "type": "configures"
+    },
+    {
+      "source": "document:README.md",
+      "target": "service:docker-compose.yml",
+      "type": "documents"
+    },
+    {
+      "source": "document:README.md",
+      "target": "config:Makefile",
+      "type": "documents"
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:backend/app/main.py",
+      "type": "documents"
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:backend",
+      "type": "contains"
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:worker",
+      "type": "contains"
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:postgres",
+      "type": "contains"
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:minio",
+      "type": "contains"
+    },
+    {
+      "source": "service:docker-compose.yml",
+      "target": "service:docker-compose.yml:redis",
+      "type": "contains"
+    },
+    {
+      "source": "service:docker-compose.yml:backend",
+      "target": "service:backend/Dockerfile",
+      "type": "depends_on"
+    },
+    {
+      "source": "service:docker-compose.yml:worker",
+      "target": "service:backend/Dockerfile",
+      "type": "depends_on"
+    },
+    {
+      "source": "service:docker-compose.yml:postgres",
+      "target": "service:postgres/Dockerfile",
+      "type": "depends_on"
+    },
+    {
+      "source": "service:docker-compose.yml:backend",
+      "target": "service:docker-compose.yml:postgres",
+      "type": "depends_on"
+    },
+    {
+      "source": "service:docker-compose.yml:backend",
+      "target": "service:docker-compose.yml:minio",
+      "type": "depends_on"
+    },
+    {
+      "source": "service:docker-compose.yml:worker",
+      "target": "service:docker-compose.yml:postgres",
+      "type": "depends_on"
+    },
+    {
+      "source": "config:Makefile",
+      "target": "service:docker-compose.yml",
+      "type": "triggers"
+    },
+    {
+      "source": "file:frontend/index.html",
+      "target": "file:frontend/src/main.tsx",
+      "type": "depends_on"
+    },
+    {
+      "source": "config:frontend/package.json",
+      "target": "file:frontend/src/main.tsx",
+      "type": "configures"
+    },
+    {
+      "source": "config:frontend/package.json",
+      "target": "config:frontend/tsconfig.json",
+      "type": "configures"
+    },
+    {
+      "source": "config:frontend/tsconfig.json",
+      "target": "file:frontend/src/App.tsx",
+      "type": "configures"
+    },
+    {
+      "source": "config:frontend/tsconfig.json",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "configures"
+    },
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/kb-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/wiki-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/rag-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/prd-v4.2.md",
+      "target": "document:mydocs/multi-tenant-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/kb-architecture.md",
+      "target": "document:mydocs/wiki-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/kb-architecture.md",
+      "target": "document:mydocs/rag-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/GBrain知识库设计剖析.md",
+      "target": "document:mydocs/rag-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/GBrain知识库设计剖析.md",
+      "target": "document:mydocs/kb-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/wiki-architecture.md",
+      "target": "document:mydocs/multi-tenant-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/rag-architecture.md",
+      "target": "document:mydocs/multi-tenant-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "target": "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0008-mvp-scope.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "target": "document:mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "target": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/app/main.py",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/alembic/versions/001_initial.py",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/app/services/search_service.py",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:backend/app/services/document_service.py",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "target": "file:frontend/src/pages/Search.tsx",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "target": "file:frontend/src/App.tsx",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "document:mydocs/specs/obsidian-wiki-research.html",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/specs/obsidian-wiki-research.html",
+      "target": "document:mydocs/specs/obsidian-wiki-vs-gbrain-comparison.html",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "document:mydocs/specs/2026-06-14_12-44_知识库客户端原型设计.md",
+      "type": "related"
+    },
+    {
+      "source": "document:mydocs/specs/llm-wiki-design-decision.html",
+      "target": "file:backend/app/main.py",
+      "type": "documents"
+    },
+    {
+      "source": "file:backend/alembic/versions/001_initial.py",
+      "target": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/alembic/versions/001_initial.py",
+      "target": "function:backend/alembic/versions/001_initial.py:downgrade",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/alembic/versions/001_initial.py",
+      "target": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/alembic/versions/001_initial.py",
+      "target": "function:backend/alembic/versions/001_initial.py:downgrade",
+      "type": "exports"
+    },
+    {
+      "source": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "target": "table:backend/alembic/versions/001_initial.py:tenants",
+      "type": "migrates"
+    },
+    {
+      "source": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "target": "table:backend/alembic/versions/001_initial.py:users",
+      "type": "migrates"
+    },
+    {
+      "source": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "target": "table:backend/alembic/versions/001_initial.py:knowledge_bases",
+      "type": "migrates"
+    },
+    {
+      "source": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "target": "table:backend/alembic/versions/001_initial.py:sources",
+      "type": "migrates"
+    },
+    {
+      "source": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "target": "table:backend/alembic/versions/001_initial.py:documents",
+      "type": "migrates"
+    },
+    {
+      "source": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "target": "table:backend/alembic/versions/001_initial.py:content_chunks",
+      "type": "migrates"
+    },
+    {
+      "source": "function:backend/alembic/versions/001_initial.py:upgrade",
+      "target": "table:backend/alembic/versions/001_initial.py:wiki_pages",
+      "type": "migrates"
+    },
+    {
+      "source": "config:backend/alembic.ini",
+      "target": "file:backend/alembic/versions/001_initial.py",
+      "type": "configures"
+    },
+    {
+      "source": "config:backend/alembic.ini",
+      "target": "file:backend/alembic/script.py.mako",
+      "type": "configures"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "class:backend/app/plugins/chunk_rerank.py:ChunkRerankPlugin",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "class:backend/app/plugins/chunk_rerank.py:DefaultChunkRerankPlugin",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "function:backend/app/plugins/chunk_rerank.py:get_chunk_rerank_plugin",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "function:backend/app/plugins/chunk_rerank.py:set_chunk_rerank_plugin",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "class:backend/app/plugins/chunk_rerank.py:ChunkRerankPlugin",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "class:backend/app/plugins/chunk_rerank.py:DefaultChunkRerankPlugin",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "function:backend/app/plugins/chunk_rerank.py:get_chunk_rerank_plugin",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/app/plugins/chunk_rerank.py",
+      "target": "function:backend/app/plugins/chunk_rerank.py:set_chunk_rerank_plugin",
+      "type": "exports"
+    },
+    {
+      "source": "file:backend/tests/conftest.py",
+      "target": "function:backend/tests/conftest.py:event_loop",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/conftest.py",
+      "target": "function:backend/tests/conftest.py:db_session",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/conftest.py",
+      "target": "function:backend/tests/conftest.py:client",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/conftest.py",
+      "target": "function:backend/tests/conftest.py:auth_token",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_document.py",
+      "target": "function:backend/tests/test_document.py:test_upload_md_and_wait_processed",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_halfvec.py",
+      "target": "function:backend/tests/test_halfvec.py:test_halfvec_cast_hits_hnsw_index",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_halfvec.py",
+      "target": "function:backend/tests/test_halfvec.py:test_halfvec_no_cast_seq_scan",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_halfvec.py",
+      "target": "function:backend/tests/test_halfvec.py:test_zhparser_chinese_tokenizer",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_kb.py",
+      "target": "function:backend/tests/test_kb.py:test_create_kb_default_config",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_kb.py",
+      "target": "function:backend/tests/test_kb.py:test_list_kbs",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_kb.py",
+      "target": "function:backend/tests/test_kb.py:test_get_kb_not_found",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_search.py",
+      "target": "function:backend/tests/test_search.py:test_search_chinese",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_search.py",
+      "target": "function:backend/tests/test_search.py:test_search_english",
+      "type": "contains"
+    },
+    {
+      "source": "file:backend/tests/test_search.py",
+      "target": "function:backend/tests/test_search.py:test_search_wiki_mode_not_implemented",
+      "type": "contains"
+    },
+    {
+      "source": "config:backend/pyproject.toml",
+      "target": "file:backend/app/__init__.py",
+      "type": "configures"
+    },
+    {
+      "source": "config:backend/pyproject.toml",
+      "target": "file:backend/tests/__init__.py",
+      "type": "configures"
+    },
+    {
+      "source": "config:frontend/postcss.config.js",
+      "target": "file:frontend/src/index.css",
+      "type": "configures"
+    },
+    {
+      "source": "config:frontend/tailwind.config.js",
+      "target": "file:frontend/src/index.css",
+      "type": "configures"
+    },
+    {
+      "source": "config:frontend/vite.config.ts",
+      "target": "file:frontend/src/index.css",
+      "type": "configures"
+    },
+    {
+      "source": "file:backend/alembic/versions/001_initial.py",
+      "target": "file:backend/tests/test_halfvec.py",
+      "type": "tested_by"
+    },
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/app/models/chunk.py",
+      "type": "defines_schema"
+    },
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/app/services/search_service.py",
+      "type": "defines_schema"
+    },
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/alembic/versions/001_initial.py",
+      "type": "defines_schema"
+    },
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/tests/test_halfvec.py",
+      "type": "defines_schema"
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "file:backend/app/main.py",
+      "type": "documents"
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "file:backend/app/models/__init__.py",
+      "type": "documents"
+    },
+    {
+      "source": "service:backend/Dockerfile:frontend-build",
+      "target": "config:frontend/package.json",
+      "type": "depends_on"
+    },
+    {
+      "source": "service:postgres/Dockerfile",
+      "target": "schema:postgres/init-extensions.sql",
+      "type": "depends_on"
+    },
+    {
+      "source": "document:mydocs/specs/2026-07-10_00-11_mvp-p1-batch1-rag-foundation.md",
+      "target": "service:backend/Dockerfile",
+      "type": "documents"
+    }
+  ]
+}

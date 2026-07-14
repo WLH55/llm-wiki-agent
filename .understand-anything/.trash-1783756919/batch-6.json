@@ -1,0 +1,71 @@
+{
+  "nodes": [
+    {
+      "id": "service:backend/Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "backend/Dockerfile",
+      "summary": "后端单镜像多阶段构建：第一阶段用 node:20-alpine 构建前端静态产物，第二阶段基于 python:3.11-slim 装入后端代码与前端 dist，最终在同一容器内运行 alembic 迁移与 uvicorn 服务，对外暴露 8000 端口。",
+      "tags": ["containerization", "infrastructure", "deployment", "multi-stage-build", "single-image"],
+      "complexity": "moderate",
+      "languageNotes": "采用多阶段构建以缩减运行镜像体积；按 ADR 单一部署策略，FastAPI 同时托管前端静态资源。"
+    },
+    {
+      "id": "service:backend/Dockerfile:frontend-build",
+      "type": "service",
+      "name": "frontend-build",
+      "filePath": "backend/Dockerfile",
+      "lineRange": [2, 15],
+      "summary": "构建阶段一：基于 node:20-alpine，安装 npm 依赖并执行 npm run build 产出前端 dist 静态产物。",
+      "tags": ["containerization", "build-stage", "frontend", "node"],
+      "complexity": "simple"
+    },
+    {
+      "id": "service:backend/Dockerfile:python",
+      "type": "service",
+      "name": "python",
+      "filePath": "backend/Dockerfile",
+      "lineRange": [16, 46],
+      "summary": "构建阶段二（运行时）：基于 python:3.11-slim 安装后端依赖，COPY 前端 dist 到 static/，启动时先运行 alembic 迁移再以 uvicorn 启动 FastAPI，对外暴露 8000。",
+      "tags": ["containerization", "runtime", "python", "fastapi", "uvicorn"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "service:backend/Dockerfile:frontend-build",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "service:backend/Dockerfile:python",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "file:backend/app/main.py",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "service:backend/Dockerfile",
+      "target": "file:backend/alembic/env.py",
+      "type": "deploys",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "service:backend/Dockerfile:frontend-build",
+      "target": "file:frontend/package.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

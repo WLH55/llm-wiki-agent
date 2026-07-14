@@ -1,0 +1,606 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 9,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 25,
+      "nonEmptyLines": 17,
+      "sections": [
+        {
+          "heading": "halfvec 多维度共存方案",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 111,
+      "nonEmptyLines": 83,
+      "sections": [
+        {
+          "heading": "Tenant + Organization 两层 RBAC 模型",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "合并算法（fall-through 三步短路）",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "「空间视角下显示只读」的语义解释",
+          "level": 3,
+          "line": 72
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 81
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 88
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 101
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0003-three-edge-model.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 135,
+      "nonEmptyLines": 99,
+      "sections": [
+        {
+          "heading": "三套边并存模型（链接图 + 目录树 + 溯源）",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "链接图边（无类型、无权、有向）",
+          "level": 3,
+          "line": 24
+        },
+        {
+          "heading": "目录树边（两套父子结构并存）",
+          "level": 3,
+          "line": 45
+        },
+        {
+          "heading": "溯源边（页面 → 原文档/chunk）",
+          "level": 3,
+          "line": 70
+        },
+        {
+          "heading": "页面类型（7 种）",
+          "level": 3,
+          "line": 81
+        },
+        {
+          "heading": "其他约束",
+          "level": 3,
+          "line": 95
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 101
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 108
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 118
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0004-http-mcp-server.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 59,
+      "nonEmptyLines": 42,
+      "sections": [
+        {
+          "heading": "HTTP MCP 工具集",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 39
+        },
+        {
+          "heading": "Open Questions（留给下一轮 grilling）",
+          "level": 2,
+          "line": 48
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0005-self-signup-and-invitation.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 132,
+      "nonEmptyLines": 99,
+      "sections": [
+        {
+          "heading": "自注册 + 邀请制账户体系",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 25
+        },
+        {
+          "heading": "自注册流程",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "创建 organization",
+          "level": 3,
+          "line": 41
+        },
+        {
+          "heading": "邀请制加入 organization",
+          "level": 3,
+          "line": 52
+        },
+        {
+          "heading": "workspace context 切换",
+          "level": 3,
+          "line": 74
+        },
+        {
+          "heading": "鉴权机制",
+          "level": 3,
+          "line": 88
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 96
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 103
+        },
+        {
+          "heading": "Open Questions（留给未来 grilling）",
+          "level": 2,
+          "line": 121
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 127
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0006-agent-runtime-byok.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 120,
+      "nonEmptyLines": 88,
+      "sections": [
+        {
+          "heading": "Agent Runtime + BYOK + 双 AI 通道",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "双 AI 通道（两个入口，同一底层）",
+          "level": 3,
+          "line": 17
+        },
+        {
+          "heading": "BYOK 机制",
+          "level": 3,
+          "line": 44
+        },
+        {
+          "heading": "嵌入模型 vs LLM 模型分离",
+          "level": 3,
+          "line": 51
+        },
+        {
+          "heading": "LLM Provider Registry",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "Agent Runtime 内部工具集",
+          "level": 3,
+          "line": 72
+        },
+        {
+          "heading": "意图分类（零 LLM）—— ❌ 已弃用（2026-07-09）",
+          "level": 3,
+          "line": 84
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 92
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 98
+        },
+        {
+          "heading": "Open Questions（留给未来 grilling）",
+          "level": 2,
+          "line": 109
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 115
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 13
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0007-multi-source-mounting.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 113,
+      "nonEmptyLines": 86,
+      "sections": [
+        {
+          "heading": "多源挂载（统一 Source 抽象 + 无优先级）",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "Phase 划分（明确 P1 / P4 / P5 / P6 各做什么）",
+          "level": 3,
+          "line": 12
+        },
+        {
+          "heading": "sources 表 schema",
+          "level": 3,
+          "line": 23
+        },
+        {
+          "heading": "各 source_type 的 config + sync_cursor",
+          "level": 3,
+          "line": 41
+        },
+        {
+          "heading": "SourceAdapter 抽象接口",
+          "level": 3,
+          "line": 52
+        },
+        {
+          "heading": "冲突处理",
+          "level": 3,
+          "line": 74
+        },
+        {
+          "heading": "RBAC",
+          "level": 3,
+          "line": 80
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 86
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 93
+        },
+        {
+          "heading": "Open Questions（留给未来 grilling）",
+          "level": 2,
+          "line": 101
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 106
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0008-mvp-scope.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 92,
+      "nonEmptyLines": 69,
+      "sections": [
+        {
+          "heading": "MVP 范围与砍点决策",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "MVP（P1）实现的 6 个模块",
+          "level": 3,
+          "line": 19
+        },
+        {
+          "heading": "MVP（P1）的鉴权极简",
+          "level": 3,
+          "line": 30
+        },
+        {
+          "heading": "MVP（P1）schema 预留但不实现",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "MVP（P1）完全不做的（无 schema 预留）",
+          "level": 3,
+          "line": 54
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 62
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "Open Questions（留给未来 grilling）",
+          "level": 2,
+          "line": 83
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 88
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 200,
+      "nonEmptyLines": 147,
+      "sections": [
+        {
+          "heading": "检索架构（双路径 + IndexingStrategy + wiki chunk boost）",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Context",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Decision",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "IndexingStrategy 四开关",
+          "level": 3,
+          "line": 22
+        },
+        {
+          "heading": "三种典型 KB 配置",
+          "level": 3,
+          "line": 42
+        },
+        {
+          "heading": "路径 A：wiki_search（POSIX 正则 + 字段权重）",
+          "level": 3,
+          "line": 50
+        },
+        {
+          "heading": "路径 B：普通 RAG + wiki chunk boost 1.3",
+          "level": 3,
+          "line": 87
+        },
+        {
+          "heading": "KB 类型推断（替代意图分类）",
+          "level": 3,
+          "line": 130
+        },
+        {
+          "heading": "wiki chunk 生命周期",
+          "level": 3,
+          "line": 147
+        },
+        {
+          "heading": "Considered Options",
+          "level": 2,
+          "line": 156
+        },
+        {
+          "heading": "Consequences",
+          "level": 2,
+          "line": 165
+        },
+        {
+          "heading": "Open Questions（留给未来 grilling）",
+          "level": 2,
+          "line": 179
+        },
+        {
+          "heading": "参考实现",
+          "level": 2,
+          "line": 186
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 13
+      }
+    }
+  ]
+}

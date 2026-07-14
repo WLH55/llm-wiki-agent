@@ -1,0 +1,1814 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 7,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "mydocs/GBrain知识库设计剖析.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 350,
+      "nonEmptyLines": 253,
+      "sections": [
+        {
+          "heading": "GBrain 知识库设计剖析",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目录",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "1. 一句话心智模型",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "2. 实体关系图",
+          "level": 2,
+          "line": 46
+        },
+        {
+          "heading": "3. 核心实体详解",
+          "level": 2,
+          "line": 72
+        },
+        {
+          "heading": "3.1 source（内容仓库）",
+          "level": 3,
+          "line": 74
+        },
+        {
+          "heading": "3.2 page（原子知识页）",
+          "level": 3,
+          "line": 80
+        },
+        {
+          "heading": "3.3 chunk（检索召回单元）",
+          "level": 3,
+          "line": 86
+        },
+        {
+          "heading": "3.4 link（图边）",
+          "level": 3,
+          "line": 93
+        },
+        {
+          "heading": "3.5 fact / take（结构化记忆）",
+          "level": 3,
+          "line": 99
+        },
+        {
+          "heading": "fact（热记忆）",
+          "level": 4,
+          "line": 103
+        },
+        {
+          "heading": "take（带权判断）",
+          "level": 4,
+          "line": 109
+        },
+        {
+          "heading": "与 WeKnora 的根本差异",
+          "level": 4,
+          "line": 115
+        },
+        {
+          "heading": "4. 表分类速查",
+          "level": 2,
+          "line": 121
+        },
+        {
+          "heading": "4.1 知识本体（13 张）",
+          "level": 3,
+          "line": 125
+        },
+        {
+          "heading": "4.2 结构化记忆（9 张）",
+          "level": 3,
+          "line": 133
+        },
+        {
+          "heading": "4.3 检索 / 代码索引 / 评测（11 张）",
+          "level": 3,
+          "line": 141
+        },
+        {
+          "heading": "4.4 权限 / 远程 MCP / 预算（10 张）",
+          "level": 3,
+          "line": 151
+        },
+        {
+          "heading": "4.5 后台任务 / Agent Runtime（17 张）",
+          "level": 3,
+          "line": 161
+        },
+        {
+          "heading": "5. 关键设计细节",
+          "level": 2,
+          "line": 179
+        },
+        {
+          "heading": "5.1 Brain = 一个数据库",
+          "level": 3,
+          "line": 181
+        },
+        {
+          "heading": "5.2 fact.entity_slug 不是强 FK",
+          "level": 3,
+          "line": 185
+        },
+        {
+          "heading": "5.3 links 是知识图谱的核心",
+          "level": 3,
+          "line": 192
+        },
+        {
+          "heading": "5.4 chunk 多模态向量三套并存",
+          "level": 3,
+          "line": 199
+        },
+        {
+          "heading": "5.5 query_cache 用复合 hash 防污染",
+          "level": 3,
+          "line": 208
+        },
+        {
+          "heading": "5.6 主入口 put_page 的副作用链",
+          "level": 3,
+          "line": 217
+        },
+        {
+          "heading": "6. 与 WeKnora 设计的对比",
+          "level": 2,
+          "line": 238
+        },
+        {
+          "heading": "6.1 哲学差异",
+          "level": 3,
+          "line": 254
+        },
+        {
+          "heading": "6.2 数据库选型差异",
+          "level": 3,
+          "line": 264
+        },
+        {
+          "heading": "6.3 图存储差异",
+          "level": 3,
+          "line": 269
+        },
+        {
+          "heading": "7. 设计借鉴建议",
+          "level": 2,
+          "line": 276
+        },
+        {
+          "heading": "7.1 必借点",
+          "level": 3,
+          "line": 280
+        },
+        {
+          "heading": "7.2 视场景而定的点",
+          "level": 3,
+          "line": 287
+        },
+        {
+          "heading": "7.3 不建议借的点",
+          "level": 3,
+          "line": 293
+        },
+        {
+          "heading": "7.4 与 WeKnora 设计结合的可能性",
+          "level": 3,
+          "line": 298
+        },
+        {
+          "heading": "8. 待深挖分支",
+          "level": 2,
+          "line": 310
+        },
+        {
+          "heading": "8.1 facts/takes 结构化记忆层",
+          "level": 3,
+          "line": 314
+        },
+        {
+          "heading": "8.2 pages/chunks/links 检索与图谱层",
+          "level": 3,
+          "line": 325
+        },
+        {
+          "heading": "附录：关键文件索引",
+          "level": 2,
+          "line": 337
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 39
+      }
+    },
+    {
+      "path": "mydocs/kb-architecture.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 414,
+      "nonEmptyLines": 319,
+      "sections": [
+        {
+          "heading": "WeKnora 知识库（KB）架构文档",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目录",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "1. 一句话心智模型",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "2. 核心概念",
+          "level": 2,
+          "line": 34
+        },
+        {
+          "heading": "2.1 KnowledgeBase（KB，知识库）",
+          "level": 3,
+          "line": 36
+        },
+        {
+          "heading": "2.2 IndexingStrategy（索引策略，**真正的行为开关**）",
+          "level": 3,
+          "line": 43
+        },
+        {
+          "heading": "2.3 Type（**遗留枚举，不要用它解释 KB 行为**）",
+          "level": 3,
+          "line": 57
+        },
+        {
+          "heading": "2.4 KBCapabilities（前端能力投影）",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "3. 知识库\"有几种\"——表面 vs 实际",
+          "level": 2,
+          "line": 77
+        },
+        {
+          "heading": "3.1 用户视角（表面）",
+          "level": 3,
+          "line": 79
+        },
+        {
+          "heading": "3.2 代码视角（实际）",
+          "level": 3,
+          "line": 87
+        },
+        {
+          "heading": "3.3 为什么 UI 分 3 种但代码只认 2 种 `Type`",
+          "level": 3,
+          "line": 95
+        },
+        {
+          "heading": "4. 两条独立检索路径",
+          "level": 2,
+          "line": 102
+        },
+        {
+          "heading": "4.1 RAG 检索路径",
+          "level": 3,
+          "line": 129
+        },
+        {
+          "heading": "4.2 Wiki 检索路径",
+          "level": 3,
+          "line": 136
+        },
+        {
+          "heading": "4.3 两条路径的关系",
+          "level": 3,
+          "line": 144
+        },
+        {
+          "heading": "5. RAG 的两个子模式：Document vs FAQ",
+          "level": 2,
+          "line": 152
+        },
+        {
+          "heading": "5.1 FAQ 的上传机制（重要澄清）",
+          "level": 3,
+          "line": 167
+        },
+        {
+          "heading": "5.2 为什么 Document / FAQ 不合并成一个 Type",
+          "level": 3,
+          "line": 200
+        },
+        {
+          "heading": "6. Wiki 文档不会再被分块",
+          "level": 2,
+          "line": 214
+        },
+        {
+          "heading": "6.1 完整链路",
+          "level": 3,
+          "line": 218
+        },
+        {
+          "heading": "6.2 为什么 wiki page 不进 chunks 表",
+          "level": 3,
+          "line": 240
+        },
+        {
+          "heading": "6.3 例外：预留接口",
+          "level": 3,
+          "line": 249
+        },
+        {
+          "heading": "7. 代码中\"看似存在但未启用\"的点",
+          "level": 2,
+          "line": 255
+        },
+        {
+          "heading": "8. 一张图看清全貌",
+          "level": 2,
+          "line": 270
+        },
+        {
+          "heading": "9. 常见误解澄清",
+          "level": 2,
+          "line": 332
+        },
+        {
+          "heading": "10. 关键文件索引",
+          "level": 2,
+          "line": 345
+        },
+        {
+          "heading": "类型与常量",
+          "level": 3,
+          "line": 347
+        },
+        {
+          "heading": "KB 主服务",
+          "level": 3,
+          "line": 356
+        },
+        {
+          "heading": "Document 摄入",
+          "level": 3,
+          "line": 363
+        },
+        {
+          "heading": "FAQ 摄入",
+          "level": 3,
+          "line": 370
+        },
+        {
+          "heading": "Wiki 摄入（详见 [wiki-architecture.md](./wiki-architecture.md)）",
+          "level": 3,
+          "line": 378
+        },
+        {
+          "heading": "Agent 工具",
+          "level": 3,
+          "line": 386
+        },
+        {
+          "heading": "数据库迁移",
+          "level": 3,
+          "line": 393
+        },
+        {
+          "heading": "附录：与领域词汇表的对应",
+          "level": 2,
+          "line": 404
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 35
+      }
+    },
+    {
+      "path": "mydocs/multi-tenant-architecture.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 918,
+      "nonEmptyLines": 687,
+      "sections": [
+        {
+          "heading": "WeKnora 多租户与共享空间架构文档",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目录",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "1. 概述",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "2. 双层空间模型",
+          "level": 2,
+          "line": 76
+        },
+        {
+          "heading": "2.1 Tenant（工作空间）—— 资源归属边界",
+          "level": 3,
+          "line": 78
+        },
+        {
+          "heading": "2.2 Organization（共享空间）—— 跨租户协作载体",
+          "level": 3,
+          "line": 109
+        },
+        {
+          "heading": "2.3 二者对比",
+          "level": 3,
+          "line": 132
+        },
+        {
+          "heading": "3. 为什么不是\"群聊模型\"",
+          "level": 2,
+          "line": 147
+        },
+        {
+          "heading": "3.1 候选方案：纯 Org 模型",
+          "level": 3,
+          "line": 151
+        },
+        {
+          "heading": "3.2 在公司内部场景下的 5 个失败点",
+          "level": 3,
+          "line": 160
+        },
+        {
+          "heading": "3.3 决策结论",
+          "level": 3,
+          "line": 192
+        },
+        {
+          "heading": "4. 数据模型",
+          "level": 2,
+          "line": 200
+        },
+        {
+          "heading": "4.1 核心表关系图",
+          "level": 3,
+          "line": 202
+        },
+        {
+          "heading": "4.2 tenants（资源归属真相源）",
+          "level": 3,
+          "line": 273
+        },
+        {
+          "heading": "4.3 tenant_members（租户内成员）",
+          "level": 3,
+          "line": 282
+        },
+        {
+          "heading": "4.4 organizations（跨租户协作载体）",
+          "level": 3,
+          "line": 291
+        },
+        {
+          "heading": "4.5 organization_tenant_members（按租户加成员）",
+          "level": 3,
+          "line": 301
+        },
+        {
+          "heading": "4.6 kb_shares / agent_shares（共享指针）",
+          "level": 3,
+          "line": 317
+        },
+        {
+          "heading": "5. 角色体系与 3-D 上限规则",
+          "level": 2,
+          "line": 337
+        },
+        {
+          "heading": "5.1 双角色体系",
+          "level": 3,
+          "line": 339
+        },
+        {
+          "heading": "5.2 3-D 上限规则",
+          "level": 3,
+          "line": 367
+        },
+        {
+          "heading": "6. 跨租户 Key 解析链路",
+          "level": 2,
+          "line": 407
+        },
+        {
+          "heading": "6.1 Model 可见性规则",
+          "level": 3,
+          "line": 409
+        },
+        {
+          "heading": "6.2 三条 effectiveTenantID 切换路径",
+          "level": 3,
+          "line": 429
+        },
+        {
+          "heading": "6.3 端到端调用链：Bob 通过共享 Agent 访问 Alice 的 KB",
+          "level": 3,
+          "line": 481
+        },
+        {
+          "heading": "7. 共享机制详解",
+          "level": 2,
+          "line": 519
+        },
+        {
+          "heading": "7.1 共享 KB（kb_shares）",
+          "level": 3,
+          "line": 521
+        },
+        {
+          "heading": "7.2 共享 Agent（agent_shares）",
+          "level": 3,
+          "line": 542
+        },
+        {
+          "heading": "7.3 三步访问解析",
+          "level": 3,
+          "line": 566
+        },
+        {
+          "heading": "8. 资产传承语义",
+          "level": 2,
+          "line": 614
+        },
+        {
+          "heading": "8.1 Tenant 内成员被踢",
+          "level": 3,
+          "line": 616
+        },
+        {
+          "heading": "8.2 Org 内租户被移除",
+          "level": 3,
+          "line": 629
+        },
+        {
+          "heading": "8.3 资产传承规则总结",
+          "level": 3,
+          "line": 651
+        },
+        {
+          "heading": "8.4 已知清理缺口",
+          "level": 3,
+          "line": 661
+        },
+        {
+          "heading": "9. 邀请与加入流程",
+          "level": 2,
+          "line": 681
+        },
+        {
+          "heading": "9.1 Tenant 邀请（加入工作空间）",
+          "level": 3,
+          "line": 683
+        },
+        {
+          "heading": "9.2 Organization 邀请（加入共享空间）",
+          "level": 3,
+          "line": 709
+        },
+        {
+          "heading": "9.3 OIDC SSO 自动建租户",
+          "level": 3,
+          "line": 736
+        },
+        {
+          "heading": "10. 关键设计权衡",
+          "level": 2,
+          "line": 759
+        },
+        {
+          "heading": "权衡 1：Tenant 必须存在 vs 用户自助建 Tenant",
+          "level": 3,
+          "line": 761
+        },
+        {
+          "heading": "权衡 2：Org 成员单位是 User 还是 Tenant",
+          "level": 3,
+          "line": 772
+        },
+        {
+          "heading": "权衡 3：共享 Agent 携带的 KB 不创建 kb_shares 行",
+          "level": 3,
+          "line": 783
+        },
+        {
+          "heading": "权衡 4：Builtin Model 的全局可见性",
+          "level": 3,
+          "line": 794
+        },
+        {
+          "heading": "权衡 5：3-D 上限规则 vs 简单的 share.Permission",
+          "level": 3,
+          "line": 806
+        },
+        {
+          "heading": "11. 关键文件索引",
+          "level": 2,
+          "line": 818
+        },
+        {
+          "heading": "数据结构（types）",
+          "level": 3,
+          "line": 820
+        },
+        {
+          "heading": "中间件",
+          "level": 3,
+          "line": 830
+        },
+        {
+          "heading": "仓储层",
+          "level": 3,
+          "line": 838
+        },
+        {
+          "heading": "服务层",
+          "level": 3,
+          "line": 846
+        },
+        {
+          "heading": "Handler 层",
+          "level": 3,
+          "line": 857
+        },
+        {
+          "heading": "路由",
+          "level": 3,
+          "line": 867
+        },
+        {
+          "heading": "前端",
+          "level": 3,
+          "line": 873
+        },
+        {
+          "heading": "迁移",
+          "level": 3,
+          "line": 882
+        },
+        {
+          "heading": "相关文档",
+          "level": 3,
+          "line": 890
+        },
+        {
+          "heading": "附录：术语速查",
+          "level": 2,
+          "line": 902
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 55
+      }
+    },
+    {
+      "path": "mydocs/prd-v4.2.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 357,
+      "nonEmptyLines": 279,
+      "sections": [
+        {
+          "heading": "PRD v4.2：自部署 Web 知识库服务（Wiki/RAG 双路径 + 两层 RBAC）",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Problem Statement",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "Solution",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "User Stories",
+          "level": 2,
+          "line": 34
+        },
+        {
+          "heading": "Implementation Decisions",
+          "level": 2,
+          "line": 76
+        },
+        {
+          "heading": "整体架构",
+          "level": 3,
+          "line": 78
+        },
+        {
+          "heading": "双路径分离（核心架构决策）",
+          "level": 3,
+          "line": 84
+        },
+        {
+          "heading": "分块策略",
+          "level": 3,
+          "line": 95
+        },
+        {
+          "heading": "向量存储",
+          "level": 3,
+          "line": 103
+        },
+        {
+          "heading": "多源挂载",
+          "level": 3,
+          "line": 110
+        },
+        {
+          "heading": "两层 RBAC + 共享语义",
+          "level": 3,
+          "line": 121
+        },
+        {
+          "heading": "账户体系（自注册 + 邀请制）",
+          "level": 3,
+          "line": 135
+        },
+        {
+          "heading": "Agent Runtime + BYOK + 双 AI 通道",
+          "level": 3,
+          "line": 147
+        },
+        {
+          "heading": "页面与图谱模型",
+          "level": 3,
+          "line": 159
+        },
+        {
+          "heading": "并发控制（Wiki 编辑）",
+          "level": 3,
+          "line": 169
+        },
+        {
+          "heading": "数据模型关键 DDL（节选）",
+          "level": 3,
+          "line": 175
+        },
+        {
+          "heading": "MCP 工具集（Phase 3）",
+          "level": 3,
+          "line": 231
+        },
+        {
+          "heading": "多模态",
+          "level": 3,
+          "line": 241
+        },
+        {
+          "heading": "缓存键",
+          "level": 3,
+          "line": 246
+        },
+        {
+          "heading": "IM 通知（Phase 5）",
+          "level": 3,
+          "line": 250
+        },
+        {
+          "heading": "Phase 划分（高层）",
+          "level": 3,
+          "line": 254
+        },
+        {
+          "heading": "MVP（P1）—— 双路径核心闭环",
+          "level": 4,
+          "line": 256
+        },
+        {
+          "heading": "P2（MVP 完成后迭代）",
+          "level": 4,
+          "line": 273
+        },
+        {
+          "heading": "P3（外部接入 + 导出）",
+          "level": 4,
+          "line": 281
+        },
+        {
+          "heading": "P4（高级检索 + 多模态）",
+          "level": 4,
+          "line": 287
+        },
+        {
+          "heading": "P5（评估 + IM + 语雀）",
+          "level": 4,
+          "line": 293
+        },
+        {
+          "heading": "P6（飞书 / Notion / Agent Memory）",
+          "level": 4,
+          "line": 297
+        },
+        {
+          "heading": "Testing Decisions",
+          "level": 2,
+          "line": 301
+        },
+        {
+          "heading": "总原则",
+          "level": 3,
+          "line": 303
+        },
+        {
+          "heading": "Seams 优先级",
+          "level": 3,
+          "line": 309
+        },
+        {
+          "heading": "关键场景的测试归属",
+          "level": 3,
+          "line": 315
+        },
+        {
+          "heading": "Prior art",
+          "level": 3,
+          "line": 337
+        },
+        {
+          "heading": "Out of Scope",
+          "level": 2,
+          "line": 341
+        },
+        {
+          "heading": "Further Notes",
+          "level": 2,
+          "line": 352
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 34
+      }
+    },
+    {
+      "path": "mydocs/rag-architecture.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 514,
+      "nonEmptyLines": 389,
+      "sections": [
+        {
+          "heading": "WeKnora RAG 架构文档",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目录",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "1. 一句话心智模型",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "2. 端到端全景图",
+          "level": 2,
+          "line": 52
+        },
+        {
+          "heading": "3. 摄取：分阶段流水线",
+          "level": 2,
+          "line": 100
+        },
+        {
+          "heading": "3.1 5 个串行阶段（前段）",
+          "level": 3,
+          "line": 104
+        },
+        {
+          "heading": "3.2 父子分块（small-to-large retrieval）",
+          "level": 3,
+          "line": 116
+        },
+        {
+          "heading": "3.3 4 个并行扇出（后段）",
+          "level": 3,
+          "line": 148
+        },
+        {
+          "heading": "3.4 状态机与 Span 追踪",
+          "level": 3,
+          "line": 161
+        },
+        {
+          "heading": "Knowledge 状态机",
+          "level": 4,
+          "line": 163
+        },
+        {
+          "heading": "Span 追踪",
+          "level": 4,
+          "line": 180
+        },
+        {
+          "heading": "4. 存储：chunks 是真相，向量库/BM25 是索引副本",
+          "level": 2,
+          "line": 195
+        },
+        {
+          "heading": "4.1 chunks 表的字段结构",
+          "level": 3,
+          "line": 197
+        },
+        {
+          "heading": "4.2 chunk_type 的 12 种取值",
+          "level": 3,
+          "line": 217
+        },
+        {
+          "heading": "4.3 多向量库抽象",
+          "level": 3,
+          "line": 236
+        },
+        {
+          "heading": "PG pgvector 路径",
+          "level": 4,
+          "line": 256
+        },
+        {
+          "heading": "4.4 派生关系：为什么说\"chunks 是真相\"",
+          "level": 3,
+          "line": 266
+        },
+        {
+          "heading": "5. 检索：分区、归一化、RRF 融合、（可选）Rerank",
+          "level": 2,
+          "line": 283
+        },
+        {
+          "heading": "5.1 三向分区",
+          "level": 3,
+          "line": 287
+        },
+        {
+          "heading": "FAQ 为什么不进关键词索引",
+          "level": 4,
+          "line": 317
+        },
+        {
+          "heading": "5.2 分数归一化",
+          "level": 3,
+          "line": 326
+        },
+        {
+          "heading": "5.3 RRF 融合",
+          "level": 3,
+          "line": 348
+        },
+        {
+          "heading": "公式",
+          "level": 4,
+          "line": 352
+        },
+        {
+          "heading": "为什么用 RRF 而不是加权求和",
+          "level": 4,
+          "line": 364
+        },
+        {
+          "heading": "去重",
+          "level": 4,
+          "line": 372
+        },
+        {
+          "heading": "5.4 Rerank 的位置：在 chat_pipeline，不在 knowledgebase_search",
+          "level": 3,
+          "line": 376
+        },
+        {
+          "heading": "为什么这样切分",
+          "level": 4,
+          "line": 400
+        },
+        {
+          "heading": "6. 数据表清单",
+          "level": 2,
+          "line": 411
+        },
+        {
+          "heading": "6.1 KB 与 Knowledge 元数据",
+          "level": 3,
+          "line": 415
+        },
+        {
+          "heading": "6.2 分块与图谱",
+          "level": 3,
+          "line": 424
+        },
+        {
+          "heading": "6.3 摄取流水线追踪",
+          "level": 3,
+          "line": 434
+        },
+        {
+          "heading": "6.4 用户偏好",
+          "level": 3,
+          "line": 442
+        },
+        {
+          "heading": "7. 常见误解澄清",
+          "level": 2,
+          "line": 450
+        },
+        {
+          "heading": "8. 关键文件索引",
+          "level": 2,
+          "line": 466
+        },
+        {
+          "heading": "摄取",
+          "level": 3,
+          "line": 468
+        },
+        {
+          "heading": "检索",
+          "level": 3,
+          "line": 477
+        },
+        {
+          "heading": "类型与常量",
+          "level": 3,
+          "line": 486
+        },
+        {
+          "heading": "数据库迁移",
+          "level": 3,
+          "line": 494
+        },
+        {
+          "heading": "附录：与其他架构文档的对应",
+          "level": 2,
+          "line": 506
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 39
+      }
+    },
+    {
+      "path": "mydocs/ts-nextjs-guide-for-python-java-vue-developer.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 1689,
+      "nonEmptyLines": 1314,
+      "sections": [
+        {
+          "heading": "TypeScript & Next.js 速成指南",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目录",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "第一部分：TypeScript 基础",
+          "level": 1,
+          "line": 40
+        },
+        {
+          "heading": "1.1 静态类型 ≠ 必须手写类型",
+          "level": 2,
+          "line": 42
+        },
+        {
+          "heading": "1.2 基础类型对照",
+          "level": 2,
+          "line": 116
+        },
+        {
+          "heading": "1.3 可选属性 ? ：属性可以不存在",
+          "level": 2,
+          "line": 158
+        },
+        {
+          "heading": "1.4 const vs let vs type vs interface vs class",
+          "level": 2,
+          "line": 255
+        },
+        {
+          "heading": "const vs let vs var",
+          "level": 3,
+          "line": 269
+        },
+        {
+          "heading": "type",
+          "level": 3,
+          "line": 337
+        },
+        {
+          "heading": "interface",
+          "level": 3,
+          "line": 352
+        },
+        {
+          "heading": "class",
+          "level": 3,
+          "line": 365
+        },
+        {
+          "heading": "1.5 interface：给数据画一张身份证",
+          "level": 2,
+          "line": 399
+        },
+        {
+          "heading": "为什么需要 interface",
+          "level": 3,
+          "line": 401
+        },
+        {
+          "heading": "interface 解决的三个核心问题",
+          "level": 3,
+          "line": 435
+        },
+        {
+          "heading": "和 Java interface 的区别",
+          "level": 3,
+          "line": 441
+        },
+        {
+          "heading": "1.6 函数类型",
+          "level": 2,
+          "line": 487
+        },
+        {
+          "heading": "返回类型",
+          "level": 3,
+          "line": 489
+        },
+        {
+          "heading": "数组返回类型",
+          "level": 3,
+          "line": 526
+        },
+        {
+          "heading": "1.7 解构赋值",
+          "level": 2,
+          "line": 549
+        },
+        {
+          "heading": "对象基础解构",
+          "level": 3,
+          "line": 551
+        },
+        {
+          "heading": "重命名解构",
+          "level": 3,
+          "line": 566
+        },
+        {
+          "heading": "默认值解构",
+          "level": 3,
+          "line": 581
+        },
+        {
+          "heading": "嵌套解构",
+          "level": 3,
+          "line": 600
+        },
+        {
+          "heading": "数组解构",
+          "level": 3,
+          "line": 628
+        },
+        {
+          "heading": "React 组件 Props 解构（项目中最高频）",
+          "level": 3,
+          "line": 647
+        },
+        {
+          "heading": "1.8 箭头函数 vs 普通函数",
+          "level": 2,
+          "line": 675
+        },
+        {
+          "heading": "1.9 类型断言 as",
+          "level": 2,
+          "line": 735
+        },
+        {
+          "heading": "1.10 联合类型 |",
+          "level": 2,
+          "line": 766
+        },
+        {
+          "heading": "1.11 ?? 空值合并运算符",
+          "level": 2,
+          "line": 825
+        },
+        {
+          "heading": "1.12 类型推断的边界",
+          "level": 2,
+          "line": 877
+        },
+        {
+          "heading": "1.13 Python 的 TypedDict / dataclass / 纯 class — 和 TS interface 的关系",
+          "level": 2,
+          "line": 896
+        },
+        {
+          "heading": "为什么要讲这个？",
+          "level": 3,
+          "line": 898
+        },
+        {
+          "heading": "Python 描述数据的四种方式",
+          "level": 3,
+          "line": 902
+        },
+        {
+          "heading": "TypedDict vs dict：核心区别",
+          "level": 3,
+          "line": 949
+        },
+        {
+          "heading": "TypedDict vs dataclass：选哪个？",
+          "level": 3,
+          "line": 981
+        },
+        {
+          "heading": "纯 class 为什么不够用？",
+          "level": 3,
+          "line": 1026
+        },
+        {
+          "heading": "四种方式 + TS interface 的完整对照表",
+          "level": 3,
+          "line": 1050
+        },
+        {
+          "heading": "1.14 TypeScript 的类型检查是真检查还是第三方工具",
+          "level": 2,
+          "line": 1065
+        },
+        {
+          "heading": "一句话回答",
+          "level": 3,
+          "line": 1067
+        },
+        {
+          "heading": "TS 代码的完整生命周期",
+          "level": 3,
+          "line": 1071
+        },
+        {
+          "heading": "它算\"借助第三方工具\"吗？",
+          "level": 3,
+          "line": 1095
+        },
+        {
+          "heading": "Python vs TypeScript vs Java 的\"类型严格度\"光谱",
+          "level": 3,
+          "line": 1112
+        },
+        {
+          "heading": "这意味着什么？",
+          "level": 3,
+          "line": 1134
+        },
+        {
+          "heading": "对你项目的影响",
+          "level": 3,
+          "line": 1154
+        },
+        {
+          "heading": "第二部分：框架基础",
+          "level": 1,
+          "line": 1172
+        },
+        {
+          "heading": "2.1 JSX / TSX 是什么",
+          "level": 2,
+          "line": 1174
+        },
+        {
+          "heading": "2.2 React vs Next.js",
+          "level": 2,
+          "line": 1225
+        },
+        {
+          "heading": "2.3 Server Component vs Client Component",
+          "level": 2,
+          "line": 1279
+        },
+        {
+          "heading": "核心区别",
+          "level": 3,
+          "line": 1281
+        },
+        {
+          "heading": "Server Component 网络交互",
+          "level": 3,
+          "line": 1297
+        },
+        {
+          "heading": "Client Component 网络交互",
+          "level": 3,
+          "line": 1315
+        },
+        {
+          "heading": "简单规则",
+          "level": 3,
+          "line": 1333
+        },
+        {
+          "heading": "混合使用",
+          "level": 3,
+          "line": 1342
+        },
+        {
+          "heading": "2.4 Next.js API Routes",
+          "level": 2,
+          "line": 1376
+        },
+        {
+          "heading": "2.5 SEO 是什么",
+          "level": 2,
+          "line": 1431
+        },
+        {
+          "heading": "2.6 Express 是什么",
+          "level": 2,
+          "line": 1456
+        },
+        {
+          "heading": "2.7 Tree-shaking 与 import type",
+          "level": 2,
+          "line": 1490
+        },
+        {
+          "heading": "2.8 ES6 模块系统",
+          "level": 2,
+          "line": 1533
+        },
+        {
+          "heading": "第三部分：项目高频代码模式",
+          "level": 1,
+          "line": 1551
+        },
+        {
+          "heading": "第四部分：学习路线与资源",
+          "level": 1,
+          "line": 1598
+        },
+        {
+          "heading": "学习路线（最速路径）",
+          "level": 2,
+          "line": 1600
+        },
+        {
+          "heading": "优质学习资源",
+          "level": 2,
+          "line": 1618
+        },
+        {
+          "heading": "TypeScript",
+          "level": 3,
+          "line": 1620
+        },
+        {
+          "heading": "Next.js",
+          "level": 3,
+          "line": 1628
+        },
+        {
+          "heading": "React（Vue 开发者补充）",
+          "level": 3,
+          "line": 1635
+        },
+        {
+          "heading": "速查",
+          "level": 3,
+          "line": 1642
+        },
+        {
+          "heading": "附录：关键概念速查表",
+          "level": 1,
+          "line": 1651
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 67
+      }
+    },
+    {
+      "path": "mydocs/wiki-architecture.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 800,
+      "nonEmptyLines": 606,
+      "sections": [
+        {
+          "heading": "WeKnora Wiki 系统架构文档",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目录",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "1. 概述",
+          "level": 2,
+          "line": 31
+        },
+        {
+          "heading": "2. 整体架构",
+          "level": 2,
+          "line": 48
+        },
+        {
+          "heading": "3. 存储层",
+          "level": 2,
+          "line": 93
+        },
+        {
+          "heading": "3.1 PostgreSQL(真相来源)",
+          "level": 3,
+          "line": 95
+        },
+        {
+          "heading": "4 张 wiki 专属表",
+          "level": 4,
+          "line": 99
+        },
+        {
+          "heading": "2 张通用任务队列表(wiki 借用)",
+          "level": 4,
+          "line": 108
+        },
+        {
+          "heading": "KB 主表上的 2 个 JSONB 列",
+          "level": 4,
+          "line": 115
+        },
+        {
+          "heading": "3.2 Redis(短时状态)",
+          "level": 3,
+          "line": 124
+        },
+        {
+          "heading": "3.3 对象存储(图片)",
+          "level": 3,
+          "line": 137
+        },
+        {
+          "heading": "4. 数据模型",
+          "level": 2,
+          "line": 145
+        },
+        {
+          "heading": "4.1 表关系图",
+          "level": 3,
+          "line": 147
+        },
+        {
+          "heading": "4.2 wiki_pages 字段详解",
+          "level": 3,
+          "line": 197
+        },
+        {
+          "heading": "标识字段",
+          "level": 4,
+          "line": 199
+        },
+        {
+          "heading": "page_type 取值",
+          "level": 4,
+          "line": 211
+        },
+        {
+          "heading": "内容字段",
+          "level": 4,
+          "line": 223
+        },
+        {
+          "heading": "目录归属字段(000061 加的层级结构)",
+          "level": 4,
+          "line": 231
+        },
+        {
+          "heading": "引用与链接字段",
+          "level": 4,
+          "line": 244
+        },
+        {
+          "heading": "元数据字段",
+          "level": 4,
+          "line": 253
+        },
+        {
+          "heading": "4.3 其他表字段速查",
+          "level": 3,
+          "line": 261
+        },
+        {
+          "heading": "wiki_folders",
+          "level": 4,
+          "line": 263
+        },
+        {
+          "heading": "wiki_page_issues",
+          "level": 4,
+          "line": 277
+        },
+        {
+          "heading": "wiki_log_entries(append-only 事件流)",
+          "level": 4,
+          "line": 291
+        },
+        {
+          "heading": "task_pending_ops(通用)",
+          "level": 4,
+          "line": 306
+        },
+        {
+          "heading": "task_dead_letters(通用,无 TTL)",
+          "level": 4,
+          "line": 321
+        },
+        {
+          "heading": "4.4 真实 wiki page 示例",
+          "level": 3,
+          "line": 333
+        },
+        {
+          "heading": "表行视图",
+          "level": 4,
+          "line": 337
+        },
+        {
+          "heading": "content 字段里的实际内容",
+          "level": 4,
+          "line": 369
+        },
+        {
+          "heading": "5. 文档 → Wiki 转换流程",
+          "level": 2,
+          "line": 392
+        },
+        {
+          "heading": "5.1 触发与去抖动",
+          "level": 3,
+          "line": 394
+        },
+        {
+          "heading": "5.2 Map-Reduce 管道",
+          "level": 3,
+          "line": 406
+        },
+        {
+          "heading": "5.3 失败与重试",
+          "level": 3,
+          "line": 439
+        },
+        {
+          "heading": "5.4 删除时的反向流程",
+          "level": 3,
+          "line": 445
+        },
+        {
+          "heading": "6. 图片处理链路",
+          "level": 2,
+          "line": 460
+        },
+        {
+          "heading": "6.1 整体流程",
+          "level": 3,
+          "line": 462
+        },
+        {
+          "heading": "6.2 关键代码",
+          "level": 3,
+          "line": 483
+        },
+        {
+          "heading": "6.3 图片 URL 防篡改机制",
+          "level": 3,
+          "line": 492
+        },
+        {
+          "heading": "6.4 过滤策略",
+          "level": 3,
+          "line": 496
+        },
+        {
+          "heading": "6.5 第二条线:VLM OCR + Caption",
+          "level": 3,
+          "line": 500
+        },
+        {
+          "heading": "7. Wiki 与向量数据的关系",
+          "level": 2,
+          "line": 513
+        },
+        {
+          "heading": "7.1 核心结论:**基本完全分开**",
+          "level": 3,
+          "line": 515
+        },
+        {
+          "heading": "7.2 预留但未启用的结合点",
+          "level": 3,
+          "line": 527
+        },
+        {
+          "heading": "7.3 当前检索路径",
+          "level": 3,
+          "line": 535
+        },
+        {
+          "heading": "8. 批处理与并发模型",
+          "level": 2,
+          "line": 550
+        },
+        {
+          "heading": "8.1 关键常量",
+          "level": 3,
+          "line": 552
+        },
+        {
+          "heading": "8.2 同一 KB 内串行化",
+          "level": 3,
+          "line": 566
+        },
+        {
+          "heading": "8.3 同时上传 N 份文档的实际行为",
+          "level": 3,
+          "line": 574
+        },
+        {
+          "heading": "8.4 超过 batchSize 的真实排队",
+          "level": 3,
+          "line": 594
+        },
+        {
+          "heading": "8.5 跨 KB 完全并行",
+          "level": 3,
+          "line": 605
+        },
+        {
+          "heading": "8.6 为什么选 Redis 锁而不是其他方案",
+          "level": 3,
+          "line": 614
+        },
+        {
+          "heading": "9. 关键设计权衡",
+          "level": 2,
+          "line": 625
+        },
+        {
+          "heading": "9.1 持久化队列 vs Redis list",
+          "level": 3,
+          "line": 627
+        },
+        {
+          "heading": "9.2 append-only 事件流 vs 单行 TEXT 日志",
+          "level": 3,
+          "line": 635
+        },
+        {
+          "heading": "9.3 folder_id 真相 + 三冗余缓存",
+          "level": 3,
+          "line": 643
+        },
+        {
+          "heading": "9.4 version 字段的精细策略",
+          "level": 3,
+          "line": 651
+        },
+        {
+          "heading": "9.5 Wiki 与向量检索分离",
+          "level": 3,
+          "line": 657
+        },
+        {
+          "heading": "10. 关键文件索引",
+          "level": 2,
+          "line": 670
+        },
+        {
+          "heading": "类型定义",
+          "level": 3,
+          "line": 672
+        },
+        {
+          "heading": "服务层",
+          "level": 3,
+          "line": 681
+        },
+        {
+          "heading": "仓储层",
+          "level": 3,
+          "line": 695
+        },
+        {
+          "heading": "Handler 与路由",
+          "level": 3,
+          "line": 702
+        },
+        {
+          "heading": "Agent 工具",
+          "level": 3,
+          "line": 709
+        },
+        {
+          "heading": "图片处理",
+          "level": 3,
+          "line": 717
+        },
+        {
+          "heading": "数据库迁移",
+          "level": 3,
+          "line": 725
+        },
+        {
+          "heading": "附录:常用调试查询",
+          "level": 2,
+          "line": 736
+        },
+        {
+          "heading": "查看某 KB 的 wiki 状态",
+          "level": 3,
+          "line": 738
+        },
+        {
+          "heading": "查看摄入队列",
+          "level": 3,
+          "line": 754
+        },
+        {
+          "heading": "查看操作日志",
+          "level": 3,
+          "line": 770
+        },
+        {
+          "heading": "查找死链",
+          "level": 3,
+          "line": 779
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 70
+      }
+    }
+  ]
+}

@@ -1,0 +1,1262 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "fileCategory": "code",
+      "totalLines": 76,
+      "nonEmptyLines": 70,
+      "metrics": {}
+    },
+    {
+      "path": ".understand-anything/intermediate/scan-result.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 933,
+      "nonEmptyLines": 933,
+      "sections": [
+        {
+          "heading": "scriptCompleted",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "files",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "totalFiles",
+          "level": 1,
+          "line": 623
+        },
+        {
+          "heading": "filteredByIgnore",
+          "level": 1,
+          "line": 624
+        },
+        {
+          "heading": "estimatedComplexity",
+          "level": 1,
+          "line": 625
+        },
+        {
+          "heading": "stats",
+          "level": 1,
+          "line": 626
+        },
+        {
+          "heading": "projectRoot",
+          "level": 1,
+          "line": 654
+        },
+        {
+          "heading": "project",
+          "level": 1,
+          "line": 655
+        },
+        {
+          "heading": "complexity",
+          "level": 1,
+          "line": 684
+        },
+        {
+          "heading": "importMap",
+          "level": 1,
+          "line": 685
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 10
+      }
+    },
+    {
+      "path": "backend/alembic.ini",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 40,
+      "nonEmptyLines": 31,
+      "metrics": {}
+    },
+    {
+      "path": "backend/alembic/script.py.mako",
+      "language": "mako",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 17,
+      "metrics": {}
+    },
+    {
+      "path": "backend/alembic/versions/.gitkeep",
+      "language": "unknown",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 0,
+      "metrics": {}
+    },
+    {
+      "path": "backend/alembic/versions/001_initial.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 313,
+      "nonEmptyLines": 281,
+      "functions": [
+        {
+          "name": "upgrade",
+          "startLine": 28,
+          "endLine": 285,
+          "params": []
+        },
+        {
+          "name": "downgrade",
+          "startLine": 288,
+          "endLine": 313,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "upgrade",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "downgrade",
+          "line": 288,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 32
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 33
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 36
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 37
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 45
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 55
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 68
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 70
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 87
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 89
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 103
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 104
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 106
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 123
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 124
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 125
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 126
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 129
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 150
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 157
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 165
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 172
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 173
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 174
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 175
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 178
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 186
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 196
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 198
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 209
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 210
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 212
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 223
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 224
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 226
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 237
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 248
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 250
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 262
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 264
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 277
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 278
+        },
+        {
+          "caller": "upgrade",
+          "callee": "op.execute",
+          "lineNumber": 281
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 290
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 300
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 302
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 303
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 304
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 305
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 306
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 307
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 308
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 309
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 310
+        },
+        {
+          "caller": "downgrade",
+          "callee": "op.execute",
+          "lineNumber": 312
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/auth/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/plugins/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/plugins/chunk_rerank.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 29,
+      "functions": [
+        {
+          "name": "get_chunk_rerank_plugin",
+          "startLine": 37,
+          "endLine": 39,
+          "params": []
+        },
+        {
+          "name": "set_chunk_rerank_plugin",
+          "startLine": 42,
+          "endLine": 45,
+          "params": [
+            "plugin"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "ChunkRerankPlugin",
+          "startLine": 18,
+          "endLine": 23,
+          "methods": [
+            "rerank"
+          ],
+          "properties": []
+        },
+        {
+          "name": "DefaultChunkRerankPlugin",
+          "startLine": 26,
+          "endLine": 31,
+          "methods": [
+            "rerank"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ChunkRerankPlugin",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "DefaultChunkRerankPlugin",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "get_chunk_rerank_plugin",
+          "line": 37,
+          "isDefault": false
+        },
+        {
+          "name": "set_chunk_rerank_plugin",
+          "line": 42,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 2,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "backend/app/routers/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/schemas/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/services/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/app/workers/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 1,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/pyproject.toml",
+      "language": "toml",
+      "fileCategory": "config",
+      "totalLines": 53,
+      "nonEmptyLines": 47,
+      "sections": [
+        {
+          "heading": "build-system",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "project",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "project.optional-dependencies",
+          "level": 2,
+          "line": 31
+        },
+        {
+          "heading": "tool.hatch.build.targets.wheel",
+          "level": 5,
+          "line": 40
+        },
+        {
+          "heading": "tool.pytest.ini_options",
+          "level": 3,
+          "line": 43
+        },
+        {
+          "heading": "tool.ruff",
+          "level": 2,
+          "line": 47
+        },
+        {
+          "heading": "tool.ruff.lint",
+          "level": 3,
+          "line": 51
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "backend/tests/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 1,
+      "nonEmptyLines": 0,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/tests/conftest.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "event_loop",
+          "startLine": 24,
+          "endLine": 28,
+          "params": []
+        },
+        {
+          "name": "db_session",
+          "startLine": 32,
+          "endLine": 37,
+          "params": []
+        },
+        {
+          "name": "client",
+          "startLine": 41,
+          "endLine": 47,
+          "params": []
+        },
+        {
+          "name": "auth_token",
+          "startLine": 51,
+          "endLine": 61,
+          "params": [
+            "client"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "event_loop",
+          "line": 23,
+          "isDefault": false
+        },
+        {
+          "name": "db_session",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "client",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "auth_token",
+          "line": 50,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "event_loop",
+          "callee": "asyncio.new_event_loop",
+          "lineNumber": 26
+        },
+        {
+          "caller": "event_loop",
+          "callee": "loop.close",
+          "lineNumber": 28
+        },
+        {
+          "caller": "db_session",
+          "callee": "async_session_factory",
+          "lineNumber": 36
+        },
+        {
+          "caller": "client",
+          "callee": "ASGITransport",
+          "lineNumber": 45
+        },
+        {
+          "caller": "client",
+          "callee": "AsyncClient",
+          "lineNumber": 46
+        },
+        {
+          "caller": "auth_token",
+          "callee": "os.getenv",
+          "lineNumber": 53
+        },
+        {
+          "caller": "auth_token",
+          "callee": "os.getenv",
+          "lineNumber": 54
+        },
+        {
+          "caller": "auth_token",
+          "callee": "client.post",
+          "lineNumber": 55
+        },
+        {
+          "caller": "auth_token",
+          "callee": "response.json",
+          "lineNumber": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/tests/test_document.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 49,
+      "functions": [
+        {
+          "name": "test_upload_md_and_wait_processed",
+          "startLine": 13,
+          "endLine": 60,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_upload_md_and_wait_processed",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "client.post",
+          "lineNumber": 16
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "kb_resp.json",
+          "lineNumber": 21
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "\"\"\"\n# 测试文档\n\n这是一个测试 Markdown 文档，包含中文和 English 内容。\n\n## 章节 1\n向量检索是 RAG 系统的核心组件。\nBM25 是经典的关键词检索算法。\n\n## 章节 2\nRRF（Reciprocal Rank Fusion）是一种简单有效的多路召回融合方法。\n\"\"\".strip().encode",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "\"\"\"\n# 测试文档\n\n这是一个测试 Markdown 文档，包含中文和 English 内容。\n\n## 章节 1\n向量检索是 RAG 系统的核心组件。\nBM25 是经典的关键词检索算法。\n\n## 章节 2\nRRF（Reciprocal Rank Fusion）是一种简单有效的多路召回融合方法。\n\"\"\".strip",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "client.post",
+          "lineNumber": 37
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "upload_resp.json",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "range",
+          "lineNumber": 46
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "client.get",
+          "lineNumber": 47
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "status_resp.json",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "pytest.fail",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "status_resp.json",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "asyncio.sleep",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_upload_md_and_wait_processed",
+          "callee": "pytest.fail",
+          "lineNumber": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/tests/test_halfvec.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 91,
+      "nonEmptyLines": 77,
+      "functions": [
+        {
+          "name": "test_halfvec_cast_hits_hnsw_index",
+          "startLine": 12,
+          "endLine": 34,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_halfvec_no_cast_seq_scan",
+          "startLine": 38,
+          "endLine": 63,
+          "params": [
+            "db_session"
+          ]
+        },
+        {
+          "name": "test_zhparser_chinese_tokenizer",
+          "startLine": 67,
+          "endLine": 91,
+          "params": [
+            "db_session"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_halfvec_cast_hits_hnsw_index",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "test_halfvec_no_cast_seq_scan",
+          "line": 37,
+          "isDefault": false
+        },
+        {
+          "name": "test_zhparser_chinese_tokenizer",
+          "line": 66,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_halfvec_cast_hits_hnsw_index",
+          "callee": "\",\".join",
+          "lineNumber": 15
+        },
+        {
+          "caller": "test_halfvec_cast_hits_hnsw_index",
+          "callee": "range",
+          "lineNumber": 15
+        },
+        {
+          "caller": "test_halfvec_cast_hits_hnsw_index",
+          "callee": "text",
+          "lineNumber": 17
+        },
+        {
+          "caller": "test_halfvec_cast_hits_hnsw_index",
+          "callee": "db_session.execute",
+          "lineNumber": 28
+        },
+        {
+          "caller": "test_halfvec_cast_hits_hnsw_index",
+          "callee": "\"\\n\".join",
+          "lineNumber": 29
+        },
+        {
+          "caller": "test_halfvec_no_cast_seq_scan",
+          "callee": "\",\".join",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_halfvec_no_cast_seq_scan",
+          "callee": "range",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_halfvec_no_cast_seq_scan",
+          "callee": "text",
+          "lineNumber": 47
+        },
+        {
+          "caller": "test_halfvec_no_cast_seq_scan",
+          "callee": "db_session.execute",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_halfvec_no_cast_seq_scan",
+          "callee": "\"\\n\".join",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_zhparser_chinese_tokenizer",
+          "callee": "text",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_zhparser_chinese_tokenizer",
+          "callee": "db_session.execute",
+          "lineNumber": 81
+        },
+        {
+          "caller": "test_zhparser_chinese_tokenizer",
+          "callee": "result.fetchone",
+          "lineNumber": 82
+        },
+        {
+          "caller": "test_zhparser_chinese_tokenizer",
+          "callee": "db_session.commit",
+          "lineNumber": 83
+        },
+        {
+          "caller": "test_zhparser_chinese_tokenizer",
+          "callee": "db_session.execute",
+          "lineNumber": 90
+        },
+        {
+          "caller": "test_zhparser_chinese_tokenizer",
+          "callee": "text",
+          "lineNumber": 90
+        },
+        {
+          "caller": "test_zhparser_chinese_tokenizer",
+          "callee": "db_session.commit",
+          "lineNumber": 91
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/tests/test_kb.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 53,
+      "nonEmptyLines": 47,
+      "functions": [
+        {
+          "name": "test_create_kb_default_config",
+          "startLine": 8,
+          "endLine": 23,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        },
+        {
+          "name": "test_list_kbs",
+          "startLine": 27,
+          "endLine": 43,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        },
+        {
+          "name": "test_get_kb_not_found",
+          "startLine": 47,
+          "endLine": 53,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_create_kb_default_config",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "test_list_kbs",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "test_get_kb_not_found",
+          "line": 46,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_create_kb_default_config",
+          "callee": "client.post",
+          "lineNumber": 10
+        },
+        {
+          "caller": "test_create_kb_default_config",
+          "callee": "response.json",
+          "lineNumber": 16
+        },
+        {
+          "caller": "test_list_kbs",
+          "callee": "client.post",
+          "lineNumber": 30
+        },
+        {
+          "caller": "test_list_kbs",
+          "callee": "client.get",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_list_kbs",
+          "callee": "response.json",
+          "lineNumber": 41
+        },
+        {
+          "caller": "test_list_kbs",
+          "callee": "isinstance",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_list_kbs",
+          "callee": "any",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_get_kb_not_found",
+          "callee": "client.get",
+          "lineNumber": 49
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "backend/tests/test_search.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 54,
+      "functions": [
+        {
+          "name": "test_search_chinese",
+          "startLine": 10,
+          "endLine": 28,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        },
+        {
+          "name": "test_search_english",
+          "startLine": 32,
+          "endLine": 46,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        },
+        {
+          "name": "test_search_wiki_mode_not_implemented",
+          "startLine": 50,
+          "endLine": 64,
+          "params": [
+            "client",
+            "auth_token"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_search_chinese",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "test_search_english",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "test_search_wiki_mode_not_implemented",
+          "line": 49,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_search_chinese",
+          "callee": "client.post",
+          "lineNumber": 13
+        },
+        {
+          "caller": "test_search_chinese",
+          "callee": "kb_resp.json",
+          "lineNumber": 18
+        },
+        {
+          "caller": "test_search_chinese",
+          "callee": "client.get",
+          "lineNumber": 20
+        },
+        {
+          "caller": "test_search_chinese",
+          "callee": "response.json",
+          "lineNumber": 26
+        },
+        {
+          "caller": "test_search_chinese",
+          "callee": "isinstance",
+          "lineNumber": 28
+        },
+        {
+          "caller": "test_search_english",
+          "callee": "client.post",
+          "lineNumber": 34
+        },
+        {
+          "caller": "test_search_english",
+          "callee": "kb_resp.json",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_search_english",
+          "callee": "client.get",
+          "lineNumber": 41
+        },
+        {
+          "caller": "test_search_wiki_mode_not_implemented",
+          "callee": "client.post",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_search_wiki_mode_not_implemented",
+          "callee": "kb_resp.json",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_search_wiki_mode_not_implemented",
+          "callee": "client.get",
+          "lineNumber": 59
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/postcss.config.js",
+      "language": "javascript",
+      "fileCategory": "config",
+      "totalLines": 6,
+      "nonEmptyLines": 6,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/src/index.css",
+      "language": "css",
+      "fileCategory": "markup",
+      "totalLines": 3,
+      "nonEmptyLines": 3,
+      "metrics": {}
+    },
+    {
+      "path": "frontend/tailwind.config.js",
+      "language": "javascript",
+      "fileCategory": "config",
+      "totalLines": 8,
+      "nonEmptyLines": 8,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "language": "typescript",
+      "fileCategory": "config",
+      "totalLines": 20,
+      "nonEmptyLines": 19,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    }
+  ]
+}

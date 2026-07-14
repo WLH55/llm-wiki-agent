@@ -1,0 +1,83 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "backend/app/auth/routes.py", "language": "python", "sizeLines": 108, "fileCategory": "code"},
+    {"path": "backend/app/config/exceptions.py", "language": "python", "sizeLines": 51, "fileCategory": "code"},
+    {"path": "backend/app/config/schemas.py", "language": "python", "sizeLines": 49, "fileCategory": "code"},
+    {"path": "backend/app/deps.py", "language": "python", "sizeLines": 37, "fileCategory": "code"},
+    {"path": "backend/app/routers/document.py", "language": "python", "sizeLines": 94, "fileCategory": "code"},
+    {"path": "backend/app/routers/kb.py", "language": "python", "sizeLines": 104, "fileCategory": "code"},
+    {"path": "backend/app/routers/search.py", "language": "python", "sizeLines": 104, "fileCategory": "code"},
+    {"path": "backend/app/schemas/auth.py", "language": "python", "sizeLines": 24, "fileCategory": "code"},
+    {"path": "backend/app/schemas/document.py", "language": "python", "sizeLines": 28, "fileCategory": "code"},
+    {"path": "backend/app/schemas/kb.py", "language": "python", "sizeLines": 62, "fileCategory": "code"},
+    {"path": "backend/app/schemas/search.py", "language": "python", "sizeLines": 38, "fileCategory": "code"},
+    {"path": "backend/app/services/document_service.py", "language": "python", "sizeLines": 163, "fileCategory": "code"},
+    {"path": "backend/app/services/kb_service.py", "language": "python", "sizeLines": 165, "fileCategory": "code"},
+    {"path": "backend/app/services/search_service.py", "language": "python", "sizeLines": 148, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "backend/app/auth/routes.py": [
+      "backend/app/auth/jwt_handler.py",
+      "backend/app/auth/password.py",
+      "backend/app/config/exceptions.py",
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/models/user.py",
+      "backend/app/schemas/auth.py"
+    ],
+    "backend/app/config/exceptions.py": [
+      "backend/app/config/schemas.py"
+    ],
+    "backend/app/config/schemas.py": [],
+    "backend/app/deps.py": [
+      "backend/app/config/dependencies.py"
+    ],
+    "backend/app/routers/document.py": [
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/schemas/document.py",
+      "backend/app/services/document_service.py"
+    ],
+    "backend/app/routers/kb.py": [
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/schemas/kb.py",
+      "backend/app/services/kb_service.py"
+    ],
+    "backend/app/routers/search.py": [
+      "backend/app/config/exceptions.py",
+      "backend/app/config/schemas.py",
+      "backend/app/deps.py",
+      "backend/app/schemas/search.py",
+      "backend/app/services/search_service.py"
+    ],
+    "backend/app/schemas/auth.py": [],
+    "backend/app/schemas/document.py": [],
+    "backend/app/schemas/kb.py": [],
+    "backend/app/schemas/search.py": [],
+    "backend/app/services/document_service.py": [
+      "backend/app/config/exceptions.py",
+      "backend/app/models/document.py",
+      "backend/app/models/user.py",
+      "backend/app/schemas/document.py",
+      "backend/app/services/kb_service.py",
+      "backend/app/services/minio_service.py",
+      "backend/app/workers/queue.py"
+    ],
+    "backend/app/services/kb_service.py": [
+      "backend/app/config/exceptions.py",
+      "backend/app/models/kb.py",
+      "backend/app/models/user.py",
+      "backend/app/schemas/kb.py"
+    ],
+    "backend/app/services/search_service.py": [
+      "backend/app/config/__init__.py",
+      "backend/app/config/settings.py",
+      "backend/app/models/kb.py",
+      "backend/app/schemas/search.py",
+      "backend/app/services/embedding_service.py",
+      "backend/app/services/kb_service.py"
+    ]
+  }
+}

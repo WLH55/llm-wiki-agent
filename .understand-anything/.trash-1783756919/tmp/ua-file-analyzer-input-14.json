@@ -1,0 +1,11 @@
+{
+  "projectRoot": "D:/AI/知识库设计/llm_wiki3.0",
+  "batchFiles": [
+    {"path": "mydocs/context/CONTEXT.md", "language": "markdown", "sizeLines": 215, "fileCategory": "docs"},
+    {"path": "postgres/init-extensions.sql", "language": "sql", "sizeLines": 5, "fileCategory": "data"}
+  ],
+  "batchImportData": {
+    "mydocs/context/CONTEXT.md": [],
+    "postgres/init-extensions.sql": []
+  }
+}

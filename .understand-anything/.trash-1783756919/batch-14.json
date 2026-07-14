@@ -1,0 +1,96 @@
+{
+  "nodes": [
+    {
+      "id": "document:mydocs/context/CONTEXT.md",
+      "type": "document",
+      "name": "CONTEXT.md",
+      "filePath": "mydocs/context/CONTEXT.md",
+      "summary": "项目主上下文文档（v4.2 设计中），系统化梳理部署访问、知识资产、数据模型与存储、页面与图谱模型、AI 子系统、技术栈、隔离认证与权限模型，并标注 v4.1→v4.2 已弃用术语，是整个项目的复合简报。",
+      "tags": ["documentation", "context", "architecture", "overview", "ubiquitous-language"],
+      "complexity": "complex",
+      "languageNotes": "采用统一语言（Ubiquitous Language）风格，集中定义项目核心术语与边界，是 ADR / PRD / Spec 的共同上游。"
+    },
+    {
+      "id": "schema:postgres/init-extensions.sql",
+      "type": "schema",
+      "name": "init-extensions.sql",
+      "filePath": "postgres/init-extensions.sql",
+      "summary": "Postgres 数据库初始化脚本，创建 pgvector（向量存储）与 zhparser（中文分词）扩展，并配置 chinese_zh 全文搜索配置，是混合检索（向量 + BM25 中文）能力的 schema 前置依赖。",
+      "tags": ["schema-definition", "postgres", "pgvector", "zhparser", "full-text-search"],
+      "complexity": "simple",
+      "languageNotes": "通过 CREATE EXTENSION IF NOT EXISTS 保证幂等；zhparser 通过自定义 TEXT SEARCH CONFIGURATION 映射 n/v/a/i/e/j 词性到 simple 词典。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/app/models/chunk.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/app/services/search_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/alembic/versions/001_initial.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "schema:postgres/init-extensions.sql",
+      "target": "file:backend/tests/test_halfvec.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0001-halfvec-multi-dim.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0002-tenant-org-rbac.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0003-three-edge-model.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "document:mydocs/context/docs/adr/0009-retrieval-architecture.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "file:backend/app/main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:mydocs/context/CONTEXT.md",
+      "target": "file:backend/app/models/__init__.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

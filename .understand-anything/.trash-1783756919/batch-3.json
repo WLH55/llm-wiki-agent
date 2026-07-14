@@ -1,0 +1,384 @@
+{
+  "nodes": [
+    {
+      "id": "file:backend/alembic/env.py",
+      "type": "file",
+      "name": "env.py",
+      "filePath": "backend/alembic/env.py",
+      "summary": "Alembic 迁移环境配置，使用 asyncpg 异步引擎从 POSTGRES_DSN 注入 DSN，导入全部 ORM model 触发 Base.metadata 注册以支持 autogenerate。",
+      "tags": ["migration", "alembic", "infrastructure", "asyncpg"],
+      "complexity": "moderate",
+      "languageNotes": "通过 connection.run_sync(do_run_migrations) 在 async 引擎上同步运行 Alembic 迁移。"
+    },
+    {
+      "id": "function:backend/alembic/env.py:run_migrations_offline",
+      "type": "function",
+      "name": "run_migrations_offline",
+      "filePath": "backend/alembic/env.py",
+      "lineRange": [35, 45],
+      "summary": "Alembic 离线模式入口，不连接数据库直接生成迁移 SQL 脚本。",
+      "tags": ["migration", "alembic", "offline-mode"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/alembic/env.py:do_run_migrations",
+      "type": "function",
+      "name": "do_run_migrations",
+      "filePath": "backend/alembic/env.py",
+      "lineRange": [48, 51],
+      "summary": "实际的迁移执行函数，配置 context 并在事务中运行 run_migrations。",
+      "tags": ["migration", "alembic"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/alembic/env.py:run_async_migrations",
+      "type": "function",
+      "name": "run_async_migrations",
+      "filePath": "backend/alembic/env.py",
+      "lineRange": [54, 63],
+      "summary": "使用 async_engine_from_config 创建异步引擎并运行迁移，最后 dispose 引擎释放连接。",
+      "tags": ["migration", "alembic", "async"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:backend/alembic/env.py:run_migrations_online",
+      "type": "function",
+      "name": "run_migrations_online",
+      "filePath": "backend/alembic/env.py",
+      "lineRange": [66, 67],
+      "summary": "在线迁移入口，通过 asyncio.run 调用 run_async_migrations。",
+      "tags": ["migration", "alembic", "entry-point"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/models/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "backend/app/models/__init__.py",
+      "summary": "Models 包入口，统一导入所有 ORM model 触发 Base.metadata 注册（Alembic autogenerate 依赖），并对外暴露 __all__ 列表。",
+      "tags": ["entry-point", "barrel", "data-model", "orm"],
+      "complexity": "simple",
+      "languageNotes": "Python 包级别的 import 即触发 SQLAlchemy declarative class 注册到 metadata。"
+    },
+    {
+      "id": "file:backend/app/models/base.py",
+      "type": "file",
+      "name": "base.py",
+      "filePath": "backend/app/models/base.py",
+      "summary": "SQLAlchemy 2.x declarative Base 定义，以及 TimestampMixin（created_at/updated_at/deleted_at 软删除）和 TenantMixin（tenant_id 多租户字段）两个通用混入。",
+      "tags": ["data-model", "orm", "mixin", "base-class"],
+      "complexity": "simple",
+      "languageNotes": "使用 SQLAlchemy 2.x 风格 Mapped[...] + mapped_column(...) 声明列；onupdate=func.now() 自动维护 updated_at。"
+    },
+    {
+      "id": "class:backend/app/models/base.py:Base",
+      "type": "class",
+      "name": "Base",
+      "filePath": "backend/app/models/base.py",
+      "lineRange": [15, 17],
+      "summary": "所有 ORM model 的 declarative 基类，DeclarativeBase 子类持有 metadata 供 Alembic autogenerate 使用。",
+      "tags": ["orm", "base-class", "declarative"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/base.py:TimestampMixin",
+      "type": "class",
+      "name": "TimestampMixin",
+      "filePath": "backend/app/models/base.py",
+      "lineRange": [20, 38],
+      "summary": "通用时间戳混入，提供 created_at、updated_at（自动维护）和 deleted_at（软删除标记）三列。",
+      "tags": ["mixin", "timestamp", "soft-delete", "orm"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/base.py:TenantMixin",
+      "type": "class",
+      "name": "TenantMixin",
+      "filePath": "backend/app/models/base.py",
+      "lineRange": [41, 44],
+      "summary": "租户混入，提供 tenant_id 字段并加索引（MVP 单租户，P2 切换为多租户）。",
+      "tags": ["mixin", "multi-tenant", "orm"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/models/chunk.py",
+      "type": "file",
+      "name": "chunk.py",
+      "filePath": "backend/app/models/chunk.py",
+      "summary": "ContentChunk 模型：内容块表，承载向量检索 + 全文检索双路径。embedding(halfvec) 与 search_vector(tsvector) 列 DDL 在 migration 手写（SQLAlchemy 原生不支持 halfvec）。",
+      "tags": ["data-model", "orm", "pgvector", "halfvec", "hybrid-search"],
+      "complexity": "moderate",
+      "languageNotes": "关键陷阱（ADR-0001）：查询 SQL 必须将 embedding cast 成 halfvec(N)，否则 HNSW partial 索引退化全表扫；tsvector 由 PG trigger 自动维护。"
+    },
+    {
+      "id": "class:backend/app/models/chunk.py:ContentChunk",
+      "type": "class",
+      "name": "ContentChunk",
+      "filePath": "backend/app/models/chunk.py",
+      "lineRange": [21, 40],
+      "summary": "内容块 ORM 类，多继承 TimestampMixin 与 TenantMixin；包含 kb_id/doc_id/source_id 外键索引、chunk_type 分类、text 原文与 embedding_dim 维度元数据。",
+      "tags": ["orm", "data-model", "pgvector", "hybrid-search"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/models/document.py",
+      "type": "file",
+      "name": "document.py",
+      "filePath": "backend/app/models/document.py",
+      "summary": "Document 模型：上传文档元数据表，记录 minio_key、解析状态（status/error_message）和处理时间，由 worker 异步解析后产出 ContentChunk。",
+      "tags": ["data-model", "orm", "document-upload"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:backend/app/models/document.py:Document",
+      "type": "class",
+      "name": "Document",
+      "filePath": "backend/app/models/document.py",
+      "lineRange": [17, 37],
+      "summary": "Document ORM 类，记录每个上传文档的 doc_id、KB 归属、原始文件名、MinIO 对象 key 与解析状态机字段。",
+      "tags": ["orm", "data-model", "document"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/models/kb.py",
+      "type": "file",
+      "name": "kb.py",
+      "filePath": "backend/app/models/kb.py",
+      "summary": "KnowledgeBase 模型：知识库元数据表，定义 embedding_model、embedding_dim 维度及 vector/keyword/wiki/graph 四个能力开关，是整个系统的核心组织实体。",
+      "tags": ["data-model", "orm", "knowledge-base", "core-entity"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:backend/app/models/kb.py:KnowledgeBase",
+      "type": "class",
+      "name": "KnowledgeBase",
+      "filePath": "backend/app/models/kb.py",
+      "lineRange": [12, 28],
+      "summary": "KnowledgeBase ORM 类，承载知识库配置（embedding 模型/维度、检索能力开关），被 Document、ContentChunk、Source 等下游实体通过 kb_id 关联。",
+      "tags": ["orm", "data-model", "knowledge-base", "core-entity"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/app/models/reserved.py",
+      "type": "file",
+      "name": "reserved.py",
+      "filePath": "backend/app/models/reserved.py",
+      "summary": "P2+ 预留模型集合：Organization/OrgMember/KBShare（组织共享）、LLMProvider/UserLLMKey（密钥管理）、WikiFolder/WikiPage（Wiki 体系）。MVP 阶段定义但不在主链路使用。",
+      "tags": ["data-model", "orm", "reserved", "p2-future"],
+      "complexity": "complex",
+      "languageNotes": "单文件聚合 7 个 ORM 类，使用与核心实体相同的 TimestampMixin/TenantMixin 模式，保证未来切换多租户与软删除一致。"
+    },
+    {
+      "id": "class:backend/app/models/reserved.py:Organization",
+      "type": "class",
+      "name": "Organization",
+      "filePath": "backend/app/models/reserved.py",
+      "lineRange": [14, 20],
+      "summary": "组织实体（P2+），承载多租户下的团队/组织维度。",
+      "tags": ["orm", "data-model", "organization", "p2-future"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/reserved.py:OrgMember",
+      "type": "class",
+      "name": "OrgMember",
+      "filePath": "backend/app/models/reserved.py",
+      "lineRange": [23, 30],
+      "summary": "组织成员关联表（用户 ↔ 组织，含 role 角色）。",
+      "tags": ["orm", "data-model", "organization", "p2-future"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/reserved.py:KBShare",
+      "type": "class",
+      "name": "KBShare",
+      "filePath": "backend/app/models/reserved.py",
+      "lineRange": [33, 40],
+      "summary": "知识库共享表（KB ↔ Organization，含 permission 权限）。",
+      "tags": ["orm", "data-model", "sharing", "p2-future"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/reserved.py:LLMProvider",
+      "type": "class",
+      "name": "LLMProvider",
+      "filePath": "backend/app/models/reserved.py",
+      "lineRange": [43, 49],
+      "summary": "LLM 提供商表（名称、API 基础地址等），供用户密钥管理引用。",
+      "tags": ["orm", "data-model", "llm", "p2-future"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/reserved.py:UserLLMKey",
+      "type": "class",
+      "name": "UserLLMKey",
+      "filePath": "backend/app/models/reserved.py",
+      "lineRange": [52, 59],
+      "summary": "用户 LLM API 密钥表（密文存储 encrypted_key，关联 provider 与 user）。",
+      "tags": ["orm", "data-model", "credentials", "p2-future"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/reserved.py:WikiFolder",
+      "type": "class",
+      "name": "WikiFolder",
+      "filePath": "backend/app/models/reserved.py",
+      "lineRange": [62, 70],
+      "summary": "Wiki 文件夹树（materialized_path 物化路径实现层级）。",
+      "tags": ["orm", "data-model", "wiki", "tree", "p2-future"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/reserved.py:WikiPage",
+      "type": "class",
+      "name": "WikiPage",
+      "filePath": "backend/app/models/reserved.py",
+      "lineRange": [73, 85],
+      "summary": "Wiki 页面表（page_type 分类、title、content 正文），与 WikiFolder 构成 Wiki 体系。",
+      "tags": ["orm", "data-model", "wiki", "p2-future"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/models/source.py",
+      "type": "file",
+      "name": "source.py",
+      "filePath": "backend/app/models/source.py",
+      "summary": "Source 模型：知识库数据源表（source_type、config、sync_cursor），用于增量同步外部数据源的游标管理。",
+      "tags": ["data-model", "orm", "data-source", "sync"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/source.py:Source",
+      "type": "class",
+      "name": "Source",
+      "filePath": "backend/app/models/source.py",
+      "lineRange": [12, 23],
+      "summary": "Source ORM 类，记录数据源类型、配置 JSON 及增量同步游标，被 Document 与 ContentChunk 通过 source_id 关联。",
+      "tags": ["orm", "data-model", "data-source", "sync"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:backend/app/models/user.py",
+      "type": "file",
+      "name": "user.py",
+      "filePath": "backend/app/models/user.py",
+      "summary": "Tenant 与 User 模型：租户表 + 用户表（email 登录、password_hash、role 三档 RBAC、is_active 状态）。",
+      "tags": ["data-model", "orm", "user", "auth", "rbac"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/user.py:Tenant",
+      "type": "class",
+      "name": "Tenant",
+      "filePath": "backend/app/models/user.py",
+      "lineRange": [10, 15],
+      "summary": "租户表 ORM 类，MVP 阶段为 bootstrap owner 单租户，P2 扩展为多租户。",
+      "tags": ["orm", "data-model", "multi-tenant"],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:backend/app/models/user.py:User",
+      "type": "class",
+      "name": "User",
+      "filePath": "backend/app/models/user.py",
+      "lineRange": [18, 27],
+      "summary": "用户表 ORM 类，承载认证（email/password_hash）与三档 RBAC 角色（owner/editor/viewer），由 auth 模块和多个 service 引用。",
+      "tags": ["orm", "data-model", "user", "auth", "rbac"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/config/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/config/settings.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/__init__.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/chunk.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/document.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/kb.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/reserved.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/source.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/models/__init__.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/__init__.py", "target": "file:backend/app/models/chunk.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/__init__.py", "target": "file:backend/app/models/document.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/__init__.py", "target": "file:backend/app/models/kb.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/__init__.py", "target": "file:backend/app/models/reserved.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/__init__.py", "target": "file:backend/app/models/source.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/__init__.py", "target": "file:backend/app/models/user.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/app/models/chunk.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/document.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/kb.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/reserved.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/source.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+    {"source": "file:backend/app/models/user.py", "target": "file:backend/app/models/base.py", "type": "imports", "direction": "forward", "weight": 0.7},
+
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:run_migrations_offline", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:do_run_migrations", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:run_async_migrations", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:run_migrations_online", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:run_migrations_offline", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:do_run_migrations", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:run_async_migrations", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/alembic/env.py", "target": "function:backend/alembic/env.py:run_migrations_online", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "function:backend/alembic/env.py:run_migrations_online", "target": "function:backend/alembic/env.py:run_async_migrations", "type": "calls", "direction": "forward", "weight": 0.8},
+    {"source": "function:backend/alembic/env.py:run_async_migrations", "target": "function:backend/alembic/env.py:do_run_migrations", "type": "calls", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/models/base.py", "target": "class:backend/app/models/base.py:Base", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/base.py", "target": "class:backend/app/models/base.py:TimestampMixin", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/base.py", "target": "class:backend/app/models/base.py:TenantMixin", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/base.py", "target": "class:backend/app/models/base.py:Base", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/base.py", "target": "class:backend/app/models/base.py:TimestampMixin", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/base.py", "target": "class:backend/app/models/base.py:TenantMixin", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/models/chunk.py", "target": "class:backend/app/models/chunk.py:ContentChunk", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/chunk.py", "target": "class:backend/app/models/chunk.py:ContentChunk", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/models/document.py", "target": "class:backend/app/models/document.py:Document", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/document.py", "target": "class:backend/app/models/document.py:Document", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/models/kb.py", "target": "class:backend/app/models/kb.py:KnowledgeBase", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/kb.py", "target": "class:backend/app/models/kb.py:KnowledgeBase", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:Organization", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:OrgMember", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:KBShare", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:LLMProvider", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:UserLLMKey", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:WikiFolder", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:WikiPage", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:Organization", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:OrgMember", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:KBShare", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:LLMProvider", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:UserLLMKey", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:WikiFolder", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/reserved.py", "target": "class:backend/app/models/reserved.py:WikiPage", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/models/source.py", "target": "class:backend/app/models/source.py:Source", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/source.py", "target": "class:backend/app/models/source.py:Source", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "file:backend/app/models/user.py", "target": "class:backend/app/models/user.py:Tenant", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/user.py", "target": "class:backend/app/models/user.py:User", "type": "contains", "direction": "forward", "weight": 1.0},
+    {"source": "file:backend/app/models/user.py", "target": "class:backend/app/models/user.py:Tenant", "type": "exports", "direction": "forward", "weight": 0.8},
+    {"source": "file:backend/app/models/user.py", "target": "class:backend/app/models/user.py:User", "type": "exports", "direction": "forward", "weight": 0.8},
+
+    {"source": "class:backend/app/models/chunk.py:ContentChunk", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/document.py:Document", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/kb.py:KnowledgeBase", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/source.py:Source", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/user.py:Tenant", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/user.py:User", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/reserved.py:Organization", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/reserved.py:OrgMember", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/reserved.py:KBShare", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/reserved.py:LLMProvider", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/reserved.py:UserLLMKey", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/reserved.py:WikiFolder", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+    {"source": "class:backend/app/models/reserved.py:WikiPage", "target": "class:backend/app/models/base.py:Base", "type": "inherits", "direction": "forward", "weight": 0.9},
+
+    {"source": "file:backend/alembic/env.py", "target": "file:backend/app/config/settings.py", "type": "depends_on", "direction": "forward", "weight": 0.6}
+  ]
+}
