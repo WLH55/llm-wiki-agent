@@ -2,16 +2,16 @@
 
 ## RIPER 状态
 
-- **phase**: EXECUTE（用户已 `Plan Approved`，从 Step 1 开始）
-- **approval status**: APPROVED
-- **execute status**: 进行中（Stage 1 Step 1）
+- **phase**: EXECUTE（Stage 2 完成，等 Gate 2 审批）
+- **approval status**: APPROVED（Stage 1 已批准 2026-07-16；Stage 2 待 Gate 2）
+- **execute status**: Stage 1 ✅ 完成 / Stage 2 ✅ 完成
 - **review status**: 未开始
 - **spec path**: `mydocs/specs/2026-07-15_16-29_parsers-module.md`
 - **active project**: llm_wiki3.0（单项目）
 - **change scope**: local（仅改 `backend/app/parsers/` + `backend/app/workers/`）
-- **current stage**: Stage 1（基础设施，Step 1-4）
-- **current step**: Step 1（endecode 编码处理）
-- **next**: 完成 Step 1 → Step 2（Document 契约）→ ... → Stage 1 完成 → Gate 1 等用户审批
+- **current stage**: Stage 2（注册表 + 接入 backend，Step 5-6）已完成
+- **current step**: 等用户 `Stage 2 Approved` 进入 Stage 3（基础格式 Step 7-9）
+- **next**: Gate 2 审批 → Stage 3（Step 7 MarkdownParser 最简版 / Step 8 Word / Step 9 PDF）
 
 ---
 
@@ -480,15 +480,15 @@ class PipelineParser(BaseParser):
 
 #### 阶段 2：注册表 + 接入（Step 5-6）
 
-- [ ] **Step 5：ParserRegistry 简化版（单 key）**
+- [x] **Step 5：ParserRegistry 简化版（单 key）** ✅ 2026-07-16
   - 教学：注册表模式 vs 全局字典（封装 + 列举能力）；按 file_type 派发
   - 产出：`backend/app/parsers/registry.py`（简化版） + `tests/test_parsers/test_registry.py`
   - 验证：`reg.register("txt", TextParser)` + `reg.get_parser_class("txt")` → TextParser；`reg.list_supported()` → `["txt"]`
 
-- [ ] **Step 6：接入 backend + 删旧占位**
+- [x] **Step 6：接入 backend + 删旧占位** ✅ 2026-07-16
   - 教学：消费方迁移；同 PR 内删旧文件避免双份维护
   - 产出：改 `backend/app/workers/parse_document.py`；删 `backend/app/workers/parsers.py`
-  - 验证：`pytest tests/test_document.py` 仍通过（MD 上传 → processed）
+  - 验证：`pytest tests/test_document.py` 仍通过（MD 上传 → processed） — ⚠ 单元层通过；端到端待用户在 docker 环境验证
 
 #### 阶段 3：基础格式（Step 7-9）
 
@@ -694,6 +694,78 @@ feat(parsers): Stage 1 基础设施（endecode + Document + BaseParser + TextPar
 - BaseParser 抽象基类（abc.ABC + 模板方法）
 - TextParser 第一个具体 parser（验证抽象）
 - 17 个测试全过
+```
+
+---
+
+### Stage 2：注册表 + 接入 backend（Step 5-6）[完成 2026-07-16]
+
+#### 用户决策（Gate 1 → Stage 2）
+
+- **Stage 1 Approved**：2026-07-16 用户批准
+- **选项 A**：`.md` 暂时走 TextParser（不提前写极简 MarkdownParser，留给 Step 7 教学）
+
+#### 产出文件
+
+| 文件 | 行数 | 变化 | 内容 |
+|------|------|------|------|
+| `backend/app/parsers/registry.py` | ~70 | 新增 | `ParserRegistry` 单 key 版（register / get_parser_class / list_supported）+ 模块级单例 `registry` |
+| `backend/app/parsers/__init__.py` | ~26 | 改 | 导出 Document/BaseParser/registry/TextParser + `_register_defaults()` 注册 txt/md/markdown |
+| `backend/app/workers/parse_document.py` | +20 行 | 改 | import 切换 + 调用改为 `_parse_to_text()`（封装 Registry 派发 + KeyError 兜底 TextParser） |
+| `backend/app/workers/parsers.py` | -62 行 | **删除** | 旧 if-elif 占位代码 |
+| `backend/tests/test_parsers/test_registry.py` | ~120 | 新增 | 12 个 Registry 单元测试 |
+
+#### 验证结果
+
+**单元层（全部通过）**：
+```
+tests/test_parsers/ — 29 passed in 0.11s
+  ├─ test_base.py        6 passed
+  ├─ test_document.py    5 passed
+  ├─ test_registry.py   12 passed（新增）
+  └─ test_text_parser.py 6 passed
+```
+
+**Registry 端到端模拟（通过）**：
+- `registry.list_supported()` → `['markdown', 'md', 'txt']`
+- `registry.get_parser_class('md')` → TextParser（选项 A）
+- MD bytes → Document.content 正确，含标题/中文/英文
+- 未知扩展名（.log）兜底 TextParser
+- `.markdown` 别名兜底 TextParser
+
+**端到端 `test_document.py`（待用户验证）**：
+- 该测试依赖 Postgres + MinIO + Redis + worker 进程 + embedding API
+- 按 CLAUDE.md "禁止启动开发服务器"约束，未在本次执行中运行
+- 已通过隔离单测验证 `_parse_to_text` 逻辑等价于旧 `parse_by_filename`
+- ⚠ **用户在完整 docker 环境（`docker-compose up`）下需补跑一次确认**
+
+#### 教学要点回顾（Stage 2 核心）
+
+| 概念 | 用户应能口述 |
+|------|------------|
+| **注册表模式 vs 全局字典** | 封装（BaseParser 子类校验）+ 列举能力（`list_supported()`）+ 多实例可隔离 |
+| **单 key → 双 key 渐进式抽象** | 一次只引入一个新概念；双 key 留到 Step 15（多引擎场景） |
+| **KeyError vs 内置兜底** | Registry 保持"纯查表"语义，兜底策略由消费方决定（`_parse_to_text` 内 try/except） |
+| **同 PR 删旧代码** | 避免双份维护的 tech debt；grep 确认零外部调用方后删除 |
+| **签名变化的代价** | 旧 `parse_by_filename → str`；新 `parser.parse → Document`，消费方取 `.content` |
+
+#### 偏差说明
+
+1. **Registry 加了 `register` 时的 BaseParser 子类校验**：spec §4.2 没明确要求，但作为"封装价值"的教学示例主动加上。`issubclass(parser_cls, BaseParser)` + `isinstance(parser_cls, type)` 双重检查（同时挡住"传实例而非类"的错误）。
+2. **重复注册打 warning 而非抛错**：spec 没规定，选择 warning 是为了允许"重新配置"场景（如测试中重置默认 parser），同时帮助发现意外的覆盖。
+3. **`_parse_to_text` 是模块私有函数**：spec §4.3 Step 6 只说"改 parse_document.py"，没规定封装方式。选择独立函数（而非 inline）是为了：① 单元可测；② 未来扩展（如加 engine 参数）只改一处。
+
+#### Git commit 建议
+
+Stage 2 完成可作为一个原子 commit：
+```
+feat(parsers): Stage 2 Registry + 接入 backend（删旧 workers/parsers.py）
+
+- 新增 ParserRegistry（单 key 版）+ 模块级单例
+- __init__.py 注册默认 parser（选项 A：txt/md/markdown 都走 TextParser）
+- parse_document.py 接入 Registry，KeyError 兜底 TextParser
+- 删除旧 workers/parsers.py（if-elif 占位）
+- 12 个 Registry 单元测试，全过
 ```
 
 ---
