@@ -2,16 +2,16 @@
 
 ## RIPER 状态
 
-- **phase**: EXECUTE（Stage 2 完成，等 Gate 2 审批）
-- **approval status**: APPROVED（Stage 1 已批准 2026-07-16；Stage 2 待 Gate 2）
-- **execute status**: Stage 1 ✅ 完成 / Stage 2 ✅ 完成
+- **phase**: EXECUTE（Stage 3 完成，等 Gate 3 审批）
+- **approval status**: APPROVED（Stage 1 ✅ / Stage 2 ✅ 2026-07-16；Stage 3 待 Gate 3）
+- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ 完成（Step 7-9）
 - **review status**: 未开始
 - **spec path**: `mydocs/specs/2026-07-15_16-29_parsers-module.md`
 - **active project**: llm_wiki3.0（单项目）
-- **change scope**: local（仅改 `backend/app/parsers/` + `backend/app/workers/`）
-- **current stage**: Stage 2（注册表 + 接入 backend，Step 5-6）已完成
-- **current step**: 等用户 `Stage 2 Approved` 进入 Stage 3（基础格式 Step 7-9）
-- **next**: Gate 2 审批 → Stage 3（Step 7 MarkdownParser 最简版 / Step 8 Word / Step 9 PDF）
+- **change scope**: local（仅改 `backend/app/parsers/` + `backend/tests/test_parsers/` + `backend/pyproject.toml`）
+- **current stage**: Stage 3（基础格式，Step 7-9）已完成
+- **current step**: 等用户 `Stage 3 Approved` 进入 Stage 4（Office 套件 Step 10-11）
+- **next**: Gate 3 审批 → Stage 4（Excel 套件 + PPT 套件）
 
 ---
 
@@ -492,20 +492,20 @@ class PipelineParser(BaseParser):
 
 #### 阶段 3：基础格式（Step 7-9）
 
-- [ ] **Step 7：MarkdownParser 最简版**
+- [x] **Step 7：MarkdownParser 最简版** ✅ 2026-07-16
   - 教学：先用最简 decode 跑通；为 Step 19 升级 PipelineParser 留对比
   - 产出：`backend/app/parsers/markdown_parser.py`（初版，仅 decode）
   - 验证：`MarkdownParser().parse(b"# title")` → `Document(content="# title")`
 
-- [ ] **Step 8：Word 系列（Docx2Parser + DocParser）**
-  - 教学：python-docx 解析段落；unstructured 作为 fallback；老式 .doc 用 catdoc 命令行
+- [x] **Step 8：Word 系列（Docx2Parser + DocParser）** ✅ 2026-07-16
+  - 教学：python-docx 解析段落；老式 .doc 用 antiword/catdoc 命令行
   - 产出：`backend/app/parsers/docx2_parser.py` + `doc_parser.py` + 测试
-  - 验证：`.docx` 文件 → 段落文本拼接；`.doc` 文件 → 文本
+  - 验证：`.docx` 文件 → 段落 + 表格拼接；`.doc` 文件 → antiword/catdoc 文本
 
-- [ ] **Step 9：PdfParser（pdfplumber）**
+- [x] **Step 9：PdfParser（pdfplumber）** ✅ 2026-07-16
   - 教学：pdfplumber 逐页提取；表格 PDF 的挑战（声明技术限制）
   - 产出：`backend/app/parsers/pdf_parser.py` + 测试
-  - 验证：文字版 PDF → 全文文本
+  - 验证：文字版 PDF → 全文文本；扫描版 PDF → 空文本（OCR 留 Stage 7）
 
 #### 阶段 4：Office 套件（Step 10-11）
 
@@ -766,6 +766,107 @@ feat(parsers): Stage 2 Registry + 接入 backend（删旧 workers/parsers.py）
 - parse_document.py 接入 Registry，KeyError 兜底 TextParser
 - 删除旧 workers/parsers.py（if-elif 占位）
 - 12 个 Registry 单元测试，全过
+```
+
+---
+
+### Stage 3：基础格式（Step 7-9）[完成 2026-07-16]
+
+#### 用户决策（Gate 2 → Stage 3）
+
+- **Stage 2 Approved**：2026-07-16 用户批准（"继续下一阶段"）
+- **范围**：Step 7 MarkdownParser 最简版 / Step 8 Word 系列 / Step 9 PdfParser
+
+#### 产出文件
+
+| 文件 | 行数 | 变化 | 内容 |
+|------|------|------|------|
+| `backend/app/parsers/markdown_parser.py` | ~28 | 新增 | `MarkdownParser` 最简版（仅 decode → Document），为 Step 19 PipelineParser 升级留对比基线 |
+| `backend/app/parsers/docx2_parser.py` | ~65 | 新增 | `Docx2Parser`：python-docx 段落 + 表格（移植 `_parse_using_simple_method`） |
+| `backend/app/parsers/doc_parser.py` | ~90 | 新增 | `DocParser`：antiword/catdoc 命令行 + tempfile + fallback metadata |
+| `backend/app/parsers/pdf_parser.py` | ~75 | 新增 | `PdfParser`：pdfplumber 逐页 extract_text 拼接 + page_count metadata |
+| `backend/app/parsers/__init__.py` | ~45 | 改 | 追加 .docx/.doc/.pdf 注册；导出 4 个新 parser 类 |
+| `backend/pyproject.toml` | +1 行 | 改 | 显式声明 `python-docx>=1.0.0`（原本未列入但已安装） |
+| `backend/tests/test_parsers/test_markdown_parser.py` | ~75 | 新增 | 9 个 MarkdownParser 测试（含与 TextParser 行为等价验证） |
+| `backend/tests/test_parsers/test_docx_parser.py` | ~75 | 新增 | 7 个 Word 系列测试（Docx2Parser 5 + DocParser 2 含 skip） |
+| `backend/tests/test_parsers/test_pdf_parser.py` | ~80 | 新增 | 5 个 PDF 测试（含手写最小 PDF bytes 构造器） |
+
+#### 验证结果
+
+**全部 parser 测试**：
+```
+tests/test_parsers/ — 48 passed, 1 skipped in 0.51s
+  ├─ test_base.py              6 passed
+  ├─ test_document.py          5 passed
+  ├─ test_docx_parser.py       6 passed + 1 skipped
+  │   └─ SKIPPED: test_no_tool_returns_error_metadata（本机装了 antiword）
+  ├─ test_markdown_parser.py   9 passed
+  ├─ test_pdf_parser.py        5 passed
+  ├─ test_registry.py         12 passed
+  └─ test_text_parser.py       6 passed
+```
+
+**Registry 端到端派发（通过）**：
+- `list_supported()` → `['doc', 'docx', 'markdown', 'md', 'pdf', 'txt']`（6 个扩展名，字典序）
+- `md` → MarkdownParser；`markdown` → MarkdownParser；`txt` → TextParser
+- `docx` → Docx2Parser；`doc` → DocParser；`pdf` → PdfParser
+
+**MarkdownParser 验证**：
+- `MarkdownParser().parse(b"# title\n\nhello")` → `Document(content="# title\n\nhello")`
+- GBK 编码中文 markdown 经 fallback chain 正确解码
+- markdown 语法字符（`#` / `*` / `|` / `[]`）原样保留（本阶段不做格式化）
+- 与 TextParser 输出 byte-for-byte 等价（升级 Step 19 时删该等价测试）
+
+**Docx2Parser 验证**：
+- `_build_docx_bytes(["第一段", "第二段"])` → 两段文本被 `\n\n` 拼接
+- `_build_docx_bytes(table_rows=[["姓名","年龄"],["张三","25"]])` → `"姓名 | 年龄"` + `"张三 | 25"` 行
+- 空/空白段落被 strip 过滤
+- 非法 bytes（`b"not a real docx"`）→ `Document(content="", metadata={"error": "open_failed: ..."})`，不抛异常
+
+**DocParser 验证**：
+- 本机有 antiword（`D:\software\Git\mingw64\bin\antiword.EXE`），可走真实命令行路径
+- 找不到 antiword/catdoc 时 → `Document(content="", metadata={"error": "no_doc_tool", "tried": ["antiword", "catdoc"]})`
+- subprocess 60s 超时；tempfile 用完 unlink
+
+**PdfParser 验证**：
+- 手写最小 PDF 1.4（`%PDF-1.4` + Catalog + Page + Content stream + Helvetica font）→ pdfplumber 成功 extract_text
+- metadata 记录 `page_count` + `text_page_count`（供消费方判断扫描版比例）
+- 非法 bytes / 空 bytes → `open_failed` 错误 metadata，不抛异常
+- **技术限制声明**（docstring）：扫描版 PDF 无文字层；表格结构扁平化；多栏排版可能错位（OCR / layout 分析留 Stage 7 / P4）
+
+#### 教学要点回顾（Stage 3 核心）
+
+| 概念 | 用户应能口述 |
+|------|------------|
+| **MarkdownParser 行为等价但身份独立** | 为什么不直接复用 TextParser（类型派发正确 + 后续 utils 挂载扩展点） |
+| **"最简版→升级版"渐进式抽象** | Step 7 最简版刻意保留，Step 19 PipelineParser 才能展示"胖 parser 拆阶段"的价值 |
+| **Docx2Parser 用 BytesIO + python-docx** | 不写临时文件；paragraphs + tables 双重遍历；表格 cell 用 `\|` join |
+| **DocParser 命令行 + fallback metadata** | 不引入重依赖 textract；找不到工具不抛异常，由消费方决策 |
+| **PdfParser 技术限制声明** | 扫描版 / 表格 / 多栏——三个明确边界，OCR 和 layout 留 Stage 7 / P4 |
+| **错误路径统一返回 Document + metadata.error** | 不抛异常 → 消费方按 metadata 决策（重试 / 报警 / 兜底） |
+
+#### 偏差说明
+
+1. **DocParser 不走 docreader 的 doc→docx 转换路径**：原版先转 docx 再走 DocxParser（含图像抽取），依赖 libreoffice。Stage 3 学习阶段不做图像，简化为 antiword/catdoc 直接抽文本。需要图像时回到 docreader 原版（或用 Stage 14 高级引擎）。
+2. **不引入 textract**：docreader 自己已因 SSRF 风险注释掉 `_parse_with_textract`。Stage 3 直接放弃该路径。
+3. **PdfParser 不调 `extract_tables`**：spec Step 9 教学要点是"声明表格 PDF 技术限制"而非"实现表格抽取"。如果调 extract_tables 会引入多嵌套表格不稳定的失败 case，违背"最简版"原则。表格标准化留给 Step 16 的 MarkdownTableFormatter（统一在 markdown 层做）。
+4. **手写最小 PDF 1.4 作为 test fixture**：项目无 PDF 生成库（reportlab / fpdf2 都没装），引入任一会增加依赖。手写 PDF 模板硬编码 stream length，**改动模板需重新对齐字节数**——在测试文件注释里标注了。
+5. **`python-docx` 加入 pyproject.toml**：原本未列入但已全局安装；为可重现性显式声明 `>=1.0.0`。
+6. **MarkdownParser 与 TextParser 等价测试**：spec 没要求，主动加 `TestMarkdownParserVsTextParser` 类作为"行为等价"教学锚点；Step 19 升级时该类需删除（注释里标了）。
+
+#### Git commit 建议
+
+Stage 3 完成可作为一个原子 commit：
+```
+feat(parsers): Stage 3 基础格式（Markdown / Word / PDF）
+
+- MarkdownParser 最简版（decode → Document），为 Step 19 PipelineParser 留对比基线
+- Docx2Parser（python-docx 段落 + 表格 cell join）
+- DocParser（antiword/catdoc 命令行 + tempfile + fallback metadata）
+- PdfParser（pdfplumber 逐页 extract_text + page_count metadata）
+- pyproject.toml 显式声明 python-docx>=1.0.0
+- Registry 注册 .docx / .doc / .pdf，6 个扩展名完整派发
+- 21 个新测试（Markdown 9 + Word 6+1skip + PDF 5），全过
 ```
 
 ---
