@@ -2,16 +2,16 @@
 
 ## RIPER 状态
 
-- **phase**: EXECUTE（Stage 3 完成，等 Gate 3 审批）
-- **approval status**: APPROVED（Stage 1 ✅ / Stage 2 ✅ 2026-07-16；Stage 3 待 Gate 3）
-- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ 完成（Step 7-9）
+- **phase**: EXECUTE（Stage 4 进行中）
+- **approval status**: APPROVED（Stage 1 ✅ / Stage 2 ✅ 2026-07-16 / Stage 3 ✅ 2026-07-17）
+- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ / Stage 4 Step 10 进行中
 - **review status**: 未开始
 - **spec path**: `mydocs/specs/2026-07-15_16-29_parsers-module.md`
 - **active project**: llm_wiki3.0（单项目）
 - **change scope**: local（仅改 `backend/app/parsers/` + `backend/tests/test_parsers/` + `backend/pyproject.toml`）
-- **current stage**: Stage 3（基础格式，Step 7-9）已完成
-- **current step**: 等用户 `Stage 3 Approved` 进入 Stage 4（Office 套件 Step 10-11）
-- **next**: Gate 3 审批 → Stage 4（Excel 套件 + PPT 套件）
+- **current stage**: Stage 4（Office 套件，Step 10-11）进行中
+- **current step**: Step 10（Excel 套件）
+- **next**: 按 TDD 完成 Step 10 并验证 → 停在 Step 11 前等待单步继续指令
 
 ---
 
@@ -868,6 +868,16 @@ feat(parsers): Stage 3 基础格式（Markdown / Word / PDF）
 - Registry 注册 .docx / .doc / .pdf，6 个扩展名完整派发
 - 21 个新测试（Markdown 9 + Word 6+1skip + PDF 5），全过
 ```
+
+---
+
+### Stage 4：Office 套件（Step 10-11）[进行中 2026-07-17]
+
+#### 用户决策（Gate 3 → Stage 4）
+
+- **Stage 3 Approved**：2026-07-17 用户明确指令“进入下一个阶段”
+- **执行策略**：遵循默认单步执行，本轮只执行 Step 10（Excel 套件）；Step 11（PPT 套件）等待下一次继续指令
+- **TDD 状态**：准备进入 RED，先新增 Excel 套件契约测试并确认因实现缺失而失败
 
 ---
 

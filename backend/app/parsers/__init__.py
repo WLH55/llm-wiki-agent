@@ -11,12 +11,14 @@
 - `.docx` → Docx2Parser（python-docx 段落 + 表格）
 - `.doc` → DocParser（antiword / catdoc 命令行）
 - `.pdf` → PdfParser（pdfplumber 逐页 extract_text）
+- `.xlsx` / `.xls` / `.xlsb` / `.ods` / `.et` → ExcelParser
 - 未知扩展名 → Registry 抛 KeyError，由消费方兜底（见 workers/parse_document.py）
 """
 from app.parsers.base import BaseParser
 from app.parsers.doc_parser import DocParser
 from app.parsers.docx2_parser import Docx2Parser
 from app.parsers.document import Document
+from app.parsers.excel_parser import ExcelParser
 from app.parsers.markdown_parser import MarkdownParser
 from app.parsers.pdf_parser import PdfParser
 from app.parsers.registry import registry
@@ -31,6 +33,7 @@ __all__ = [
     "Docx2Parser",
     "DocParser",
     "PdfParser",
+    "ExcelParser",
 ]
 
 
@@ -45,6 +48,8 @@ def _register_defaults() -> None:
     registry.register("docx", Docx2Parser)
     registry.register("doc", DocParser)
     registry.register("pdf", PdfParser)
+    for file_type in ("xlsx", "xls", "xlsb", "ods", "et"):
+        registry.register(file_type, ExcelParser)
 
 
 _register_defaults()
