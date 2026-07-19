@@ -1,4 +1,4 @@
-"""Excel workbook parser with Markdown table output."""
+"""将 XLSX 工作簿解析为 Markdown 表格。"""
 
 import logging
 from io import BytesIO
@@ -14,10 +14,11 @@ from app.parsers.xlsx_merge import fill_merged_cells_xlsx
 from app.parsers.xlsx_repair import repair_xlsx_bytes
 
 logger = logging.getLogger(__name__)
+MAX_WORKSHEET_CELLS = 1_000_000
 
 
 class ExcelParser(BaseParser):
-    """Parse every non-empty worksheet into a Markdown table."""
+    """将每个非空工作表解析为 Markdown 表格。"""
 
     def parse_into_text(self, content: bytes) -> Document:
         source_format = detect_excel_format(content) or self.file_type or "unknown"
@@ -35,10 +36,7 @@ class ExcelParser(BaseParser):
         sections = []
         try:
             for sheet in workbook.worksheets:
-                # TODO(security): Reject sparse or oversized worksheets before
-                # calling iter_rows(). A crafted sheet can advertise Excel's
-                # maximum grid size while containing very little real data,
-                # causing billions of empty cells to be traversed.
+                _validate_sheet_dimensions(sheet.title, sheet.max_row, sheet.max_column)
                 table = _sheet_to_markdown(sheet.iter_rows(values_only=True))
                 if table:
                     sections.append(f"## {sheet.title}\n\n{table}")
@@ -55,10 +53,15 @@ class ExcelParser(BaseParser):
         )
 
 
+def _validate_sheet_dimensions(sheet_name: str, max_row: int, max_column: int) -> None:
+    if max_row * max_column > MAX_WORKSHEET_CELLS:
+        raise ValueError(
+            f"worksheet_too_large: {sheet_name} has {max_row}x{max_column} cells"
+        )
+
+
 def _sheet_to_markdown(rows) -> str:
-    # TODO(security): Stream rows and cap output size instead of materializing
-    # the whole worksheet. Large inputs can exhaust memory even after dimension
-    # checks if the Markdown output is allowed to grow without bounds.
+    # TODO：后续可改为流式生成并限制 Markdown 输出长度；当前学习版会物化整个工作表。
     materialized = [list(row) for row in rows]
     materialized = [row for row in materialized if any(_has_value(cell) for cell in row)]
     if not materialized:

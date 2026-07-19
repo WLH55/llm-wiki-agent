@@ -1,4 +1,4 @@
-"""Excel parser suite contract tests."""
+"""XLSX 解析套件契约测试。"""
 
 import zipfile
 from importlib import import_module
@@ -7,6 +7,7 @@ from io import BytesIO
 import openpyxl
 import pytest
 
+import app.parsers.excel_convert as excel_convert_module
 import app.parsers.excel_parser as excel_parser_module
 import app.parsers.xlsx_repair as xlsx_repair_module
 from app.parsers import registry
@@ -24,7 +25,7 @@ from app.parsers.xlsx_repair import repair_xlsx_bytes
         ("app.parsers.excel_parser", ("ExcelParser",)),
         (
             "app.parsers.excel_convert",
-            ("detect_excel_format", "convert_excel_to_xlsx_bytes", "normalize_excel_bytes"),
+            ("detect_excel_format", "normalize_excel_bytes"),
         ),
         ("app.parsers.xlsx_merge", ("fill_merged_cells_xlsx",)),
         ("app.parsers.xlsx_repair", ("repair_xlsx_bytes",)),
@@ -156,20 +157,15 @@ def test_registry_routes_xlsx_to_excel_parser():
     assert registry.get_parser_class("xlsx") is ExcelParser
 
 
-@pytest.mark.parametrize("file_type", ["xls", "xlsb", "ods", "et"])
-def test_registry_does_not_advertise_formats_requiring_libreoffice(file_type):
+@pytest.mark.parametrize("file_type", ["xlsb", "ods", "et"])
+def test_registry_does_not_advertise_unimplemented_spreadsheet_formats(file_type):
     with pytest.raises(KeyError):
         registry.get_parser_class(file_type)
 
 
-def test_external_conversion_is_disabled_in_default_normalization(monkeypatch):
-    def unexpected_conversion(*args, **kwargs):
-        raise AssertionError("default upload parsing must not start LibreOffice")
-
-    monkeypatch.setattr(
-        "app.parsers.excel_convert.convert_excel_to_xlsx_bytes",
-        unexpected_conversion,
-    )
+def test_external_conversion_api_is_absent_and_legacy_xls_is_rejected():
+    assert not hasattr(excel_convert_module, "find_soffice")
+    assert not hasattr(excel_convert_module, "convert_excel_to_xlsx_bytes")
     legacy_xls = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 32
 
     with pytest.raises(ValueError, match="disabled"):

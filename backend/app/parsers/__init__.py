@@ -11,18 +11,30 @@
 - `.docx` → Docx2Parser（python-docx 段落 + 表格）
 - `.doc` → DocParser（antiword / catdoc 命令行）
 - `.pdf` → PdfParser（pdfplumber 逐页 extract_text）
-- `.xlsx` / `.xls` / `.xlsb` / `.ods` / `.et` → ExcelParser
+- `.pptx` → PptxParser（幻灯片文本 + 内嵌媒体）
+- `.ppt` → 默认不注册（不调用外部转换器）
+- `.csv` → CsvParser（标准库 csv）
+- `.xlsx` → ExcelParser
+- `.xls` → XlsParser（xlrd）
+- `.xlsb` / `.ods` / `.et` → 默认不注册
+- `.html` / `.htm` → WebParser（本地 HTML 或 URL bytes）
+- `.mhtml` / `.mht` → MHTMLParser（网页 MIME 归档）
 - 未知扩展名 → Registry 抛 KeyError，由消费方兜底（见 workers/parse_document.py）
 """
 from app.parsers.base import BaseParser
+from app.parsers.csv_parser import CsvParser
 from app.parsers.doc_parser import DocParser
-from app.parsers.docx2_parser import Docx2Parser
 from app.parsers.document import Document
+from app.parsers.docx2_parser import Docx2Parser
 from app.parsers.excel_parser import ExcelParser
 from app.parsers.markdown_parser import MarkdownParser
+from app.parsers.mhtml_parser import MHTMLParser
 from app.parsers.pdf_parser import PdfParser
+from app.parsers.ppt_convert import PptxParser
 from app.parsers.registry import registry
 from app.parsers.text_parser import TextParser
+from app.parsers.web_parser import WebParser
+from app.parsers.xls_parser import XlsParser
 
 __all__ = [
     "Document",
@@ -34,13 +46,18 @@ __all__ = [
     "DocParser",
     "PdfParser",
     "ExcelParser",
+    "XlsParser",
+    "CsvParser",
+    "PptxParser",
+    "WebParser",
+    "MHTMLParser",
 ]
 
 
 def _register_defaults() -> None:
     """注册默认 parser 集合。
 
-    Stage 3 Step 9：追加 .pdf 路由。
+    Stage 5 Step 12：开放 HTML 与 MHTML 网页格式。
     """
     registry.register("txt", TextParser)
     registry.register("md", MarkdownParser)
@@ -48,8 +65,14 @@ def _register_defaults() -> None:
     registry.register("docx", Docx2Parser)
     registry.register("doc", DocParser)
     registry.register("pdf", PdfParser)
-    for file_type in ("xlsx", "xls", "xlsb", "ods", "et"):
-        registry.register(file_type, ExcelParser)
+    registry.register("xlsx", ExcelParser)
+    registry.register("xls", XlsParser)
+    registry.register("csv", CsvParser)
+    registry.register("pptx", PptxParser)
+    registry.register("html", WebParser)
+    registry.register("htm", WebParser)
+    registry.register("mhtml", MHTMLParser)
+    registry.register("mht", MHTMLParser)
 
 
 _register_defaults()

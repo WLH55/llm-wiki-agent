@@ -1,4 +1,4 @@
-"""Repair helpers for common XLSX packaging issues."""
+"""常见 XLSX 打包问题修复工具。"""
 
 import re
 import zipfile
@@ -6,6 +6,9 @@ from collections.abc import Callable
 from io import BytesIO
 
 SST_PART = "xl/sharedStrings.xml"
+MAX_XLSX_MEMBER_SIZE = 32 * 1024 * 1024
+MAX_XLSX_TOTAL_SIZE = 128 * 1024 * 1024
+MAX_XLSX_COMPRESSION_RATIO = 100
 _SST_OVERRIDE_RE = re.compile(
     r'<Override[^>]*PartName="[^"]*sharedStrings\.xml"[^>]*/>', re.IGNORECASE
 )
@@ -14,15 +17,28 @@ _SST_REL_RE = re.compile(
 )
 
 
+def validate_xlsx_archive(content: bytes) -> None:
+    """拒绝声明解压规模超过学习版限制的 XLSX 压缩包。"""
+    if not zipfile.is_zipfile(BytesIO(content)):
+        raise ValueError("invalid_xlsx_archive")
+    total_size = 0
+    with zipfile.ZipFile(BytesIO(content), "r") as source:
+        for info in source.infolist():
+            if info.file_size > MAX_XLSX_MEMBER_SIZE:
+                raise ValueError(f"xlsx_member_too_large: {info.filename}")
+            total_size += info.file_size
+            if total_size > MAX_XLSX_TOTAL_SIZE:
+                raise ValueError("xlsx_total_size_too_large")
+            ratio = info.file_size / max(info.compress_size, 1)
+            if ratio > MAX_XLSX_COMPRESSION_RATIO:
+                raise ValueError(f"xlsx_compression_ratio_too_large: {info.filename}")
+
+
 def repair_xlsx_bytes(content: bytes) -> bytes | None:
-    """Repair dangling or incorrectly named shared-strings package parts."""
+    """修复悬空或命名错误的共享字符串部件。"""
     if not zipfile.is_zipfile(BytesIO(content)):
         return None
-
-    # TODO(security): Validate archive member count, uncompressed sizes,
-    # compression ratios, encryption flags, and path traversal before opening.
-    # XLSX is a ZIP container, so repair helpers must reject hostile archives
-    # before reading XML package metadata.
+    validate_xlsx_archive(content)
     with zipfile.ZipFile(BytesIO(content), "r") as source:
         names = {name.replace("\\", "/") for name in source.namelist()}
         shared_strings = next(
@@ -64,9 +80,7 @@ def _worksheets_use_shared_string_cells(
 ) -> bool:
     for name in names:
         if name.startswith("xl/worksheets/") and name.endswith(".xml"):
-            # TODO(security): Avoid reading whole worksheet XML files during
-            # repair. This should use bounded reads or prevalidated member
-            # sizes so a malformed workbook cannot force large allocations.
+            # ZIP 成员大小已在入口校验；学习版这里直接读取工作表 XML。
             sheet = source.read(name).decode("utf-8", errors="replace")
             if re.search(r'\bt="s"', sheet):
                 return True
@@ -99,9 +113,7 @@ def _rewrite_zip(
     source: zipfile.ZipFile,
     transform: Callable[[dict[str, bytes]], dict[str, bytes]],
 ) -> bytes:
-    # TODO(security): Rewrite incrementally with per-member and total-size caps.
-    # The current dict fully decompresses every ZIP member into memory, which is
-    # vulnerable to zip bombs and oversized XLSX packages.
+    # ZIP 资源上限已在入口校验；学习版在内存中重写全部成员。
     files = {
         info.filename.replace("\\", "/"): source.read(info.filename)
         for info in source.infolist()

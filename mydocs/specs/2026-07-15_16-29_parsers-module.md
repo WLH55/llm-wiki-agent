@@ -2,16 +2,16 @@
 
 ## RIPER 状态
 
-- **phase**: EXECUTE（Stage 4 进行中）
-- **approval status**: APPROVED（Stage 1 ✅ / Stage 2 ✅ 2026-07-16 / Stage 3 ✅ 2026-07-17）
-- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ / Stage 4 Step 10 进行中
+- **phase**: EXECUTE（Stage 5 已完成，停在 Gate 5）
+- **approval status**: Plan APPROVED；Gate 5 PENDING（2026-07-18）
+- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ / Stage 4 ✅ / Stage 5 ✅
 - **review status**: 未开始
 - **spec path**: `mydocs/specs/2026-07-15_16-29_parsers-module.md`
 - **active project**: llm_wiki3.0（单项目）
-- **change scope**: local（仅改 `backend/app/parsers/` + `backend/tests/test_parsers/` + `backend/pyproject.toml`）
-- **current stage**: Stage 4（Office 套件，Step 10-11）进行中
-- **current step**: Step 10（Excel 套件）
-- **next**: 按 TDD 完成 Step 10 并验证 → 停在 Step 11 前等待单步继续指令
+- **change scope**: local（`backend/app/parsers/` + `backend/tests/test_parsers/` + `backend/pyproject.toml` + `backend/Dockerfile`）
+- **current stage**: Stage 5（网页与邮件）完成
+- **current step**: Step 12.1-12.6 已完成
+- **next**: 等待用户通过 Gate 5，再进入 Stage 6 / Step 13
 
 ---
 
@@ -50,6 +50,37 @@
 - [ ] **Q8：高级引擎（MarkitDown / OpenDataLoader）的外部依赖怎么处理？**
   - MarkitdownParser 需微软 `markitdown` 库；OpenDataLoaderParser 需 `opendataloader-pdf` + Java 11+
   - **推荐：B（按需安装）**——不预装，留 TODO；Plan 阶段写到这两个 parser 时再决策
+
+- [x] **Q9：Excel 非 XLSX 格式是否在默认上传路径自动调用 LibreOffice？**（2026-07-18）→ **否**
+  - 决策：默认上传路径和 parser 模块均不启动 LibreOffice
+  - 决策：删除 `find_soffice()` / `convert_excel_to_xlsx_bytes()` 外部转换能力
+  - 理由：学习项目无需引入外部进程、安装差异和沙箱问题
+  - 来源：Step 10 WIP 测试与实现冲突；用户指令“ok 你来”授权按推荐方案收口
+
+- [x] **Q10：表格文件支持范围？**（2026-07-18）→ **`.xlsx/.xls/.csv`**
+  - `.xlsx`：`ExcelParser` + `openpyxl`，支持多 Sheet、合并单元格
+  - `.xls`：独立 `XlsParser` + `xlrd`，直接读取旧版二进制格式，不经 LibreOffice
+  - `.csv`：独立 `CsvParser` + Python `csv` 标准库，支持编码识别与分隔符嗅探
+  - `.xlsb/.ods/.et`：明确不支持，Registry 不注册
+  - 来源：用户确认“这种表格只支持 xlsx、xls、csv”并回复“好的”
+
+- [x] **Q11：PPT 支持范围与代码注释语言？**（2026-07-18）
+  - 格式范围：只支持现代 `.pptx`；旧 `.ppt` 不调用 LibreOffice，不注册
+  - 文本：`PptxParser` 使用 python-pptx 按幻灯片和 shape 顺序提取文本
+  - 媒体：提取 `ppt/media/` 下文件，输出为 `Document.images` 的 Base64 映射，并在正文附媒体路径
+  - 语言：后续新增或修改的代码注释、模块说明和 docstring 统一使用中文
+  - 来源：用户指令“现在进入下一个阶段”“代码注释用中文比较好”
+
+- [x] **Q12：URL 网页由谁抓取？**（2026-07-18 用户决策）→ **Stage 5 提供 URL → Document 能力，Fetcher 与 Parser 内部分层**
+  - 用户明确要求复用 docreader 的网页抓取能力，覆盖普通网页文章和微信公众号文章
+  - `WebParser` 对外接受 URL bytes；内部调用独立 `web_fetcher.py` 获取渲染后的 HTML/可见文本/标题
+  - `WebFetcher` 使用同步 Playwright Chromium，兼容当前同步 `BaseParser.parse()`；不照搬会在现有事件循环中失败的 `asyncio.run()`
+  - `WebParser` 使用 Trafilatura 提取正文，并复用 docreader 的微信公众号 `#js_content/.rich_media_content/mmbiz.qpic.cn` 适配
+  - 分层理由：抓取负责网络安全、超时、重试和增量同步；Parser 保持确定性的 bytes → Document 契约
+  - `MHTMLParser` 解析 `.mhtml/.mht` MIME 归档，提取主 HTML 与内嵌图片
+  - 两者复用同一个 HTML → Markdown 函数，避免转换规则分叉
+  - URL 原始 HTML 保存到 MinIO、创建数据库 Document 和增量同步仍由后续 `WebUrlSourceAdapter` 接入；当前 Stage 5 先完成 URL → Document
+  - 来源：用户明确提出“复用他的能力，我也要可以抓取微信公众号文章、网页文章”
 
 ---
 
@@ -92,10 +123,10 @@
 | Markdown | `markdown_parser.py` | docreader 原版 | 无（含表格/图片 utils） |
 | Word | `docx2_parser.py` / `doc_parser.py` | docreader 原版 | python-docx / unstructured / catdoc |
 | PDF | `pdf_parser.py` | docreader 原版 | pdfplumber |
-| Excel 套件 | `excel_parser.py` + `excel_convert.py` + `xlsx_merge.py` + `xlsx_repair.py` | docreader 原版 | openpyxl |
+| 表格套件 | `excel_parser.py` + `xls_parser.py` + `csv_parser.py` + `excel_convert.py` + `xlsx_merge.py` + `xlsx_repair.py` | docreader 裁剪 + 新写 | openpyxl / xlrd / 标准库 csv |
 | PPT 套件 | `ppt_convert.py` + `pptx_media.py` | docreader 原版 | python-pptx |
-| 网页 | `web_parser.py` | docreader 原版 | requests + beautifulsoup4 |
-| 邮件 | `mhtml_parser.py` | docreader 原版 | 标准库 |
+| 网页 | `web_fetcher.py` + `web_parser.py` | docreader 裁剪 | playwright + trafilatura + lxml |
+| 邮件 | `mhtml_parser.py` | docreader 裁剪 | 标准库 email + HTML 转换依赖 |
 | 电子书 | `epub_parser.py` | docreader 原版 | ebooklib |
 | 图片 | `image_parser.py` | docreader 原版 | Pillow |
 | 高级引擎 | `markitdown_parser.py` / `opendataloader_parser.py` | docreader 原版 | markitdown / opendataloader-pdf + Java |
@@ -117,17 +148,20 @@
 - ❌ **TLS/Auth**：内网同进程调用，无网络边界
 - ❌ **Splitter**（结构感知分块）：现有 `workers/chunker.py` 够用（用户决策 2026-07-15）
 - ❌ **Document.chunks 字段**：分块独立在 chunker，Document 不背
+- ❌ **`.xlsb/.ods/.et` 表格格式**：本学习任务只覆盖 `.xlsx/.xls/.csv`
+- ❌ **LibreOffice 自动转换**：不启动外部 Office 进程；三种格式均使用 Python 库原生解析
+- ❌ **Stage 5 内完成 URL 持久化 API/SourceAdapter**：本阶段完成 URL → Document；MinIO/DB/增量同步另立 Spec 接入
 
 ### 验收标准
 
-1. `backend/app/parsers/` 目录建好，含 4 核心抽象 + 1 utils + 17 parser = **~22 个文件**
+1. `backend/app/parsers/` 目录建好，含 4 核心抽象 + 1 utils + parser 模块 = **~24 个文件**
 2. `backend/app/workers/parsers.py` **已删除**
 3. `backend/app/workers/parse_document.py` 改为 `from app.parsers import registry`
 4. `tests/test_parsers/` 下每 parser 一个 happy-path 测试，全部通过
 5. 已有的 `tests/test_document.py` 回归测试仍通过
 6. 用户能口述清楚：BaseParser / Registry / ChainParser 三大抽象的设计动机
 7. 用户能独立加一个新 parser（如 HTMLParser）而不改 Registry 代码（开闭原则验证）
-8. 用户能口述 17 种格式各自的解析技术要点
+8. 用户能口述各类格式的解析技术要点，并能区分 XLSX/旧版 XLS/CSV 的存储结构
 
 ---
 
@@ -319,13 +353,16 @@ backend/app/parsers/                      # 新增模块
 ├── docx2_parser.py                       # Word .docx
 ├── doc_parser.py                         # Word 老式 .doc
 ├── pdf_parser.py                         # PDF（pdfplumber）
-├── excel_parser.py                       # Excel 主入口
-├── excel_convert.py                      # Excel 辅助：格式转换
+├── excel_parser.py                       # XLSX（openpyxl）
+├── xls_parser.py                         # 旧版 XLS（xlrd）
+├── csv_parser.py                         # CSV（标准库 csv）
+├── excel_convert.py                      # 表格格式识别；不执行外部转换
 ├── xlsx_merge.py                         # Excel 辅助：多 sheet 合并
 ├── xlsx_repair.py                        # Excel 辅助：损坏文件修复
-├── ppt_convert.py                        # PPT 辅助：格式转换
-├── pptx_media.py                         # PPT 辅助：媒体文件抽取
-├── web_parser.py                         # 网页（requests + bs4）
+├── ppt_convert.py                        # PptxParser：幻灯片文本提取（不做旧 PPT 转换）
+├── pptx_media.py                         # PPTX 媒体文件抽取
+├── web_fetcher.py                        # Playwright URL 抓取与 URL 安全校验
+├── web_parser.py                         # Trafilatura 正文提取与微信文章适配
 ├── mhtml_parser.py                       # MHTML 邮件存档
 ├── epub_parser.py                        # EPUB 电子书
 ├── image_parser.py                       # 图片元数据（Pillow）
@@ -348,6 +385,8 @@ backend/tests/test_parsers/               # 新增测试目录
 ├── test_doc_parser.py
 ├── test_pdf_parser.py
 ├── test_excel_parser.py
+├── test_xls_parser.py
+├── test_csv_parser.py
 ├── test_ppt_parser.py
 ├── test_web_parser.py
 ├── test_mhtml_parser.py
@@ -357,7 +396,7 @@ backend/tests/test_parsers/               # 新增测试目录
 └── test_opendataloader_parser.py         # skip if 依赖未装
 ```
 
-**总计**：~22 个 parser 模块文件 + 16 个测试文件
+**总计**：~24 个 parser 模块文件 + 18 个测试文件
 
 ### §4.2 Signatures（核心签名）
 
@@ -452,6 +491,114 @@ class PipelineParser(BaseParser):
     def create(cls, *parser_classes) -> Type["PipelineParser"]: ...
 ```
 
+#### 表格 Step 10 契约（2026-07-18 二次修订）
+
+```python
+# backend/app/parsers/excel_convert.py
+def detect_excel_format(content: bytes) -> str | None: ...
+def normalize_excel_bytes(content: bytes, file_type: str | None = None) -> bytes: ...
+
+# backend/app/parsers/xlsx_repair.py
+def validate_xlsx_archive(content: bytes) -> None: ...
+def repair_xlsx_bytes(content: bytes) -> bytes | None: ...
+
+# backend/app/parsers/excel_parser.py
+def _validate_sheet_dimensions(sheet_name: str, max_row: int, max_column: int) -> None: ...
+
+class ExcelParser(BaseParser):
+    def parse_into_text(self, content: bytes) -> Document: ...
+
+# backend/app/parsers/xls_parser.py
+class XlsParser(BaseParser):
+    def parse_into_text(self, content: bytes) -> Document: ...
+
+# backend/app/parsers/csv_parser.py
+class CsvParser(BaseParser):
+    def parse_into_text(self, content: bytes) -> Document: ...
+```
+
+- `normalize_excel_bytes()` 只允许原生 XLSX，不调用外部程序
+- `validate_xlsx_archive()` 做学习版最小限制：单成员大小、总解压大小、压缩比
+- `_validate_sheet_dimensions()` 用最大单元格数限制 XLSX/XLS 工作表
+- `CsvParser` 使用 `decode_bytes()` + `csv.Sniffer`（失败时回退逗号），限制最大行数与列数
+- 默认 Registry 注册 `xlsx -> ExcelParser`、`xls -> XlsParser`、`csv -> CsvParser`
+
+#### PPTX Step 11 契约（2026-07-18 补充）
+
+```python
+# backend/app/parsers/pptx_media.py
+def extract_pptx_media(content: bytes) -> dict[str, str]: ...
+
+# backend/app/parsers/ppt_convert.py
+def normalize_pptx_bytes(content: bytes, file_type: str | None = None) -> bytes: ...
+
+class PptxParser(BaseParser):
+    def parse_into_text(self, content: bytes) -> Document: ...
+```
+
+- `normalize_pptx_bytes()` 只接受有效 PPTX ZIP 包；旧 `.ppt` 或无效输入明确失败
+- `extract_pptx_media()` 使用确定性路径 `images/<原文件名>`，值为原始媒体 Base64
+- `PptxParser` 输出 `## Slide N` 分节文本；有媒体时追加 `## 媒体` 路径列表
+- 默认 Registry 只注册 `pptx -> PptxParser`，不注册 `ppt`
+
+#### HTML/MHTML Step 12 契约（2026-07-18 补充）
+
+```python
+# backend/app/parsers/web_fetcher.py
+@dataclass(frozen=True)
+class ScrapeResult:
+    url: str
+    final_url: str
+    html: str
+    visible_text: str
+    page_title: str
+
+def validate_public_url(url: str) -> None: ...
+def scrape_url(url: str) -> ScrapeResult: ...
+
+# backend/app/parsers/web_parser.py
+def extract_markdown_from_html(html: str) -> str | None: ...
+def build_visible_text_fallback(visible_text: str, page_title: str = "") -> str | None: ...
+
+def html_to_markdown(
+    html_content: str,
+    image_aliases: dict[str, str] | None = None,
+    base_location: str = "",
+) -> str: ...
+
+class WebParser(BaseParser):
+    def __init__(self, title: str = "", **kwargs): ...
+    def parse_into_text(self, content: bytes) -> Document: ...
+
+# backend/app/parsers/mhtml_parser.py
+class MHTMLParser(BaseParser):
+    def __init__(self, *args, extract_images: bool = True, **kwargs): ...
+    def parse_into_text(self, content: bytes) -> Document: ...
+```
+
+- `validate_public_url()` 仅允许 http/https，并拒绝 localhost、环回、私网、链路本地和保留 IP
+- `scrape_url()` 启动 Chromium，等待 DOMContentLoaded + networkidle/正文字符阈值，返回渲染后 HTML、可见文本和标题
+- `extract_markdown_from_html()` 使用 Trafilatura 输出 Markdown，保留图片/表格/链接，并适配微信公众号正文和图片 URL
+- `WebParser` 解码 URL bytes，优先使用 Trafilatura；失败时回退 Playwright 可见文本
+- `MHTMLParser` 使用 `email.message_from_bytes()`，选择体积最大的 `text/html` 部件作为正文
+- MHTML 图片按 `Content-Location/Content-ID` 重写为 `images/...`，Base64 写入 `Document.images`
+- Registry 注册 `html/htm -> WebParser`、`mhtml/mht -> MHTMLParser`
+
+##### URL 入库衔接（Stage 5 完成抓取解析，持久化接入另立 Spec）
+
+```text
+用户提交 URL
+→ WebUrlSourceAdapter 调用本阶段 WebParser/WebFetcher 下载或渲染网页
+→ 原始 HTML 快照保存 MinIO，URL/ETag/Last-Modified 保存 Source.config/sync_cursor
+→ 创建 Document 并进入解析队列
+→ WebParser(html_bytes) 生成 Markdown Document
+→ 分块、嵌入并写入 content_chunks
+```
+
+- 本阶段为复用 docreader 能力统一使用 Playwright，后续可增加 HTTP 快路径优化成本
+- Fetcher 限制协议、内网地址、最终重定向地址、响应长度和超时，降低 SSRF/资源耗尽风险
+- URL SourceAdapter 仍需独立 Spec 接入 API/MinIO/队列，保存原始 HTML 并创建 Document
+
 ### §4.3 Implementation Checklist（20 个学习步骤）
 
 > 每步格式：**教学要点** + **产出** + **验证**。每步独立可暂停。
@@ -509,22 +656,40 @@ class PipelineParser(BaseParser):
 
 #### 阶段 4：Office 套件（Step 10-11）
 
-- [ ] **Step 10：Excel 套件（4 文件）**
-  - 教学：openpyxl 多 sheet 遍历；excel_convert 格式转换；xlsx_merge 合并；xlsx_repair 损坏文件修复
-  - 产出：`excel_parser.py` + `excel_convert.py` + `xlsx_merge.py` + `xlsx_repair.py`
-  - 验证：`.xlsx` 多 sheet → markdown 表格拼接
+- [x] **Step 10：表格套件（XLSX / XLS / CSV）** ✅ 2026-07-18
+  - 教学：三种存储结构；Registry 按格式派发；不依赖 LibreOffice 的原生解析；学习版资源限制
+  - 产出：`excel_parser.py` + `xls_parser.py` + `csv_parser.py` + `excel_convert.py` + `xlsx_merge.py` + `xlsx_repair.py`
+  - [x] 10.1 Registry 暂时仅注册 `.xlsx`，移除不可靠格式广告 ✅ 2026-07-18
+  - [x] 10.2 删除 LibreOffice 查找/子进程转换；TDD 验证非 XLSX 不启动外部程序并明确失败 ✅ 2026-07-18
+  - [x] 10.3 新增 `XlsParser`（xlrd）及多 Sheet 测试，注册 `.xls` ✅ 2026-07-18
+  - [x] 10.4 新增 `CsvParser`（标准库 csv）及编码/分隔符测试，注册 `.csv` ✅ 2026-07-18
+  - [x] 10.5 固化最终 Registry 契约：`.xlsx/.xls/.csv` 分别路由；`.xlsb/.ods/.et` 拒绝 ✅ 2026-07-18
+  - [x] 10.6 增加学习版资源限制：XLSX ZIP 大小/压缩比、XLSX/XLS 单元格数、CSV 行列数 ✅ 2026-07-18
+  - [x] 10.7 更新依赖（`xlrd>=2.0.1`）并运行全部 parser 回归 ✅ 2026-07-18
+  - 验证：三种格式均输出 Markdown；Registry 只列出三种表格格式；解析过程不启动 LibreOffice
 
-- [ ] **Step 11：PPT 套件（2 文件）**
-  - 教学：python-pptx 遍历 slides/shapes；pptx_media 抽取图片/视频
-  - 产出：`ppt_convert.py` + `pptx_media.py`
-  - 验证：`.pptx` → 幻灯片文本 + 媒体路径
+- [x] **Step 11：PPTX 套件（2 文件）** ✅ 2026-07-18
+  - 教学：python-pptx 遍历 slides/shapes；PPTX ZIP 媒体抽取；文本与二进制媒体分离
+  - 产出：`ppt_convert.py` + `pptx_media.py` + `test_ppt_parser.py`
+  - [x] 11.1 TDD 固化 PPTX 文本、媒体和 Registry 契约 ✅ 2026-07-18
+  - [x] 11.2 实现 `extract_pptx_media()`，媒体写入 `Document.images` ✅ 2026-07-18
+  - [x] 11.3 实现 `PptxParser` 与 `normalize_pptx_bytes()`，拒绝旧 `.ppt` ✅ 2026-07-18
+  - [x] 11.4 注册 `.pptx`，更新 `python-pptx>=1.0.0` 依赖 ✅ 2026-07-18
+  - [x] 11.5 运行 PPT 专项、Ruff 和全部 Parser 回归 ✅ 2026-07-18
+  - 验证：`.pptx` → 分幻灯片文本 + 媒体路径；`.ppt` → Registry `KeyError`
 
 #### 阶段 5：网页与邮件（Step 12）
 
-- [ ] **Step 12：WebParser + MHTMLParser**
-  - 教学：requests + BeautifulSoup 解析 HTML；MHTML 用标准库 email.message_from_string
-  - 产出：`web_parser.py` + `mhtml_parser.py`
-  - 验证：HTML 字符串 → 纯文本 + 链接；`.mht` → HTML 部分
+- [x] **Step 12：URL/WebParser + MHTMLParser** ✅ 2026-07-18
+  - 教学：Playwright 动态渲染；Trafilatura 正文提取；微信文章适配；MIME multipart；图片引用重写
+  - 产出：`web_fetcher.py` + `web_parser.py` + `mhtml_parser.py` + 契约测试
+  - [x] 12.1 TDD 固化 URL 校验、HTML 正文提取、微信正文/图片规则和可见文本 fallback ✅
+  - [x] 12.2 实现同步 Playwright `scrape_url()` 与 `WebParser`（URL bytes → Document）✅
+  - [x] 12.3 TDD 固化 MHTML 主正文选择、图片提取与引用重写契约 ✅
+  - [x] 12.4 实现 `MHTMLParser`，注册 `.mhtml/.mht` ✅
+  - [x] 12.5 更新 playwright/trafilatura/beautifulsoup4/markdownify/lxml 依赖与 Docker Chromium 安装 ✅
+  - [x] 12.6 运行 helper 单测、本地 Playwright 页面验收、Ruff 和全部 Parser 回归 ✅
+  - 验证：普通/微信 HTML → 正文 Markdown；动态页面 → 渲染后正文；MHTML → Markdown + `Document.images`
 
 #### 阶段 6：富文档（Step 13）
 
@@ -878,6 +1043,168 @@ feat(parsers): Stage 3 基础格式（Markdown / Word / PDF）
 - **Stage 3 Approved**：2026-07-17 用户明确指令“进入下一个阶段”
 - **执行策略**：遵循默认单步执行，本轮只执行 Step 10（Excel 套件）；Step 11（PPT 套件）等待下一次继续指令
 - **TDD 状态**：准备进入 RED，先新增 Excel 套件契约测试并确认因实现缺失而失败
+
+#### 2026-07-18 Step 10 WIP 诊断与反向同步
+
+- **诊断结果**：实现已创建 4 个 Excel 文件，但测试与实现存在契约冲突，按协议暂停 Execute 并退回 Plan
+- **契约冲突**：实现注册 `.xlsx/.xls/.xlsb/.ods/.et`，测试要求默认只注册 `.xlsx`
+- **安全缺口**：`validate_xlsx_archive()` 与 `_validate_sheet_dimensions()` 尚未实现；ZIP 读取处仍有资源耗尽 TODO
+- **验证阻塞**：当前 Python 3.13 环境缺少 `openpyxl`，pytest 在收集 `test_excel_parser.py` 时失败
+- **Plan 修订**：见 Q9、§4.2 Excel 安全契约、§4.3 Step 10.1-10.6
+- **审批门禁**：收到精确 `Plan Approved` 前不继续修改实现
+
+#### 2026-07-18 Plan 审批与执行方式
+
+- **Plan Approved**：用户已给出精确审批指令，恢复 Execute
+- **执行方式**：本任务为简单学习任务，仅使用 `test-driven-development`；用户明确要求不同时使用 `subagent-driven-development`
+- **当前单步**：只执行 Step 10.1，完成后按默认单步策略暂停
+
+#### Step 10.1：默认 Registry 仅开放 XLSX [完成 2026-07-18]
+
+- **TDD RED**：`test_registry_does_not_advertise_formats_requiring_libreoffice` 产生 4 个预期失败；`.xls/.xlsb/.ods/.et` 均未抛 `KeyError`
+- **最小实现**：`backend/app/parsers/__init__.py` 仅注册 `xlsx -> ExcelParser`，同步公共 API 说明
+- **TDD GREEN**：XLSX 正向路由 + 4 个非 XLSX 拒绝测试，`5 passed`
+- **回归验证**：`test_registry.py` + Excel Registry 契约，`17 passed`
+- **偏差**：无；未触碰 Step 10.2-10.6
+- **当时的下一步**：等待用户“继续”后执行旧版 Step 10.2；后续已被“表格格式范围二次修订”取代
+
+#### 2026-07-18 表格格式范围二次修订
+
+- **用户决策**：表格解析只支持 `.xlsx/.xls/.csv`，不支持 `.xlsb/.ods/.et`
+- **技术决策**：XLSX 使用 openpyxl；XLS 使用 xlrd；CSV 使用标准库 csv；不使用 LibreOffice
+- **Plan 变更**：Step 10.2-10.7 已按三个独立 Parser 重写，见 Q10、§4.1-§4.3
+- **状态**：范围发生实质变化，退回 Plan；此前 `Plan Approved` 不自动覆盖新 Plan
+- **审批门禁**：收到新的精确 `Plan Approved` 后，从 Step 10.2 恢复 TDD 单步执行
+
+#### Step 10.2：删除 LibreOffice 转换路径 [完成 2026-07-18]
+
+- **Plan Approved**：用户再次给出精确审批指令，恢复 Execute
+- **TDD RED**：新契约测试因 `find_soffice` 仍存在而按预期失败
+- **最小实现**：删除 `find_soffice()`、`convert_excel_to_xlsx_bytes()` 及 `os/shutil/subprocess/tempfile/pathlib` 依赖
+- **行为契约**：`normalize_excel_bytes()` 只返回原生 XLSX；其他输入抛出包含 `external conversion is disabled` 的 `ValueError`
+- **TDD GREEN**：核心契约 `3 passed`；其余 Excel 契约 `17 passed, 2 deselected`；Registry 回归 `12 passed`
+- **未运行**：本机未安装 `ruff`；Step 10.6 的两个未来安全测试按计划暂不计入本步
+- **偏差**：无；未开始 `XlsParser`
+- **下一步**：等待用户“继续”后执行 Step 10.3
+
+#### 2026-07-18 Step 10 批量执行授权
+
+- **用户指令**：“下一阶段要做什么，合在一起做了”
+- **批量范围**：Step 10.3-10.7（XlsParser、CsvParser、最终 Registry、学习版资源限制、全量 Parser 回归）
+- **范围边界**：不进入 Step 11（PPT 套件）
+- **执行方式**：仍按 TDD 在内部逐项 RED/GREEN，但不在子步骤之间等待用户确认
+
+#### Step 10.3-10.7：表格套件批量收口 [完成 2026-07-18]
+
+##### 产出
+
+- `backend/app/parsers/xls_parser.py`：xlrd 读取 BIFF XLS，多 Sheet 输出 Markdown，处理数字/布尔/日期
+- `backend/app/parsers/csv_parser.py`：编码回退、逗号/分号/Tab 嗅探、Markdown 输出
+- `backend/app/parsers/__init__.py`：最终注册 `.xlsx/.xls/.csv`；拒绝 `.xlsb/.ods/.et`
+- `backend/app/parsers/xlsx_repair.py`：`validate_xlsx_archive()` 资源校验
+- `backend/app/parsers/excel_parser.py`：`_validate_sheet_dimensions()` 工作表校验
+- `backend/app/parsers/xlsx_merge.py`：读取前执行 ZIP/维度校验，并确保 workbook 关闭
+- `backend/pyproject.toml`：生产依赖 `xlrd>=2.0.1`；测试依赖 `xlwt>=1.3.0`
+- `backend/tests/test_parsers/test_xls_parser.py` / `test_csv_parser.py`：真实内存样本契约测试
+
+##### 学习版限制
+
+- XLSX：单 ZIP 成员最多 32 MB，总解压大小最多 128 MB，压缩比最多 100
+- XLSX/XLS：单工作表声明单元格最多 1,000,000
+- CSV：最多 100,000 行、1,000 列
+
+##### TDD 与验证
+
+- **XLS RED**：`4 failed`（`app.parsers.xls_parser` 缺失）→ **GREEN**：XLS + Excel 契约 `20 passed`
+- **CSV RED**：`5 failed`（`app.parsers.csv_parser` 缺失）→ **GREEN**：XLS + CSV `9 passed`
+- **资源限制 RED**：3 个缺失护栏测试失败 → **GREEN**：`3 passed`
+- **表格专项 + Registry**：`40 passed`
+- **全部 Parser 回归**：`77 passed`
+- **Ruff**：本批次文件 `All checks passed`
+
+##### 偏差与下一步
+
+- **偏差**：为生成真实 `.xls` 测试样本，增加仅开发依赖 `xlwt`；不进入生产解析路径
+- **Step 10 结论**：PASS
+- **下一步**：停在 Step 11 前；PPT 套件不在本次批量授权范围内
+
+#### 2026-07-18 Step 11 启动
+
+- **用户授权**：“现在进入下一个阶段”
+- **当前范围**：只完成 PPTX 文本和媒体解析；不支持旧 `.ppt`，不调用 LibreOffice
+- **代码风格反馈**：新增/修改的注释、模块说明和 docstring 使用中文；本轮同步整理新增表格模块的英文说明
+- **执行方式**：按 TDD 连续完成 11.1-11.5，完成后停在 Gate 4
+
+#### Step 11：PPTX 文本与媒体解析 [完成 2026-07-18]
+
+##### 产出
+
+- `backend/app/parsers/ppt_convert.py`：`PptxParser`、PPTX 内容校验、分幻灯片文本提取
+- `backend/app/parsers/pptx_media.py`：从 `ppt/media/` 提取媒体并生成 Base64 映射
+- `backend/app/parsers/__init__.py`：注册 `pptx -> PptxParser`，不注册旧 `.ppt`
+- `backend/pyproject.toml`：新增 `python-pptx>=1.0.0`
+- `backend/tests/test_parsers/test_ppt_parser.py`：真实内存 PPTX 文本、图片、Registry 与旧格式拒绝测试
+
+##### TDD 与验证
+
+- **RED**：`5 failed`，原因均为 `ppt_convert.py` / `pptx_media.py` 尚不存在
+- **GREEN**：PPT 专项 `5 passed`
+- **全部 Parser 回归**：`82 passed`
+- **Ruff**：本轮新增/修改文件 `All checks passed`
+- **历史 Ruff 说明**：全目录仍有 26 个既有类型注解/导入格式问题，本阶段未越界修改
+
+##### 中文注释规范
+
+- 本轮新增的 PPTX/XLS/CSV 模块说明和 docstring 均使用中文
+- 本轮涉及的 XLSX 模块英文说明与 TODO 已同步改为中文
+- 异常字符串和数据字段保持契约稳定，不因注释语言调整而变化
+
+##### Stage 4 结论
+
+- **Step 10 表格套件**：PASS
+- **Step 11 PPTX 套件**：PASS
+- **Stage 4**：完成，等待用户回复 `Stage 4 Approved`
+
+#### 2026-07-18 Gate 4 通过与 Stage 5 研究
+
+- **Gate 4 用户指令**：“继续下一阶段”——视为明确批准 Stage 4，进入 Stage 5
+- **参考实现结论**：docreader WebParser 包含浏览器抓取、SPA 等待、代理和站点适配，超出本学习任务
+- **职责调整**：Stage 5 复用 docreader 的 URL 抓取能力，但拆为 `web_fetcher.py` 与 `web_parser.py`；持久化仍由 SourceAdapter 负责
+- **当前门禁**：Step 12 精确 Plan 已落盘，收到 `Plan Approved` 后进入 Execute
+
+#### Step 12：URL、微信文章与 MHTML 解析 [完成 2026-07-18]
+
+##### 产出
+
+- `backend/app/parsers/web_fetcher.py`：公网 URL 校验、浏览器请求拦截、同步 Chromium 抓取、SPA 正文等待
+- `backend/app/parsers/web_parser.py`：Trafilatura 正文提取、微信公众号适配、可见文本 fallback、共享 HTML → Markdown 转换
+- `backend/app/parsers/mhtml_parser.py`：MIME 主正文选择、广告部件过滤、内嵌图片 Base64 提取和引用重写
+- `backend/app/parsers/__init__.py`：注册 `.html/.htm/.mhtml/.mht`
+- `backend/pyproject.toml`：新增 Playwright、Trafilatura、BeautifulSoup、markdownify、lxml 生产依赖
+- `backend/Dockerfile`：安装 Chromium 及其系统依赖
+
+##### TDD 与验证
+
+- **RED**：`9 failed`，原因均为 `web_fetcher.py`、`web_parser.py`、`mhtml_parser.py` 尚不存在
+- **首次 GREEN**：`8 passed, 1 failed`；Trafilatura 2.1 仍过滤微信无扩展名图片
+- **契约内修正**：补回微信正文容器内被遗漏的 `mmbiz.qpic.cn?...wx_fmt=` 图片引用
+- **网页/MHTML 专项**：`9 passed`
+- **全部 Parser 回归**：`91 passed`
+- **Ruff**：本阶段新增/修改文件 `All checks passed`
+- **受控动态页验收**：Chromium 成功执行延迟 JavaScript，并读取 185 字符渲染后正文
+- **真实公网验收**：`https://example.com` 抓取成功，最终 URL、HTML 和可见文本均符合预期
+
+##### 安全边界与偏差
+
+- 初始 URL、每个 HTTP(S) 浏览器请求及最终跳转 URL 均执行公网地址校验，拒绝非 HTTP(S)、localhost、环回、私网、链路本地与保留地址
+- 渲染后 HTML 设置 10,000,000 字符学习版上限；导航、networkidle 和正文等待均有超时
+- 微信平台登录、验证码、文章删除和风控属于站点边界，不提供绕过能力
+- **计划偏差**：无；URL 的 MinIO/数据库持久化仍按计划留给独立 `WebUrlSourceAdapter` Spec
+
+##### Stage 5 结论
+
+- **Step 12**：PASS
+- **Stage 5**：完成，停在 Gate 5；未经用户明确批准不进入 Stage 6
 
 ---
 

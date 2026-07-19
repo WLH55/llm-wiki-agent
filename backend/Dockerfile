@@ -35,6 +35,9 @@ COPY --from=frontend-build /build/dist/ ./static/dist/
 # 安装 Python 包（app/ 已拷贝，pip install . 可以打包）
 RUN pip install --no-cache-dir .
 
+# Playwright Python 包不包含浏览器；镜像中安装 Chromium 及其系统依赖
+RUN python -m playwright install --with-deps chromium
+
 # Alembic 迁移文件
 COPY backend/alembic.ini ./
 COPY backend/alembic/ ./alembic/
