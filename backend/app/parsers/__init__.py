@@ -21,6 +21,7 @@
 - `.mhtml` / `.mht` → MHTMLParser（网页 MIME 归档）
 - `.epub` → EPUBParser（章节、元数据和内嵌图片）
 - 常见位图格式 → ImageParser（Pillow 元数据和 EXIF）
+- 高级引擎类仅导出，不注册默认 file_type；Stage 8 双 key Registry 再接入
 - 未知扩展名 → Registry 抛 KeyError，由消费方兜底（见 workers/parse_document.py）
 """
 from app.parsers.base import BaseParser
@@ -32,10 +33,17 @@ from app.parsers.epub_parser import EPUBParser
 from app.parsers.excel_parser import ExcelParser
 from app.parsers.image_parser import ImageParser
 from app.parsers.markdown_parser import MarkdownParser
+from app.parsers.markitdown_parser import MarkitdownParser, markitdown_available
 from app.parsers.mhtml_parser import MHTMLParser
+from app.parsers.opendataloader_parser import OpenDataLoaderParser, opendataloader_available
 from app.parsers.pdf_parser import PdfParser
 from app.parsers.ppt_convert import PptxParser
-from app.parsers.registry import registry
+from app.parsers.registry import (
+    BUILTIN_ENGINE,
+    ParserEngineRegistry,
+    ParserRegistry,
+    registry,
+)
 from app.parsers.text_parser import TextParser
 from app.parsers.web_parser import WebParser
 from app.parsers.xls_parser import XlsParser
@@ -43,6 +51,9 @@ from app.parsers.xls_parser import XlsParser
 __all__ = [
     "Document",
     "BaseParser",
+    "BUILTIN_ENGINE",
+    "ParserEngineRegistry",
+    "ParserRegistry",
     "registry",
     "TextParser",
     "MarkdownParser",
@@ -57,31 +68,71 @@ __all__ = [
     "MHTMLParser",
     "EPUBParser",
     "ImageParser",
+    "MarkitdownParser",
+    "OpenDataLoaderParser",
 ]
 
 
 def _register_defaults() -> None:
-    """注册默认 parser 集合。
+    """批量注册内置与高级解析引擎。"""
 
-    Stage 5 Step 12：开放 HTML 与 MHTML 网页格式。
-    """
-    registry.register("txt", TextParser)
-    registry.register("md", MarkdownParser)
-    registry.register("markdown", MarkdownParser)
-    registry.register("docx", Docx2Parser)
-    registry.register("doc", DocParser)
-    registry.register("pdf", PdfParser)
-    registry.register("xlsx", ExcelParser)
-    registry.register("xls", XlsParser)
-    registry.register("csv", CsvParser)
-    registry.register("pptx", PptxParser)
-    registry.register("html", WebParser)
-    registry.register("htm", WebParser)
-    registry.register("mhtml", MHTMLParser)
-    registry.register("mht", MHTMLParser)
-    registry.register("epub", EPUBParser)
-    for file_type in ("png", "jpg", "jpeg", "gif", "webp", "bmp", "tif", "tiff"):
-        registry.register(file_type, ImageParser)
+    registry.register(
+        BUILTIN_ENGINE,
+        {
+            "txt": TextParser,
+            "md": MarkdownParser,
+            "markdown": MarkdownParser,
+            "docx": Docx2Parser,
+            "doc": DocParser,
+            "pdf": PdfParser,
+            "xlsx": ExcelParser,
+            "xls": XlsParser,
+            "csv": CsvParser,
+            "pptx": PptxParser,
+            "html": WebParser,
+            "htm": WebParser,
+            "mhtml": MHTMLParser,
+            "mht": MHTMLParser,
+            "epub": EPUBParser,
+            "png": ImageParser,
+            "jpg": ImageParser,
+            "jpeg": ImageParser,
+            "gif": ImageParser,
+            "webp": ImageParser,
+            "bmp": ImageParser,
+            "tif": ImageParser,
+            "tiff": ImageParser,
+        },
+        description="内置解析引擎",
+    )
+    registry.register(
+        "markitdown",
+        {
+            file_type: MarkitdownParser
+            for file_type in (
+                "md",
+                "markdown",
+                "pdf",
+                "docx",
+                "doc",
+                "pptx",
+                "ppt",
+                "xlsx",
+                "xls",
+                "csv",
+            )
+        },
+        description="Microsoft MarkItDown 解析引擎",
+        check_available=markitdown_available,
+        unavailable_hint="请安装 MarkItDown 及其文档格式依赖",
+    )
+    registry.register(
+        "opendataloader",
+        {"pdf": OpenDataLoaderParser},
+        description="OpenDataLoader PDF 解析引擎",
+        check_available=opendataloader_available,
+        unavailable_hint="请安装 Java 11+ 与 opendataloader-pdf",
+    )
 
 
 _register_defaults()

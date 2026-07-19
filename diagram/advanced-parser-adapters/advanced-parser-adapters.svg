@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 700">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', sans-serif; letter-spacing: 0; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 L0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#22d3ee"/>
+    </marker>
+    <marker id="arrow-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#fb7185"/>
+    </marker>
+  </defs>
+
+  <rect width="1240" height="700" fill="#0f172a"/>
+  <rect width="1240" height="700" fill="url(#grid)"/>
+
+  <text x="36" y="42" fill="#f8fafc" font-size="18" font-weight="700">高级文档解析器适配层</text>
+  <text x="36" y="64" fill="#94a3b8" font-size="10">两个可选引擎，共用一种输入与输出契约</text>
+
+  <rect x="270" y="90" width="650" height="475" rx="12" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="286" y="112" fill="#fbbf24" font-size="9" font-weight="600">PARSER ADAPTERS / 可选能力</text>
+
+  <!-- connectors -->
+  <path d="M220 305 L270 305 L270 210 L330 210" fill="none" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+  <path d="M220 305 L270 305 L270 445 L330 445" fill="none" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-emerald)"/>
+  <path d="M550 210 L675 210" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M550 445 L675 445" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M875 210 L965 210 L965 325 L1010 325" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M875 445 L965 445 L965 325 L1010 325" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M440 250 L440 276" fill="none" stroke="#fb7185" stroke-width="1.2" marker-end="url(#arrow-rose)"/>
+  <path d="M440 485 L440 511" fill="none" stroke="#fb7185" stroke-width="1.2" marker-end="url(#arrow-rose)"/>
+
+  <text x="273" y="294" fill="#94a3b8" font-size="8">按引擎选择</text>
+  <text x="612" y="199" fill="#94a3b8" font-size="8" text-anchor="middle">转换结果</text>
+  <text x="612" y="434" fill="#94a3b8" font-size="8" text-anchor="middle">读取产物</text>
+
+  <!-- masks and boxes -->
+  <rect x="40" y="255" width="180" height="100" rx="6" fill="#0f172a"/>
+  <rect x="40" y="255" width="180" height="100" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="130" y="287" fill="#f8fafc" font-size="12" font-weight="600" text-anchor="middle">文档 bytes</text>
+  <text x="130" y="310" fill="#94a3b8" font-size="9" text-anchor="middle">PDF / DOCX / PPTX</text>
+  <text x="130" y="329" fill="#94a3b8" font-size="9" text-anchor="middle">XLSX / HTML 等</text>
+
+  <rect x="330" y="155" width="220" height="95" rx="6" fill="#0f172a"/>
+  <rect x="330" y="155" width="220" height="95" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="440" y="184" fill="#f8fafc" font-size="12" font-weight="600" text-anchor="middle">MarkItDown 适配器</text>
+  <text x="440" y="207" fill="#94a3b8" font-size="9" text-anchor="middle">通用多格式 → Markdown</text>
+  <text x="440" y="226" fill="#94a3b8" font-size="9" text-anchor="middle">惰性导入 · 保留 data URI</text>
+
+  <rect x="330" y="390" width="220" height="95" rx="6" fill="#0f172a"/>
+  <rect x="330" y="390" width="220" height="95" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="440" y="419" fill="#f8fafc" font-size="12" font-weight="600" text-anchor="middle">OpenDataLoader 适配器</text>
+  <text x="440" y="442" fill="#94a3b8" font-size="9" text-anchor="middle">PDF 专用 → Markdown</text>
+  <text x="440" y="461" fill="#94a3b8" font-size="9" text-anchor="middle">Java 11+ · 版面与图片</text>
+
+  <rect x="675" y="160" width="200" height="90" rx="6" fill="#0f172a"/>
+  <rect x="675" y="160" width="200" height="90" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="775" y="189" fill="#f8fafc" font-size="11" font-weight="600" text-anchor="middle">内存转换结果</text>
+  <text x="775" y="212" fill="#94a3b8" font-size="9" text-anchor="middle">Markdown 字符串</text>
+  <text x="775" y="231" fill="#94a3b8" font-size="9" text-anchor="middle">图片可作为 data URI</text>
+
+  <rect x="675" y="385" width="200" height="110" rx="6" fill="#0f172a"/>
+  <rect x="675" y="385" width="200" height="110" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="775" y="414" fill="#f8fafc" font-size="11" font-weight="600" text-anchor="middle">临时目录产物</text>
+  <text x="775" y="437" fill="#94a3b8" font-size="9" text-anchor="middle">Markdown + 外置图片</text>
+  <text x="775" y="456" fill="#94a3b8" font-size="9" text-anchor="middle">图片转 Base64</text>
+  <text x="775" y="475" fill="#94a3b8" font-size="9" text-anchor="middle">引用统一为 images/name</text>
+
+  <rect x="1010" y="270" width="190" height="110" rx="6" fill="#0f172a"/>
+  <rect x="1010" y="270" width="190" height="110" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="1105" y="299" fill="#f8fafc" font-size="12" font-weight="600" text-anchor="middle">统一 Document</text>
+  <text x="1105" y="324" fill="#94a3b8" font-size="9" text-anchor="middle">content: Markdown</text>
+  <text x="1105" y="343" fill="#94a3b8" font-size="9" text-anchor="middle">images: path → Base64</text>
+  <text x="1105" y="362" fill="#94a3b8" font-size="9" text-anchor="middle">metadata: engine / error</text>
+
+  <rect x="345" y="276" width="190" height="55" rx="6" fill="#0f172a"/>
+  <rect x="345" y="276" width="190" height="55" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.2"/>
+  <text x="440" y="298" fill="#f8fafc" font-size="10" font-weight="600" text-anchor="middle">失败不抛给上层</text>
+  <text x="440" y="316" fill="#94a3b8" font-size="8" text-anchor="middle">metadata.error 记录原因</text>
+
+  <rect x="345" y="511" width="190" height="40" rx="6" fill="#0f172a"/>
+  <rect x="345" y="511" width="190" height="40" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.2"/>
+  <text x="440" y="535" fill="#f8fafc" font-size="9" font-weight="600" text-anchor="middle">不可用 / 失败 → metadata.error</text>
+
+  <!-- bottom comparison -->
+  <line x1="40" y1="605" x2="1200" y2="605" stroke="#334155" stroke-width="1"/>
+  <text x="40" y="634" fill="#fbbf24" font-size="10" font-weight="600">为什么两个都保留？</text>
+  <text x="218" y="634" fill="#cbd5e1" font-size="9">MarkItDown：覆盖面广、接入轻，适合通用转换</text>
+  <text x="218" y="657" fill="#cbd5e1" font-size="9">OpenDataLoader：依赖更重，但专攻复杂 PDF、版面和图片</text>
+  <text x="218" y="680" fill="#94a3b8" font-size="9">它们是可选择的增强能力，不替换现有内置解析器</text>
+</svg>

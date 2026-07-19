@@ -2,16 +2,16 @@
 
 ## RIPER 状态
 
-- **phase**: EXECUTE（Stage 6 已完成，停在 Gate 6）
-- **approval status**: Plan APPROVED；Gate 6 PENDING（2026-07-19）
-- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ / Stage 4 ✅ / Stage 5 ✅ / Stage 6 ✅
-- **review status**: 未开始
+- **phase**: REVIEW（Stage 8 / Gate 8）
+- **approval status**: Gate 7 APPROVED（用户指令“继续 下一阶段的任务”，2026-07-19）；Stage 8 Plan APPROVED（用户精确回复 `Plan Approved`，2026-07-19）；Gate 8 PENDING
+- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ / Stage 4 ✅ / Stage 5 ✅ / Stage 6 ✅ / Stage 7 ✅ / Stage 8 ✅
+- **review status**: Stage 8 PASS（最终三轴 Review，2026-07-19）
 - **spec path**: `mydocs/specs/2026-07-15_16-29_parsers-module.md`
 - **active project**: llm_wiki3.0（单项目）
 - **change scope**: local（`backend/app/parsers/` + `backend/tests/test_parsers/` + `backend/pyproject.toml` + `backend/Dockerfile`）
-- **current stage**: Stage 6（富文档）完成
-- **current step**: Step 13.1-13.5 已完成
-- **next**: 等待用户通过 Gate 6，再进入 Stage 7 / Step 14
+- **current stage**: Gate 8（注册表升级完成，等待进入 Stage 9）
+- **current step**: Step 15 已完成并通过 Review
+- **next**: 等待用户明确批准后进入 Stage 9（Markdown utils，Step 16-17）
 
 ---
 
@@ -47,9 +47,11 @@
   - 决策：移植 `MarkdownImageUtil` + `MarkdownTableUtil` + `docreader/utils/endecode.py`
   - 不要：splitter（结构感知分块，现有 `workers/chunker.py` 够用）
 
-- [ ] **Q8：高级引擎（MarkitDown / OpenDataLoader）的外部依赖怎么处理？**
-  - MarkitdownParser 需微软 `markitdown` 库；OpenDataLoaderParser 需 `opendataloader-pdf` + Java 11+
-  - **推荐：B（按需安装）**——不预装，留 TODO；Plan 阶段写到这两个 parser 时再决策
+- [x] **Q8：高级引擎（MarkitDown / OpenDataLoader）的外部依赖怎么处理？**（2026-07-19）→ **按需安装，但实现完整适配器**
+  - `MarkitdownParser` 需微软 `markitdown`；`OpenDataLoaderParser` 需 `opendataloader-pdf` + Java 11+
+  - 两者放入 `advanced` 可选依赖组，默认 `pip install .` 不安装；需要时使用 `pip install ".[advanced]"`
+  - Parser 模块只做惰性 import，未安装时仍可导入整个 `app.parsers`，解析时返回 `metadata.error`
+  - Stage 7 不加入默认单 key Registry；Stage 8 升级双 key 后再注册为可选 engine
 
 - [x] **Q9：Excel 非 XLSX 格式是否在默认上传路径自动调用 LibreOffice？**（2026-07-18）→ **否**
   - 决策：默认上传路径和 parser 模块均不启动 LibreOffice
@@ -286,23 +288,26 @@
 3. **学习者能独立加 HTMLParser**：不改 Registry 代码（开闭原则验证）
 4. **学习者能区分**：FirstParser 和 PipelineParser 何时用哪个
 
+### Stage 8 Research Findings（2026-07-19）
+
+1. **现状是单 key Registry**：`backend/app/parsers/registry.py` 只有 `file_type -> parser class`，无法表达同一 PDF 同时由 builtin、MarkItDown、OpenDataLoader 解析。
+2. **现有调用仍依赖单参数查询**：`backend/app/workers/parse_document.py` 和多个格式测试均调用 `registry.get_parser_class(file_type)`；Step 20 才计划让 worker 接收显式 engine。
+3. **兼容边界**：Stage 8 新增双参数 `get_parser_class(engine, file_type)`，同时保留单参数形式并将其解释为 builtin 查询，避免提前修改 worker 或批量改动格式测试。
+4. **异常契约必须稳定**：现有 worker 捕获 `KeyError` 后回退 `TextParser`，因此 builtin 也不支持的格式继续抛 `KeyError`，不改为参考实现中的 `ValueError`。
+5. **高级引擎已具备可用性探针**：`markitdown_available()` 与 `opendataloader_available()` 均为零参数函数，可直接供 `list_engines()` 生成 `available / unavailable_reason` 元数据。
+6. **注册范围**：builtin 保持当前全部格式；markitdown 注册 `md/markdown/pdf/docx/doc/pptx/ppt/xlsx/xls/csv`；opendataloader 只注册 `pdf`。
+7. **影响面**：本阶段只修改 `registry.py`、`parsers/__init__.py`、`test_registry.py`；不修改 worker、API、数据库或 parser 实现。
+
 ---
 
 ## §2.1 Next Actions
 
-> §0 Open Questions 已全部决策（Q1-Q7 完成，Q8 待 Plan 阶段到高级引擎时再决），进入 Plan 阶段。
+> §0 Open Questions 已全部决策（Q1-Q13 完成；Q8 已在 Stage 7 确认为按需安装），进入 Plan 阶段。
 
-1. **【当前】进入 Plan 阶段**：
-   - §4.1 File Changes（明确 22 个文件的产出顺序，按"学习路径"分组）
-   - §4.2 Signatures（BaseParser / Registry / ChainParser 的 Python 签名）
-   - §4.3 Implementation Checklist（拆 ~15-20 个学习步骤，每步标注"教学要点"）
-   - §4.4 Spec Review Notes（自评）
-
-2. **Plan 完成后，等用户 `Plan Approved`**
-
-3. **收到批准后，进入 Execute 阶段**：按 checklist 实施，每步教学 + 编码 + 验证
-
-4. **Execute 完成后，进入 Review 阶段**：三轴评审（spec 一致性 / 代码质量 / 学习目标达成）
+1. **【当前】Stage 8 Plan 已完成**：精确文件、签名、兼容规则和原子 checklist 见 §4。
+2. **等待用户精确回复 `Plan Approved`**。
+3. **批准后进入 Execute**：按 15.1-15.5 实施并统一验证。
+4. **Execute 完成后进入 Stage 8 Review**：三轴评审通过后停在 Gate 8。
 
 ---
 
@@ -327,9 +332,13 @@
 
 ### 决策 3：高级引擎（MarkitDown / OpenDataLoader）的依赖处理
 
-- **Selected**：**Plan 阶段写代码骨架 + 标 TODO，不预装外部依赖**
-- **Why**：markitdown（微软库）和 opendataloader-pdf（需 Java 11+）是重依赖，预装会拖慢学习节奏；用户真正要用时再 `pip install`
+- **Selected**：**完整实现适配器，但依赖放入 `advanced` 可选依赖组**
+- **Why**：Stage 7 已完成惰性加载、可用性检查和完整转换路径；默认安装仍不引入重依赖。
 - **Avoided**：直接跳过这两个（违背"完美复刻"原则）
+
+### Stage 8 Innovate 结论
+
+- **Skipped + Reason**：双 key Registry 是既定架构，参考实现与当前调用链均已明确；本阶段只需解决兼容迁移，不存在需要用户选择的竞争方案。
 
 ---
 
@@ -460,16 +469,54 @@ class ParserRegistry:
 BUILTIN_ENGINE = "builtin"
 
 class ParserEngineRegistry:
-    def __init__(self):
+    def __init__(self) -> None:
         self._engines: Dict[str, Dict[str, Type[BaseParser]]] = {}
         self._descriptions: Dict[str, str] = {}
+        self._check_available: Dict[str, Callable[[], tuple[bool, str]]] = {}
+        self._unavailable_hints: Dict[str, str] = {}
 
-    def register(self, engine: str, file_types: Dict[str, Type[BaseParser]],
-                 description: str = "") -> None: ...
-    def get_parser_class(self, engine: str, file_type: str) -> Type[BaseParser]:
-        """先按 engine 查；engine 不支持该 file_type 时回退 builtin"""
-    def list_engines(self) -> List[Dict]: ...
+    def register(
+        self,
+        engine: str,
+        file_types: Dict[str, Type[BaseParser]],
+        description: str = "",
+        check_available: Callable[[], tuple[bool, str]] | None = None,
+        unavailable_hint: str = "",
+    ) -> None: ...
+    def get_parser_class(
+        self,
+        engine_or_file_type: str,
+        file_type: str | None = None,
+    ) -> Type[BaseParser]: ...
+    def list_supported(self, engine: str = BUILTIN_ENGINE) -> List[str]: ...
+    def list_engines(self) -> List[Dict[str, object]]: ...
+    def get_engine_names(self) -> List[str]: ...
+
+# 兼容现有导入；新代码优先使用 ParserEngineRegistry。
+ParserRegistry = ParserEngineRegistry
 ```
+
+**Stage 8 行为契约**：
+
+- `register()` 统一把 engine/file_type 规范为去空白、小写且去掉扩展名前导点；先校验整张映射均为 `BaseParser` 子类，再原子替换该 engine，禁止部分注册。
+- 规范化后的空 engine、空 file_type 或重复 file_type 均属于配置错误，必须在写入任何状态前抛 `ValueError`，保证失败注册不污染已有 engine。
+- `get_parser_class("pdf")` 等价于 `get_parser_class(BUILTIN_ENGINE, "pdf")`，保留当前 worker 与格式测试的调用方式。
+- `get_parser_class("markitdown", "pdf")` 命中指定引擎；指定引擎不存在或不支持该格式时回退 builtin。
+- 指定引擎与 builtin 均不支持时抛 `KeyError`，错误信息包含请求 engine、file_type 和 builtin 支持列表。
+- `list_supported(engine)` 返回该引擎格式的稳定排序列表；未知 engine 返回空列表。
+- `list_engines()` 按 engine 名稳定排序，返回 `name / description / file_types / available / unavailable_reason`；可用性探针异常或不符合 `tuple[bool, str]` 的返回值必须被转换为不可用元数据，不能使列表接口失败，且 `available` 始终为真正的 `bool`。
+- builtin 永远视为可用；markitdown 与 opendataloader 分别接入现有零参数可用性函数。
+- 模块级 `registry` 的运行时类型为 `ParserEngineRegistry`；保留 `ParserRegistry` 别名只用于兼容现有导入。
+
+### §4.2.1 Stage 8 File Changes（精确范围）
+
+| 文件 | 动作 | 目的 |
+|---|---|---|
+| `backend/app/parsers/registry.py` | 修改 | 实现双 key Registry、builtin fallback、兼容查询与能力列举 |
+| `backend/app/parsers/__init__.py` | 修改 | 按 engine 批量注册 builtin、markitdown、opendataloader，并导出 Registry 公共符号 |
+| `backend/tests/test_parsers/test_registry.py` | 修改 | 用 TDD 固化双 key、fallback、校验、排序、可用性和兼容契约 |
+
+**明确不改**：`backend/app/workers/parse_document.py` 的显式 engine 传参仍属于 Step 20；现有单参数查询由兼容入口维持。
 
 #### ChainParser（组合模式）
 
@@ -631,6 +678,33 @@ class ImageParser(BaseParser):
 - Registry 注册 `epub -> EPUBParser`；`png/jpg/jpeg/gif/webp/bmp/tif/tiff -> ImageParser`，不注册 Pillow 无法原生读取的 SVG
 - 生产依赖新增 `ebooklib>=0.18`、`Pillow>=10.0.0`；不引入 pytesseract/Tesseract
 
+#### 高级引擎 Step 14 契约（2026-07-19 补充）
+
+```python
+# backend/app/parsers/markitdown_parser.py
+def markitdown_available() -> tuple[bool, str]: ...
+
+class MarkitdownParser(BaseParser):
+    def parse_into_text(self, content: bytes) -> Document: ...
+
+# backend/app/parsers/opendataloader_parser.py
+def opendataloader_available() -> tuple[bool, str]: ...
+
+class OpenDataLoaderParser(BaseParser):
+    def parse_into_text(self, content: bytes) -> Document: ...
+```
+
+- `markitdown_available()` 使用模块发现判断可选包是否存在，不在模块顶层 import `markitdown`
+- `MarkitdownParser` 使用 `MarkItDown.convert(BytesIO(content), file_extension=...)`，保留 data URI，输出 `metadata.parser_engine=markitdown`
+- MarkItDown 缺包、转换失败或空结果统一返回空 `Document` 和 `metadata.error`，不影响 builtin parser
+- `opendataloader_available()` 同时检查 `java` 命令、Java 主版本 >= 11 和 `opendataloader_pdf` 包
+- `OpenDataLoaderParser` 只接受 PDF；使用临时目录调用 `opendataloader_pdf.convert()` 生成 Markdown 和外置图片
+- OpenDataLoader 收集输出目录内常见图片为 Base64，并把 Markdown 图片引用规范为 `images/<文件名>`
+- OpenDataLoader 缺包、Java 不满足、转换失败或未生成 Markdown 时返回空 `Document` 和 `metadata.error`
+- `backend/pyproject.toml` 新增 `[project.optional-dependencies].advanced`：`markitdown[docx,pdf,xls,xlsx]>=0.1.3`、`opendataloader-pdf>=2.4.7`
+- `backend/app/parsers/__init__.py` 只导出两个类，不注册 file_type；多引擎路由留给 Step 15
+- 本阶段继续使用“实现后统一测试”，不执行 TDD RED→GREEN
+
 ### §4.3 Implementation Checklist（20 个学习步骤）
 
 > 每步格式：**教学要点** + **产出** + **验证**。每步独立可暂停。
@@ -737,17 +811,27 @@ class ImageParser(BaseParser):
 
 #### 阶段 7：高级引擎（Step 14）
 
-- [ ] **Step 14：MarkitdownParser + OpenDataLoaderParser**
+- [x] **Step 14：MarkitdownParser + OpenDataLoaderParser** ✅
   - 教学：高级引擎抽象；外部依赖按需安装策略；`check_available` 函数
-  - 产出：`markitdown_parser.py` + `opendataloader_parser.py`（代码骨架 + TODO）
-  - 验证：依赖未装时 `pytest.skip`；装上后通过
+  - 产出：`markitdown_parser.py` + `opendataloader_parser.py`（完整可选适配器，不加入默认 Registry）
+  - [x] 14.1 实现 MarkItDown 可用性检查、惰性加载和 bytes → Markdown ✅
+  - [x] 14.2 实现 OpenDataLoader Java/包检查、PDF 转换、图片收集与引用重写 ✅
+  - [x] 14.3 导出两个高级 Parser，新增 `advanced` 可选依赖组 ✅
+  - [x] 14.4 补充可用/不可用、转换成功/失败、图片重写和临时目录清理测试 ✅
+  - [x] 14.5 统一运行高级引擎专项、Ruff 和全部 Parser 回归 ✅
+  - 验证：缺依赖时模块仍可导入并明确返回 unavailable；依赖存在或测试替身下输出 Markdown Document
 
 #### 阶段 8：注册表升级（Step 15）
 
-- [ ] **Step 15：Registry 双 key + builtin 兜底**
+- [x] **Step 15：Registry 双 key + builtin 兜底** ✅ 2026-07-19
   - 教学：嵌套字典 `Dict[engine, Dict[file_type, parser]]`；fallback 到 builtin；`list_engines` 列举能力
-  - 产出：升级 `backend/app/parsers/registry.py`
-  - 验证：`get_parser_class("markitdown", "pdf")` → MarkitdownParser；`get_parser_class("unknown", "pdf")` → builtin PDFParser
+  - 产出：升级 `registry.py`、`parsers/__init__.py`、`test_registry.py`
+  - [x] 15.1 先写/改 Registry 测试，覆盖双 key 命中、未知 engine/不支持格式回退 builtin、最终未知格式抛 `KeyError`、单参数兼容入口 ✅
+  - [x] 15.2 实现 `ParserEngineRegistry` 的规范化、整表校验、注册、查询、`list_supported()` 与兼容别名 ✅
+  - [x] 15.3 实现 `list_engines()` / `get_engine_names()`，覆盖可用、不可用、探针异常和稳定排序 ✅
+  - [x] 15.4 改造 `_register_defaults()`：注册 builtin 全量格式、markitdown 多格式、opendataloader PDF；导出 `BUILTIN_ENGINE / ParserEngineRegistry / ParserRegistry` ✅
+  - [x] 15.5 运行 `test_registry.py`、全部 parser 回归和本阶段 Ruff；记录结果与 Plan-Execution Diff ✅
+  - 验证：`get_parser_class("markitdown", "pdf")` → `MarkitdownParser`；`get_parser_class("unknown", "pdf")` → `PdfParser`；`get_parser_class("pdf")` → `PdfParser`；未知格式保持 `KeyError`
 
 #### 阶段 9：Markdown utils（Step 16-17）
 
@@ -1283,8 +1367,134 @@ feat(parsers): Stage 3 基础格式（Markdown / Word / PDF）
 - **Step 13**：PASS
 - **Stage 6**：完成，停在 Gate 6；未经用户明确批准不进入 Stage 7
 
+#### 2026-07-19 Gate 6 通过与 Stage 7 Plan
+
+- **Gate 6 用户指令**：“现在进行下一阶段”——明确批准 Stage 6，进入 Stage 7
+- **环境事实**：本机已有 `markitdown`；未安装 `opendataloader-pdf`；Java 17 可用
+- **依赖决策**：两个引擎均为 `advanced` 可选依赖，不进入默认生产依赖，不在模块顶层 import
+- **实现决策**：不只写 TODO 骨架；实现完整适配器和可用性检查，Stage 8 再接入双 key Registry
+- **执行方式**：沿用用户要求，不使用 TDD；实现完成后统一补测试和回归
+- **当前门禁**：Stage 7 精确 Plan 已落盘，收到精确 `Plan Approved` 后进入 Execute
+
+#### Step 14：MarkItDown 与 OpenDataLoader 高级引擎适配器 [完成 2026-07-19]
+
+##### 产出
+
+- `backend/app/parsers/markitdown_parser.py`：惰性导入 `markitdown`，使用 `MarkItDown.convert(BytesIO(content), file_extension=..., keep_data_uris=True)` 输出 Markdown
+- `backend/app/parsers/opendataloader_parser.py`：检查 Java 11+ 与 `opendataloader_pdf` 包；临时目录调用 `convert()`，读取 Markdown，收集图片 Base64 并重写为 `images/<文件名>`
+- `backend/app/parsers/__init__.py`：只导出 `MarkitdownParser` 与 `OpenDataLoaderParser`，不注册默认 file_type
+- `backend/pyproject.toml`：新增 `[project.optional-dependencies].advanced`
+- `backend/tests/test_parsers/test_markitdown_parser.py` / `test_opendataloader_parser.py`：覆盖可用性、缺依赖、成功、失败、空结果、图片引用重写和临时目录清理
+
+##### 验证
+
+- 高级引擎专项：`pytest tests/test_parsers/test_markitdown_parser.py tests/test_parsers/test_opendataloader_parser.py -q -p no:cacheprovider` → `14 passed`
+- Parser 全量回归：`pytest tests/test_parsers -q -p no:cacheprovider` → `115 passed`
+- Ruff：`ruff check app/parsers/markitdown_parser.py app/parsers/opendataloader_parser.py app/parsers/__init__.py tests/test_parsers/test_markitdown_parser.py tests/test_parsers/test_opendataloader_parser.py` → `All checks passed`
+
+##### 边界与偏差
+
+- Stage 7 未接入默认 Registry；`.pdf` 仍由内置 `PdfParser` 处理，符合“Stage 8 双 key Registry 后再注册 engine”的计划
+- `opendataloader-pdf` 本机未安装，真实转换路径通过 fake module 测试；可用性检查会明确返回 `dependency_unavailable`
+- MarkItDown 的 `keep_data_uris=True` 若遇到旧版库不支持该参数，会自动降级重试，避免可选引擎因版本差异直接失败
+- **计划偏差**：无
+
+##### Stage 7 结论
+
+- **Step 14**：PASS
+- **Stage 7**：完成，停在 Gate 7；未经用户明确批准，不进入 Stage 8
+
+### 2026-07-19 Gate 7 通过与 Stage 8 Plan
+
+- **Gate 7 用户指令**：“继续 下一阶段的任务”——明确批准 Stage 7，进入 Stage 8。
+- **当前 phase**：PLAN（LOCKED），未修改任何实现代码。
+- **Research 结论**：必须引入 `(engine, file_type)` 双 key，同时保留单参数 builtin 查询和 `KeyError` 契约，避免 Step 20 前破坏 worker 与既有格式测试。
+- **Innovate**：跳过；双 key 方向已在原始 Spec 确定，本轮只做兼容迁移设计。
+- **File Changes**：`registry.py`、`parsers/__init__.py`、`test_registry.py`，不修改 worker。
+- **执行方式**：恢复 TDD；先让新 Registry 契约测试失败，再实现并运行全量 parser 回归。
+- **当前门禁**：Stage 8 精确 Plan 已落盘，收到精确 `Plan Approved` 后进入 Execute。
+- **Plan Approved**：用户已精确批准 Stage 8 Plan，进入 Execute；严格按 15.1-15.5 执行。
+- **代码质量评审首轮**：CHANGES REQUESTED；发现畸形 availability probe 返回值可能中断 `list_engines()`，以及空/规范化重复 key 会形成静默错误配置。以上均属现有“容错枚举 + 注册原子性”契约的边界补强，已先 Reverse Sync 到 §4.2 行为契约，再按 TDD 修复。
+
+### Step 15：Registry 双 key + builtin 兜底 [完成 2026-07-19]
+
+#### 产出
+
+- `backend/app/parsers/registry.py`：`ParserEngineRegistry` 双 key 映射、builtin fallback、单参数兼容入口、原子注册、能力枚举与 availability probe 隔离。
+- `backend/app/parsers/__init__.py`：按 engine 注册 builtin 全量格式、MarkItDown 多格式与 OpenDataLoader PDF，并导出 Registry 公共符号。
+- `backend/tests/test_parsers/test_registry.py`：覆盖路由、fallback、兼容、规范化、原子性、能力列表、畸形探针与全局默认映射。
+
+#### TDD 与验证
+
+- **第一轮 RED**：`14 failed`；旧单 key Registry 缺少 mapping 注册、双 key 查询、引擎枚举和元数据 API。
+- **第一轮 GREEN**：Registry 专项 `14 passed`；Parser 全量 `117 passed`；Ruff 通过。
+- **质量评审首轮**：Spec 合规 PASS；代码质量 CHANGES REQUESTED（畸形 probe、空 key、规范化重复 key）。
+- **第二轮 RED**：`6 failed, 14 passed`；准确复现两项质量问题及注册状态原子性边界。
+- **最终 GREEN**：Registry 专项 `20 passed`；Parser 全量 `123 passed`；Ruff `All checks passed`；`git diff --check` 无空白错误，仅 Windows LF/CRLF 提示。
+- **独立质量复审**：Critical / Important / Minor 均为 None，Assessment `Approved`。
+
+#### 教学要点回顾
+
+- 双 key Registry 把“解析引擎选择”和“文件格式选择”分成两个正交维度，同一格式可以挂多个实现。
+- builtin fallback 保证高级引擎未知或不支持某格式时仍可回到稳定内置实现；单参数入口让迁移分阶段完成。
+- 原子注册必须先完整规范化与校验，再一次性替换状态；能力探针属于不可信边界，其异常和畸形返回都不能击穿能力列表。
+
+#### 偏差说明
+
+- **计划内边界补强**：质量评审发现的畸形 probe 与非法 key 行为已先 Reverse Sync 到行为契约，再按 TDD 修复。
+- **范围偏差**：无；实现只修改计划中的 3 个文件，worker 显式 engine 接入仍留在 Step 20。
+
+#### Stage 8 首轮最终 Review 反馈
+
+- **Axis 1**：PASS。
+- **Axis 2 / Axis 3**：PARTIAL；`list_engines()` 会执行人为注册给 builtin 的 availability probe，可能返回 `available=False`，违反 §4.2 “builtin 永远视为可用”契约。
+- **Overall Verdict**：FAIL；Gate 8 暂不通过。
+- **修正动作**：按原契约先补失败测试，强制 builtin 跳过 probe 并始终输出 `available=True / unavailable_reason=""`，再执行全量验证与 Review。
+- **缺陷修正 RED/GREEN**：新增 builtin probe 不执行测试后先失败；修复后 Registry 专项 `22 passed`，Parser 全量 `125 passed`，Ruff 通过。
+- **最终复审**：Axis 2 PASS / Axis 3 PASS / Blocking Issues 无 / Overall Verdict PASS。
+
 ---
 
 ## §6 Review Verdict
 
-> 待 Review 阶段填充。
+### Stage 7 Review（2026-07-19）
+
+| 评审轴 | 结论 | 证据 |
+|---|---|---|
+| Spec 质量与目标达成 | PASS | Step 14 契约明确覆盖两个可选高级引擎、依赖策略、错误返回和 Registry 边界 |
+| Spec-Code 一致性 | PASS | 实现文件、导出、可选依赖和测试均与 Step 14 checklist 对齐；未注册默认 file_type |
+| 代码自身质量 | PASS | `14 passed` 专项、`115 passed` parser 回归、Ruff 通过；缺依赖和转换失败均返回 `metadata.error` |
+
+- **Overall Verdict**：PASS
+- **Blocking Issues**：无
+
+### Stage 8 Review（2026-07-19）
+
+| 评审轴 | 结论 | 证据 |
+|---|---|---|
+| Spec 质量与目标达成 | PASS | Stage 8 Research、精确签名、三文件范围、行为契约和 Step 15 checklist 完整；双 key Registry 与能力枚举目标已达成 |
+| Spec-Code 一致性 | PASS | `ParserEngineRegistry`、兼容别名、builtin fallback、三种默认 engine、原子注册、探针隔离均与 §4.2 一致；builtin 永远可用缺陷已补测修复 |
+| 代码自身质量 | PASS | Registry `22 passed`、全部 Parser `125 passed`、Ruff 通过；独立质量复审无 Critical/Important/Minor 问题，最终复审无阻塞 |
+
+- **Overall Verdict**：PASS
+- **Blocking Issues**：无
+- **Gate 8**：PENDING，未经用户明确批准不进入 Stage 9。
+
+### 后续执行方式决策（2026-07-19）
+
+- **用户指令**：“下次不用TDD了”。
+- **适用范围**：本 Spec 后续 Stage 9-11。
+- **执行方式**：不再要求先写失败测试或展示 RED；先按已批准 Plan 完成实现，再统一补充/调整测试并运行专项与全量回归。
+- **缺陷处理**：发现缺陷时仍必须增加对应回归测试，防止同类问题再次出现，但不强制采用 RED → GREEN 顺序。
+- **其他门禁不变**：仍需 `Plan Approved` 才能进入 Execute；每个 Stage 完成后仍停在对应 Gate 等待批准。
+
+---
+
+## §7 Plan-Execution Diff
+
+### Stage 8
+
+- **File Changes**：无偏差，仅修改 `registry.py`、`parsers/__init__.py`、`test_registry.py`。
+- **Signatures**：无偏差，计划中的 Registry 公共 API 与兼容别名均已实现。
+- **Behavior**：最终无偏差；评审中发现的 malformed probe、非法 key、builtin availability 边界均先同步契约或按原契约补测修复。
+- **Deferred Scope**：worker 显式 engine 参数仍按计划留在 Step 20。
