@@ -19,6 +19,8 @@
 - `.xlsb` / `.ods` / `.et` → 默认不注册
 - `.html` / `.htm` → WebParser（本地 HTML 或 URL bytes）
 - `.mhtml` / `.mht` → MHTMLParser（网页 MIME 归档）
+- `.epub` → EPUBParser（章节、元数据和内嵌图片）
+- 常见位图格式 → ImageParser（Pillow 元数据和 EXIF）
 - 未知扩展名 → Registry 抛 KeyError，由消费方兜底（见 workers/parse_document.py）
 """
 from app.parsers.base import BaseParser
@@ -26,7 +28,9 @@ from app.parsers.csv_parser import CsvParser
 from app.parsers.doc_parser import DocParser
 from app.parsers.document import Document
 from app.parsers.docx2_parser import Docx2Parser
+from app.parsers.epub_parser import EPUBParser
 from app.parsers.excel_parser import ExcelParser
+from app.parsers.image_parser import ImageParser
 from app.parsers.markdown_parser import MarkdownParser
 from app.parsers.mhtml_parser import MHTMLParser
 from app.parsers.pdf_parser import PdfParser
@@ -51,6 +55,8 @@ __all__ = [
     "PptxParser",
     "WebParser",
     "MHTMLParser",
+    "EPUBParser",
+    "ImageParser",
 ]
 
 
@@ -73,6 +79,9 @@ def _register_defaults() -> None:
     registry.register("htm", WebParser)
     registry.register("mhtml", MHTMLParser)
     registry.register("mht", MHTMLParser)
+    registry.register("epub", EPUBParser)
+    for file_type in ("png", "jpg", "jpeg", "gif", "webp", "bmp", "tif", "tiff"):
+        registry.register(file_type, ImageParser)
 
 
 _register_defaults()

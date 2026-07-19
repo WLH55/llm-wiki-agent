@@ -2,16 +2,16 @@
 
 ## RIPER 状态
 
-- **phase**: EXECUTE（Stage 5 已完成，停在 Gate 5）
-- **approval status**: Plan APPROVED；Gate 5 PENDING（2026-07-18）
-- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ / Stage 4 ✅ / Stage 5 ✅
+- **phase**: EXECUTE（Stage 6 已完成，停在 Gate 6）
+- **approval status**: Plan APPROVED；Gate 6 PENDING（2026-07-19）
+- **execute status**: Stage 1 ✅ / Stage 2 ✅ / Stage 3 ✅ / Stage 4 ✅ / Stage 5 ✅ / Stage 6 ✅
 - **review status**: 未开始
 - **spec path**: `mydocs/specs/2026-07-15_16-29_parsers-module.md`
 - **active project**: llm_wiki3.0（单项目）
 - **change scope**: local（`backend/app/parsers/` + `backend/tests/test_parsers/` + `backend/pyproject.toml` + `backend/Dockerfile`）
-- **current stage**: Stage 5（网页与邮件）完成
-- **current step**: Step 12.1-12.6 已完成
-- **next**: 等待用户通过 Gate 5，再进入 Stage 6 / Step 13
+- **current stage**: Stage 6（富文档）完成
+- **current step**: Step 13.1-13.5 已完成
+- **next**: 等待用户通过 Gate 6，再进入 Stage 7 / Step 14
 
 ---
 
@@ -599,6 +599,38 @@ class MHTMLParser(BaseParser):
 - Fetcher 限制协议、内网地址、最终重定向地址、响应长度和超时，降低 SSRF/资源耗尽风险
 - URL SourceAdapter 仍需独立 Spec 接入 API/MinIO/队列，保存原始 HTML 并创建 Document
 
+#### EPUB/Image Step 13 契约（2026-07-19 补充）
+
+```python
+# backend/app/parsers/epub_parser.py
+MAX_EPUB_MEMBER_SIZE = 32 * 1024 * 1024
+MAX_EPUB_TOTAL_SIZE = 128 * 1024 * 1024
+MAX_EPUB_COMPRESSION_RATIO = 100
+MAX_EPUB_ENTRIES = 10_000
+
+def validate_epub_archive(content: bytes) -> None: ...
+
+class EPUBParser(BaseParser):
+    def __init__(self, *args, extract_images: bool = True, **kwargs): ...
+    def parse_into_text(self, content: bytes) -> Document: ...
+
+# backend/app/parsers/image_parser.py
+MAX_IMAGE_PIXELS = 40_000_000
+
+class ImageParser(BaseParser):
+    def parse_into_text(self, content: bytes) -> Document: ...
+```
+
+- `validate_epub_archive()` 验证 ZIP、`mimetype=application/epub+zip`、`META-INF/container.xml`、成员数、单成员大小、总解压大小和压缩比
+- `EPUBParser` 使用 ebooklib 读取临时 `.epub`；按 spine 顺序输出 `## <章节标题>`，无 spine 时回退文档项顺序
+- EPUB 元数据至少映射 `title/author/language/publisher/identifier`；输出补充 `format/file_size/chapter_count/image_count`
+- EPUB 内嵌图片写入 `Document.images`，HTML 中相对路径重写为确定性的 `images/<文件名>`；`extract_images=False` 时不提取图片
+- `ImageParser` 使用 Pillow 验证图片，输出原图 Markdown 引用和 Base64；元数据包含 `format/width/height/mode/file_size/exif/ocr_status`
+- EXIF 使用可读标签名并把复杂值转成字符串，确保 Pydantic/JSON 可序列化；`ocr_status` 固定为 `not_configured`
+- 图片声明像素超过 40,000,000 或输入无效时返回空 `Document` 和 `metadata.error`，不进入像素解码/OCR
+- Registry 注册 `epub -> EPUBParser`；`png/jpg/jpeg/gif/webp/bmp/tif/tiff -> ImageParser`，不注册 Pillow 无法原生读取的 SVG
+- 生产依赖新增 `ebooklib>=0.18`、`Pillow>=10.0.0`；不引入 pytesseract/Tesseract
+
 ### §4.3 Implementation Checklist（20 个学习步骤）
 
 > 每步格式：**教学要点** + **产出** + **验证**。每步独立可暂停。
@@ -693,9 +725,14 @@ class MHTMLParser(BaseParser):
 
 #### 阶段 6：富文档（Step 13）
 
-- [ ] **Step 13：EPUBParser + ImageParser**
+- [x] **Step 13：EPUBParser + ImageParser** ✅ 2026-07-19
   - 教学：ebooklib 遍历 spine；Pillow 抽取 EXIF + 简单 OCR 占位
   - 产出：`epub_parser.py` + `image_parser.py`
+  - [x] 13.1 实现 `validate_epub_archive()` 与 `EPUBParser` ✅
+  - [x] 13.2 实现 Pillow `ImageParser`，OCR 仅输出 `not_configured` 占位 ✅
+  - [x] 13.3 注册 EPUB 和 Pillow 支持的独立图片格式，更新生产依赖 ✅
+  - [x] 13.4 补充 EPUB/图片契约测试 ✅
+  - [x] 13.5 统一运行专项测试、Ruff 和全部 Parser 回归 ✅
   - 验证：`.epub` → 章节文本；`.jpg` → metadata dict
 
 #### 阶段 7：高级引擎（Step 14）
@@ -1205,6 +1242,46 @@ feat(parsers): Stage 3 基础格式（Markdown / Word / PDF）
 
 - **Step 12**：PASS
 - **Stage 5**：完成，停在 Gate 5；未经用户明确批准不进入 Stage 6
+
+#### 2026-07-19 Gate 5 通过与 Stage 6 Plan
+
+- **Gate 5 用户指令**：“进行下一阶段”——明确批准 Stage 5，进入 Stage 6
+- **参考实现差异**：docreader 的 EPUBParser 已覆盖章节与图片，但 ImageParser 只返回 Base64，没有实现原 Spec 要求的 Pillow/EXIF
+- **Stage 6 决策**：EPUB 复用章节/图片能力并增加 ZIP 资源限制；ImageParser 补齐 Pillow 元数据、EXIF、像素限制和 OCR 状态占位
+- **执行方式调整**：用户明确取消 TDD；Stage 6 直接完成实现与测试代码，再统一运行专项和全量回归，不执行逐项 RED→GREEN
+- **依赖现状**：本机已有 Pillow，尚未安装 ebooklib；依赖安装在 Execute 13.3 完成
+- **Plan Approved**：用户已给出精确审批指令，进入 Execute
+
+#### Step 13：EPUB 与图片解析 [完成 2026-07-19]
+
+##### 产出
+
+- `backend/app/parsers/epub_parser.py`：EPUB ZIP 资源校验、ebooklib 读取、spine 章节排序、Dublin Core 元数据和内嵌图片重写
+- `backend/app/parsers/image_parser.py`：Pillow 图片验证、尺寸/模式/EXIF、Base64 映射、像素限制和 OCR 状态占位
+- `backend/app/parsers/__init__.py`：注册 `.epub` 和 `.png/.jpg/.jpeg/.gif/.webp/.bmp/.tif/.tiff`
+- `backend/pyproject.toml`：新增 `ebooklib>=0.18` 和 `Pillow>=10.0.0`
+- `backend/tests/test_parsers/test_epub_parser.py`：真实 EPUB 章节、图片、资源限制、错误和 Registry 测试
+- `backend/tests/test_parsers/test_image_parser.py`：真实 JPEG/EXIF、Base64、路径、像素限制、错误和 Registry 测试
+
+##### 实现与验证
+
+- **执行方式**：按用户要求取消 TDD，直接完成实现与测试后统一验证
+- **EPUB/图片专项**：`10 passed`
+- **全部 Parser 回归**：`101 passed`
+- **Ruff**：本阶段新增/修改文件 `All checks passed`
+- **diff 检查**：无空白错误，仅有 Windows LF/CRLF 转换提示
+
+##### 安全边界与偏差
+
+- EPUB：最多 10,000 个 ZIP 成员；单成员 32 MB；总解压 128 MB；压缩比最多 100
+- 图片：最多 40,000,000 声明像素；超限或无效输入返回 `metadata.error`
+- OCR：本阶段不安装 Tesseract 等外部引擎，只输出 `ocr_status=not_configured`
+- **计划偏差**：无；执行顺序按用户要求由 TDD 调整为实现后统一测试
+
+##### Stage 6 结论
+
+- **Step 13**：PASS
+- **Stage 6**：完成，停在 Gate 6；未经用户明确批准不进入 Stage 7
 
 ---
 
