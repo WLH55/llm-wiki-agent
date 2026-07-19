@@ -12,7 +12,6 @@
 8. 标记 processed
 """
 import logging
-import os
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -22,8 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import async_session_factory
 from app.models.document import Document
-from app.parsers import registry as parser_registry
-from app.parsers.text_parser import TextParser
+from app.parsers.dispatch import parse_to_text as _parse_to_text
 from app.services.embedding_service import embed_texts
 from app.services.minio_service import get_bytes
 from app.workers.chunker import chunk_text
@@ -73,24 +71,6 @@ async def _get_doc(db: AsyncSession, doc_id: UUID) -> Document | None:
         select(Document).where(Document.doc_id == doc_id).limit(1)
     )
     return result.scalar_one_or_none()
-
-
-def _parse_to_text(filename: str, raw_bytes: bytes) -> str:
-    """用 Registry 派发 parser 并提取文本。
-
-    - 已注册的 file_type：用对应 parser
-    - 未注册的 file_type：兜底走 TextParser（保留旧行为，避免上传 .log/.conf 类文件直接失败）
-
-    返回 Document.content，供 chunker 使用。
-    """
-    file_type = os.path.splitext(filename or "")[1].lstrip(".").lower()
-    try:
-        parser_cls = parser_registry.get_parser_class(file_type)
-    except KeyError:
-        logger.warning("未知扩展名 %r，按文本处理: %s", file_type, filename)
-        parser_cls = TextParser
-    document = parser_cls(file_name=filename).parse(raw_bytes)
-    return document.content
 
 
 async def _mark_status(

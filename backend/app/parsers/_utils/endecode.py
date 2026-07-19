@@ -1,11 +1,11 @@
 """编码处理 utils。
 
-只处理文本 bytes ↔ str 转换。图片相关（base64 编解码）留到 Step 17 MarkdownImageBase64 时再加。
-
-设计：
-- decode_bytes 用 fallback chain（utf-8 → 中文编码 → latin-1 兜底），永不抛异常
-- encode_bytes 直接 UTF-8（产出 bytes 的场景几乎都是给网络/磁盘，UTF-8 是标准）
+职责：
+- 文本 bytes ↔ str 转换（多编码 fallback）
+- base64 图片字符串 ↔ bytes（MarkdownImageBase64 使用）
 """
+import base64
+import binascii
 import logging
 from typing import List
 
@@ -36,7 +36,6 @@ def decode_bytes(
             "ascii",
             "latin-1",
         ]
-
     for encoding in encodings:
         try:
             text = content.decode(encoding)
@@ -44,9 +43,23 @@ def decode_bytes(
             return text
         except UnicodeDecodeError:
             continue
-
     logger.warning(
         "decode_bytes: all encodings failed, falling back to latin-1 with replace. "
         "Output may contain replacement chars."
     )
     return content.decode("latin-1", errors="replace")
+
+
+def encode_image(image: str, errors: str = "strict") -> bytes:
+    """base64 图片字符串 → 原始 bytes。
+
+    errors:
+    - strict：解码失败抛 binascii.Error
+    - ignore：解码失败返回空 bytes
+    """
+    try:
+        return base64.b64decode(image)
+    except binascii.Error as exc:
+        if errors == "ignore":
+            return b""
+        raise exc
