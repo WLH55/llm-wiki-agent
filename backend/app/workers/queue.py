@@ -6,6 +6,7 @@ RQ 队列定义
 - enqueue_parse_document(doc_id): 入队
 - run_parse_document(doc_id): 同步 wrapper（RQ 调用，内部跑 async 任务）
 """
+
 import asyncio
 import logging
 
@@ -29,5 +30,9 @@ def run_parse_document(doc_id: str) -> None:
 
 def enqueue_parse_document(doc_id: str) -> None:
     """入队文档解析任务"""
-    parse_queue.enqueue(run_parse_document, doc_id, job_timeout="10m")
+    parse_queue.enqueue(
+        run_parse_document,
+        doc_id,
+        job_timeout=settings.PARSER_JOB_TIMEOUT_SECONDS,
+    )
     logger.info(f"文档解析任务已入队: doc_id={doc_id}")

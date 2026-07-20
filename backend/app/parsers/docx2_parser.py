@@ -1,21 +1,20 @@
-"""Docx2Parser：Word .docx 文档解析（Stage 3 简化版）。
+"""Docx2Parser：Word .docx 文档解析。
 
-移植自 docreader/parser/docx_parser.py 的 `_parse_using_simple_method`：
+基于 python-docx 的生产基础路径：
 - 用 python-docx 加载 BytesIO(content)
 - 遍历 paragraphs → 段落文本
-- 遍历 tables → markdown 表格行（`cell | cell | cell`）
+- 遍历 tables → GFM markdown 表格
+- 从 OOXML package 抽取 `word/media` 图片
 
-刻意不移植的部分（留到后续 Stage）：
+明确不处理：
 - 并发抽取 / 多模态图像处理（docreader 用 ProcessPoolExecutor）
-- inline_images base64 上传（需要存储后端）
-- 表格标准化（Step 16 的 MarkdownTableFormatter 会做）
 - 老式 .doc 二进制格式（见 doc_parser.py）
-
-如果解析出的文本为空，回退到所有段落的纯拼接（防止页面布局诡异的文档丢内容）。
 """
+
+import base64
 import logging
 from io import BytesIO
-from typing import List
+from pathlib import PurePosixPath
 
 from docx import Document as DocxDocument
 
@@ -26,10 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class Docx2Parser(BaseParser):
-    """Word .docx → Document。
-
-    简化策略：段落文本 + 表格转 markdown 行。无图像抽取。
-    """
+    """Word .docx → 段落、GFM 表格与内嵌图片。"""
 
     def parse_into_text(self, content: bytes) -> Document:
         logger.info("Parsing DOCX, content size: %d bytes", len(content))
@@ -40,7 +36,7 @@ class Docx2Parser(BaseParser):
             logger.error("Failed to open DOCX: %s", exc)
             return Document(content="", metadata={"error": f"open_failed: {exc}"})
 
-        parts: List[str] = []
+        parts: list[str] = []
 
         # 段落文本
         for para in doc.paragraphs:
@@ -48,12 +44,34 @@ class Docx2Parser(BaseParser):
             if text:
                 parts.append(text)
 
-        # 表格 → markdown 行（最简形式，不做对齐美化；Step 16 再标准化）
+        # 表格 → GFM markdown，首行作为表头。
         for table in doc.tables:
-            for row in table.rows:
-                cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
-                if cells:
-                    parts.append(" | ".join(cells))
+            rows = [
+                [cell.text.strip().replace("|", "\\|") for cell in row.cells] for row in table.rows
+            ]
+            rows = [row for row in rows if any(row)]
+            if rows:
+                table_lines = [
+                    "| " + " | ".join(rows[0]) + " |",
+                    "| " + " | ".join("---" for _ in rows[0]) + " |",
+                ]
+                table_lines.extend(
+                    "| " + " | ".join(row) + " |" for row in rows[1:]
+                )
+                parts.append("\n".join(table_lines))
+
+        images: dict[str, str] = {}
+        for part in doc.part.package.parts:
+            part_name = str(part.partname).replace("\\", "/")
+            if not part_name.startswith("/word/media/"):
+                continue
+            image_path = f"images/{PurePosixPath(part_name).name}"
+            images[image_path] = base64.b64encode(part.blob).decode("ascii")
+        if images:
+            parts.append(
+                "## 图片\n\n"
+                + "\n".join(f"![{PurePosixPath(path).name}]({path})" for path in images)
+            )
 
         text = "\n\n".join(parts)
         logger.info(
@@ -63,4 +81,8 @@ class Docx2Parser(BaseParser):
             len(text),
         )
 
-        return Document(content=text)
+        return Document(
+            content=text,
+            images=images,
+            metadata={"format": "docx", "image_count": len(images)},
+        )

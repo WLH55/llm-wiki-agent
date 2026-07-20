@@ -4,12 +4,11 @@
 沿用脚手架的多环境切换 + CORS + 日志配置；扩展 spec 要求的 DB / Redis / MinIO / JWT /
 Bootstrap owner / Embedding 业务字段。
 """
+
 import os
 from pathlib import Path
-from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
 
 # 提取基础路径（常量）
 _BASE_PATH = Path(__file__).resolve().parent.parent.parent
@@ -55,10 +54,10 @@ class Settings(BaseSettings):
     HTTP_TIMEOUT: int = 30
 
     # ========== CORS 配置（沿用脚手架） ==========
-    ALLOW_ORIGINS: List[str] = ["*"]
+    ALLOW_ORIGINS: list[str] = ["*"]
     ALLOW_CREDENTIALS: bool = True
-    ALLOW_METHODS: List[str] = ["*"]
-    ALLOW_HEADERS: List[str] = ["*"]
+    ALLOW_METHODS: list[str] = ["*"]
+    ALLOW_HEADERS: list[str] = ["*"]
 
     # ========== 日志配置（沿用脚手架） ==========
     LOG_LEVEL: str = "INFO"
@@ -94,9 +93,16 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "BAAI/bge-m3"
     EMBEDDING_DIM: int = 1024
 
+    # ========== 文档解析生产护栏 ==========
+    PARSER_MAX_FILE_BYTES: int = 50 * 1024 * 1024
+    PARSER_MAX_OUTPUT_CHARS: int = 5_000_000
+    PARSER_MAX_TOTAL_IMAGE_BYTES: int = 20 * 1024 * 1024
+    PARSER_TIMEOUT_SECONDS: int = 300
+    PARSER_JOB_TIMEOUT_SECONDS: int = 600
+
     # ========== RAG 检索配置（spec 扩展） ==========
     RAG_TOP_K_EACH: int = 20  # 向量 / BM25 各自召回 top-K
-    RAG_RRF_K: int = 60       # RRF 融合常数，经验默认值
+    RAG_RRF_K: int = 60  # RRF 融合常数，经验默认值
 
     # ========== 前端静态托管配置（spec 扩展，无 nginx） ==========
     FRONTEND_DIST_DIR: Path = _BASE_PATH / "static" / "dist"

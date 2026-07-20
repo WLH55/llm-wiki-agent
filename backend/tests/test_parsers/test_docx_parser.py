@@ -3,14 +3,17 @@
 - Docx2Parser：用 python-docx 在内存中构造一个 .docx bytes（含段落 + 表格），解析后断言
 - DocParser：antiword/catdoc 通常未装，验证 fallback 行为（返回 metadata.error）
 """
+
 from io import BytesIO
 
 import pytest
 from docx import Document as DocxDocument
+from docx.shared import Inches
+from PIL import Image
 
 from app.parsers.doc_parser import DocParser
-from app.parsers.docx2_parser import Docx2Parser
 from app.parsers.document import Document
+from app.parsers.docx2_parser import Docx2Parser
 
 
 def _build_docx_bytes(paragraphs, table_rows=None) -> bytes:
@@ -51,6 +54,24 @@ class TestDocx2Parser:
         # 表格行被转成 markdown 风格（cell | cell）
         assert "姓名 | 年龄" in doc.content
         assert "张三 | 25" in doc.content
+        assert (
+            "| 姓名 | 年龄 |\n| --- | --- |\n| 张三 | 25 |" in doc.content
+        )
+
+    def test_extracts_images_with_markdown_reference(self):
+        docx = DocxDocument()
+        image_buffer = BytesIO()
+        Image.new("RGB", (2, 2), color="blue").save(image_buffer, format="PNG")
+        image_buffer.seek(0)
+        docx.add_picture(image_buffer, width=Inches(1))
+        payload = BytesIO()
+        docx.save(payload)
+        result = Docx2Parser(file_name="image.docx").parse(payload.getvalue())
+        assert len(result.images) == 1
+        image_path = next(iter(result.images))
+        assert image_path.startswith("images/")
+        assert f"]({image_path})" in result.content
+        assert result.metadata["image_count"] == 1
 
     def test_empty_paragraphs_skipped(self):
         payload = _build_docx_bytes(["", "  ", "有效"])
@@ -71,6 +92,7 @@ class TestDocx2Parser:
         doc = parser.parse(payload)
         assert doc.content == ""
         assert doc.is_valid() is False
+        assert doc.metadata == {"format": "docx", "image_count": 0}
 
 
 class TestDocParser:

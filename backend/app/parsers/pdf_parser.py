@@ -20,9 +20,9 @@ Stage 3 刻意不移植：
 - 拼接为 markdown（页与页之间用 `\n\n`）
 - metadata 记录 page_count 供消费方决策
 """
+
 import logging
 from io import BytesIO
-from typing import List
 
 import pdfplumber
 
@@ -48,8 +48,9 @@ class PdfParser(BaseParser):
             logger.error("Failed to open PDF: %s", exc)
             return Document(content="", metadata={"error": f"open_failed: {exc}"})
 
-        parts: List[str] = []
+        parts: list[str] = []
         page_count = 0
+        empty_page_count = 0
         try:
             page_count = len(pdf.pages)
             for i, page in enumerate(pdf.pages):
@@ -60,6 +61,8 @@ class PdfParser(BaseParser):
                     text = ""
                 if text.strip():
                     parts.append(text.strip())
+                else:
+                    empty_page_count += 1
         finally:
             pdf.close()
 
@@ -73,5 +76,10 @@ class PdfParser(BaseParser):
 
         return Document(
             content=text,
-            metadata={"page_count": page_count, "text_page_count": len(parts)},
+            metadata={
+                "page_count": page_count,
+                "text_page_count": len(parts),
+                "empty_page_count": empty_page_count,
+                "is_scanned": page_count > 0 and not parts,
+            },
         )

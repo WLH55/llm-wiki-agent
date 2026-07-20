@@ -23,8 +23,9 @@
 - `.epub` → EPUBParser（章节、元数据和内嵌图片）
 - 常见位图格式 → ImageParser（Pillow 元数据和 EXIF）
 - 高级引擎：`markitdown` / `opendataloader` 以双 key 注册，可选安装
-- 未知扩展名 → Registry 抛 KeyError，由消费方兜底（见 workers/parse_document.py）
+- 未知扩展名 → dispatch 返回 unsupported_type，禁止文本兜底
 """
+
 from app.parsers.base import BaseParser
 from app.parsers.chain import FirstParser, PipelineParser
 from app.parsers.csv_parser import CsvParser
@@ -50,6 +51,7 @@ from app.parsers.registry import (
     ParserRegistry,
     registry,
 )
+from app.parsers.result import ParseDispatchError, ParseErrorCode, ParseLimits, ParseResult
 from app.parsers.text_parser import TextParser
 from app.parsers.web_parser import WebParser
 from app.parsers.xls_parser import XlsParser
@@ -63,6 +65,10 @@ __all__ = [
     "ParserEngineRegistry",
     "ParserRegistry",
     "registry",
+    "ParseDispatchError",
+    "ParseErrorCode",
+    "ParseLimits",
+    "ParseResult",
     "TextParser",
     "MarkdownParser",
     "MarkdownTableFormatter",

@@ -64,8 +64,10 @@ class ParserEngineRegistry:
         self,
         engine_or_file_type: str,
         file_type: str | None = None,
+        *,
+        fallback_to_builtin: bool = True,
     ) -> type[BaseParser]:
-        """返回指定引擎的 parser；未命中时回退 builtin。"""
+        """返回指定引擎的 parser；兼容调用默认允许回退 builtin。"""
 
         if file_type is None:
             requested_engine = BUILTIN_ENGINE
@@ -79,10 +81,11 @@ class ParserEngineRegistry:
         if parser_cls is not None:
             return parser_cls
 
-        builtin_mapping = self._engines.get(BUILTIN_ENGINE, {})
-        parser_cls = builtin_mapping.get(normalized_file_type)
-        if parser_cls is not None:
-            return parser_cls
+        if fallback_to_builtin:
+            builtin_mapping = self._engines.get(BUILTIN_ENGINE, {})
+            parser_cls = builtin_mapping.get(normalized_file_type)
+            if parser_cls is not None:
+                return parser_cls
 
         raise KeyError(
             f"No parser registered for engine={requested_engine!r}, "
@@ -99,45 +102,50 @@ class ParserEngineRegistry:
     def list_engines(self) -> list[dict[str, object]]:
         """返回所有引擎及其运行时可用状态。"""
 
-        engines: list[dict[str, object]] = []
-        for engine in self.get_engine_names():
-            available = True
-            unavailable_reason = ""
-            probe = None if engine == BUILTIN_ENGINE else self._check_available.get(engine)
-            if probe is not None:
-                try:
-                    probe_result = probe()
-                    if not (
-                        isinstance(probe_result, tuple)
-                        and len(probe_result) == 2
-                        and type(probe_result[0]) is bool
-                        and isinstance(probe_result[1], str)
-                    ):
-                        available = False
-                        unavailable_reason = "可用性检查返回值无效"
-                    else:
-                        available, unavailable_reason = probe_result
-                except Exception as exc:
+        return [self.get_engine_status(engine) for engine in self.get_engine_names()]
+
+    def get_engine_status(self, engine: str) -> dict[str, object] | None:
+        """返回单个引擎状态；未知引擎返回 None。"""
+
+        normalized_engine = self._normalize_engine(engine)
+        if normalized_engine not in self._engines:
+            return None
+        available = True
+        unavailable_reason = ""
+        probe = (
+            None
+            if normalized_engine == BUILTIN_ENGINE
+            else self._check_available.get(normalized_engine)
+        )
+        if probe is not None:
+            try:
+                probe_result = probe()
+                if not (
+                    isinstance(probe_result, tuple)
+                    and len(probe_result) == 2
+                    and type(probe_result[0]) is bool
+                    and isinstance(probe_result[1], str)
+                ):
                     available = False
-                    unavailable_reason = f"可用性检查失败: {exc}"
-
-            if available:
-                unavailable_reason = ""
-            else:
-                hint = self._unavailable_hints.get(engine, "").strip()
-                reason_parts = [part for part in (unavailable_reason.strip(), hint) if part]
-                unavailable_reason = "；".join(reason_parts)
-
-            engines.append(
-                {
-                    "name": engine,
-                    "description": self._descriptions.get(engine, ""),
-                    "file_types": self.list_supported(engine),
-                    "available": available,
-                    "unavailable_reason": unavailable_reason,
-                }
-            )
-        return engines
+                    unavailable_reason = "可用性检查返回值无效"
+                else:
+                    available, unavailable_reason = probe_result
+            except Exception as exc:
+                available = False
+                unavailable_reason = f"可用性检查失败: {exc}"
+        if available:
+            unavailable_reason = ""
+        else:
+            hint = self._unavailable_hints.get(normalized_engine, "").strip()
+            reason_parts = [part for part in (unavailable_reason.strip(), hint) if part]
+            unavailable_reason = "；".join(reason_parts)
+        return {
+            "name": normalized_engine,
+            "description": self._descriptions.get(normalized_engine, ""),
+            "file_types": self.list_supported(normalized_engine),
+            "available": available,
+            "unavailable_reason": unavailable_reason,
+        }
 
     def get_engine_names(self) -> list[str]:
         """返回稳定排序的引擎名称。"""

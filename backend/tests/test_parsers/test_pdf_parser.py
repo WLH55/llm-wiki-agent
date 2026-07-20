@@ -5,7 +5,6 @@
 - 错误处理：无效 bytes → metadata.error
 - 技术限制声明：扫描版 PDF（无文字层）→ content 为空，metadata.page_count > 0
 """
-from io import BytesIO
 
 from app.parsers.document import Document
 from app.parsers.pdf_parser import PdfParser
@@ -48,6 +47,18 @@ class TestPdfParser:
         assert "hello pdf" in doc.content
         assert doc.metadata.get("page_count") == 1
         assert doc.metadata.get("text_page_count") == 1
+        assert doc.metadata.get("empty_page_count") == 0
+        assert doc.metadata.get("is_scanned") is False
+
+    def test_marks_pdf_without_text_as_scanned(self):
+        doc = PdfParser(file_name="scan.pdf").parse(_build_minimal_pdf(""))
+        assert doc.content == ""
+        assert doc.metadata == {
+            "page_count": 1,
+            "text_page_count": 0,
+            "empty_page_count": 1,
+            "is_scanned": True,
+        }
 
     def test_returns_document_instance(self):
         payload = _build_minimal_pdf("x")

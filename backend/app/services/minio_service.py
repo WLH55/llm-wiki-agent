@@ -1,23 +1,24 @@
 """
 MinIO 服务：原始文件存取
 """
+
 import io
 import logging
-from typing import Optional
-
-from minio import Minio
+from typing import Any
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-_client: Optional[Minio] = None
+_client: Any = None
 
 
-def get_minio_client() -> Minio:
+def get_minio_client() -> Any:
     """获取 MinIO client（懒加载单例）"""
     global _client
     if _client is None:
+        from minio import Minio
+
         _client = Minio(
             settings.MINIO_ENDPOINT,
             access_key=settings.MINIO_ACCESS_KEY,
@@ -27,7 +28,7 @@ def get_minio_client() -> Minio:
     return _client
 
 
-def ensure_bucket(bucket: Optional[str] = None) -> None:
+def ensure_bucket(bucket: str | None = None) -> None:
     """确保 bucket 存在"""
     bucket = bucket or settings.MINIO_BUCKET
     client = get_minio_client()
@@ -40,7 +41,7 @@ def upload_bytes(
     key: str,
     data: bytes,
     content_type: str = "application/octet-stream",
-    bucket: Optional[str] = None,
+    bucket: str | None = None,
 ) -> str:
     """上传字节流，返回 "{bucket}/{key}" 标识"""
     bucket = bucket or settings.MINIO_BUCKET
@@ -56,7 +57,7 @@ def upload_bytes(
     return f"{bucket}/{key}"
 
 
-def get_bytes(key: str, bucket: Optional[str] = None) -> bytes:
+def get_bytes(key: str, bucket: str | None = None) -> bytes:
     """下载字节流"""
     bucket = bucket or settings.MINIO_BUCKET
     client = get_minio_client()

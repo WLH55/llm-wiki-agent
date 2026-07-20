@@ -1,8 +1,9 @@
 """
 异常类定义模块
 """
+
 import logging
-from typing import Optional
+
 from fastapi import Request, status
 from starlette.responses import JSONResponse
 
@@ -12,10 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def _log_exception(
-    request: Request,
-    exc: Exception,
-    level: str = logging.ERROR,
-    include_stacktrace: bool = False
+    request: Request, exc: Exception, level: str = logging.ERROR, include_stacktrace: bool = False
 ) -> None:
     """
     记录异常日志
@@ -57,16 +55,22 @@ def _log_exception(
         log_func(log_message)
 
 
-class BusinessValidationException(Exception):
+class BusinessValidationException(Exception):  # noqa: N818 - 保持现有公共异常名
     """业务参数异常类"""
 
-    def __init__(self, message: str, code: Optional[int] = None):
+    def __init__(
+        self,
+        message: str,
+        code: int | None = None,
+        error_code: str | None = None,
+    ):
         self.message = message
         self.code = code
+        self.error_code = error_code
         super().__init__(self.message)
 
 
-class ResourceNotFoundException(Exception):
+class ResourceNotFoundException(Exception):  # noqa: N818 - 保持现有公共异常名
     """资源未找到异常"""
 
     def __init__(self, message: str = "资源不存在"):
@@ -81,16 +85,13 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=ApiResponse.error(
-            code=ResponseCode.INTERNAL_ERROR,
-            message=str(exc) or "服务器内部错误",
-            data=None
-        ).model_dump()
+            code=ResponseCode.INTERNAL_ERROR, message=str(exc) or "服务器内部错误", data=None
+        ).model_dump(),
     )
 
 
 async def validation_exception_handler(
-    request: Request,
-    exc: BusinessValidationException
+    request: Request, exc: BusinessValidationException
 ) -> JSONResponse:
     """处理业务异常"""
     _log_exception(request, exc, level="WARNING")
@@ -100,8 +101,8 @@ async def validation_exception_handler(
         content=ApiResponse.error(
             code=ResponseCode.BAD_REQUEST,
             message=exc.message or "处理请求参数验证异常",
-            data=None
-        ).model_dump()
+            data={"error_code": exc.error_code} if exc.error_code else None,
+        ).model_dump(),
     )
 
 

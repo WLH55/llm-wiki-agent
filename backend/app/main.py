@@ -6,6 +6,7 @@ FastAPI 应用入口
 - 移除 example router 注册
 - 加 SPA fallback（FastAPI StaticFiles 托管前端，无 nginx）
 """
+
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -66,7 +67,10 @@ def create_app() -> FastAPI:
     # 缓存请求体中间件（用于异常日志记录）
     @app.middleware("http")
     async def cache_request_body(request: Request, call_next):
-        if request.method in ("POST", "PUT", "PATCH"):
+        content_type = request.headers.get("content-type", "").lower()
+        if request.method in ("POST", "PUT", "PATCH") and not content_type.startswith(
+            "multipart/form-data"
+        ):
             try:
                 body = await request.body()
                 if body:
@@ -114,9 +118,7 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=404, detail="Frontend not built")
             return FileResponse(str(index_file))
     else:
-        logger.warning(
-            f"前端构建产物不存在: {dist_dir}（阶段 7 后才构建；当前仅 API 可用）"
-        )
+        logger.warning(f"前端构建产物不存在: {dist_dir}（阶段 7 后才构建；当前仅 API 可用）")
 
     return app
 
