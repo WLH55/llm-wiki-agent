@@ -6,13 +6,14 @@
 - **approval status**: `Plan Approved`（2026-07-20）
 - **execute status**: 已完成
 - **review status**: PASS（三轴审查完成）
+- **release status**: 已提交并推送实现提交 `10b396b`
 - **spec path**: `mydocs/specs/2026-07-19_23-21_parsers-production-hardening.md`
 - **active project**: llm_wiki3.0（单项目）
 - **change scope**: local（backend parsers + document upload/worker 接入层）
 - **predecessor**: `mydocs/specs/2026-07-15_16-29_parsers-module.md`（学习版，FINAL PASS）
 - **codemap**: `mydocs/codemap/2026-07-19_23-21_parsers-production功能.md`
 - **execution mode**: 用户已要求审批后自动批量执行、Review、commit、push
-- **next**: Review PASS 后执行 commit + push
+- **next**: None（任务闭环）
 
 ---
 
@@ -474,7 +475,7 @@ async def _mark_status(
 - [x] 12. 运行 parser/service/worker/migration 测试、可用的全量 pytest、触及文件 Ruff。
 - [x] 13. 执行三轴 `review_execute`；发现并修复 DOCX 非连续 GFM 表格问题后重审 PASS。
 - [x] 14. 回写 Execute Log、Review Matrix、Plan-Execution Diff 和验证证据。
-- [ ] 15. 仅在 Review PASS 且工作区只含本任务改动时 commit；随后 push 当前 `llm_wiki3.0` 分支到 `origin`。
+- [x] 15. Review PASS 后提交 `10b396b`，并成功 push `llm_wiki3.0` 到 `origin`。
 
 ### §4.4 Spec Review Notes
 
@@ -510,6 +511,7 @@ async def _mark_status(
   - FastAPI OpenAPI：multipart 暴露必填 binary `file` 和默认 `builtin` 的可选 `parser_engine`。
   - Alembic 1.18 PostgreSQL offline upgrade：PASS，生成 `001 -> 002` 三条 ADD COLUMN。
   - Alembic offline downgrade `002:001`：PASS，逆序 DROP 三列。
+- Release：实现提交 `10b396b` 已推送至 `origin/llm_wiki3.0`。
 
 ---
 
@@ -559,6 +561,6 @@ async def _mark_status(
 | Goal | parsers 生产化加固 |
 | In-Scope | P0 契约/错误/护栏/API/DB + P1 核心格式/MinIO 图片/engine 接入 |
 | Out-of-Scope | experimental 上传、P2 指标、前端、gRPC、MinerU、OCR、LibreOffice、多存储后端 |
-| Active Checklist | §4.3 Step 15：commit + push |
-| Next Action | 工作区最终审计后提交并推送 `llm_wiki3.0` |
+| Active Checklist | 全部完成 |
+| Next Action | None |
 | 风险 | `to_thread` 超时非进程级强杀；DB 迁移；状态语义回归；图片限额与路径安全 |
