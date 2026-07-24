@@ -1,4 +1,4 @@
-"""
+﻿"""
 FastAPI 应用入口
 
 沿用脚手架 create_app() 模式 + 全局异常 + CORS；扩展：
@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings, setup_logging
-from app.config.exceptions import register_exception_handlers
+from app.web.exception_handlers import register_exception_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
 
     # 阶段 3: 启动时确保 bootstrap owner 存在
     try:
-        from app.auth.bootstrap import ensure_bootstrap_owner
+        from app.auth.service.bootstrap import ensure_bootstrap_owner
         from app.database import async_session_factory
 
         async with async_session_factory() as db:
@@ -83,10 +83,10 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     # ========== 注册路由 ==========
-    from app.auth.routes import router as auth_router
-    from app.routers.document import router as document_router
-    from app.routers.kb import router as kb_router
-    from app.routers.search import router as search_router
+    from app.auth.api.routes import router as auth_router
+    from app.knowledge_bases.api.routes import router as kb_router
+    from app.parsers.api.document import router as document_router
+    from app.search.api.routes import router as search_router
 
     app.include_router(auth_router, prefix="/api")  # /api/auth/*
     app.include_router(kb_router, prefix=settings.API_PREFIX)  # /api/v1/kb

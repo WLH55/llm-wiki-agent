@@ -1,4 +1,4 @@
-"""PPTX 解析器契约测试。"""
+﻿"""PPTX 解析器契约测试。"""
 
 from importlib import import_module
 from io import BytesIO
@@ -8,15 +8,15 @@ from PIL import Image
 from pptx import Presentation
 from pptx.util import Inches
 
-from app.parsers.base import BaseParser
-from app.parsers.document import Document
+from app.parsers.core.base import BaseParser
+from app.parsers.core.document import Document
 
 
 def _pptx_parser_class():
     try:
-        module = import_module("app.parsers.ppt_convert")
+        module = import_module("app.parsers.implementations.pptx")
     except ModuleNotFoundError:
-        pytest.fail("缺少计划模块：app.parsers.ppt_convert")
+        pytest.fail("缺少计划模块：app.parsers.implementations.pptx")
     return module.PptxParser
 
 
@@ -63,9 +63,9 @@ def test_parses_slide_text_and_embedded_media():
 
 def test_extract_pptx_media_returns_base64_mapping():
     try:
-        module = import_module("app.parsers.pptx_media")
+        module = import_module("app.parsers.utils.pptx_media")
     except ModuleNotFoundError:
-        pytest.fail("缺少计划模块：app.parsers.pptx_media")
+        pytest.fail("缺少计划模块：app.parsers.utils.pptx_media")
     images = module.extract_pptx_media(_presentation_bytes())
     assert list(images) == ["images/image1.png"]
     assert isinstance(images["images/image1.png"], str)
@@ -73,7 +73,7 @@ def test_extract_pptx_media_returns_base64_mapping():
 
 
 def test_legacy_ppt_is_rejected_without_external_conversion():
-    module = import_module("app.parsers.ppt_convert")
+    module = import_module("app.parsers.implementations.pptx")
     legacy_ppt = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 32
     with pytest.raises(ValueError, match="legacy_ppt_not_supported"):
         module.normalize_pptx_bytes(legacy_ppt, "ppt")

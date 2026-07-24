@@ -1,10 +1,10 @@
-"""MarkItDown 高级解析器契约测试。"""
+﻿"""MarkItDown 高级解析器契约测试。"""
 
 from types import SimpleNamespace
 
-import app.parsers.markitdown_parser as module
+import app.parsers.implementations.markitdown as module
 from app.parsers import MarkitdownParser, registry
-from app.parsers.pdf_parser import PdfParser
+from app.parsers.implementations.pdf import PdfParser
 
 
 class _FakeMarkitdown:

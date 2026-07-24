@@ -1,4 +1,4 @@
-"""EPUB 解析器契约测试。"""
+﻿"""EPUB 解析器契约测试。"""
 
 import zipfile
 from io import BytesIO
@@ -8,7 +8,7 @@ from ebooklib import epub
 from PIL import Image
 
 from app.parsers import registry
-from app.parsers.epub_parser import EPUBParser, validate_epub_archive
+from app.parsers.implementations.epub import EPUBParser, validate_epub_archive
 
 
 def _png_bytes() -> bytes:

@@ -1,12 +1,13 @@
-"""解析图片持久化的路径、限额与正文替换测试。"""
+﻿"""解析图片持久化的路径、限额与正文替换测试。"""
 
 import base64
 from uuid import UUID
 
 import pytest
 
-from app.parsers.result import ParseErrorCode
-from app.services.parser_asset_service import ParserAssetError, persist_parser_images
+from app.parsers.errors import ParserAssetError
+from app.parsers.schemas import ParseErrorCode
+from app.parsers.service.asset import persist_parser_images
 
 DOC_ID = UUID("11111111-1111-1111-1111-111111111111")
 
@@ -18,7 +19,7 @@ def test_persist_images_uses_safe_content_addressed_key(monkeypatch):
         uploaded.append((key, data, content_type))
         return f"bucket/{key}"
 
-    monkeypatch.setattr("app.services.parser_asset_service.upload_bytes", fake_upload)
+    monkeypatch.setattr("app.parsers.service.asset.upload_bytes", fake_upload)
     encoded = base64.b64encode(b"image-bytes").decode("ascii")
     content, metadata = persist_parser_images(
         7,
@@ -39,7 +40,7 @@ def test_persist_images_uses_safe_content_addressed_key(monkeypatch):
 
 def test_persist_images_rejects_invalid_base64(monkeypatch):
     monkeypatch.setattr(
-        "app.services.parser_asset_service.upload_bytes",
+        "app.parsers.service.asset.upload_bytes",
         lambda *args, **kwargs: None,
     )
     with pytest.raises(ParserAssetError) as exc_info:
@@ -50,7 +51,7 @@ def test_persist_images_rejects_invalid_base64(monkeypatch):
 def test_persist_images_enforces_total_limit(monkeypatch):
     uploaded = []
     monkeypatch.setattr(
-        "app.services.parser_asset_service.upload_bytes",
+        "app.parsers.service.asset.upload_bytes",
         lambda *args, **kwargs: uploaded.append(args),
     )
     encoded = base64.b64encode(b"123").decode("ascii")
@@ -64,7 +65,7 @@ def test_persist_images_maps_upload_failure(monkeypatch):
     def fail_upload(*args, **kwargs):
         raise OSError("storage offline")
 
-    monkeypatch.setattr("app.services.parser_asset_service.upload_bytes", fail_upload)
+    monkeypatch.setattr("app.parsers.service.asset.upload_bytes", fail_upload)
     encoded = base64.b64encode(b"123").decode("ascii")
     with pytest.raises(ParserAssetError) as exc_info:
         persist_parser_images(7, DOC_ID, "", {"a.png": encoded}, 100)

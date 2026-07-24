@@ -1,6 +1,6 @@
-"""TextParser 测试。"""
-from app.parsers.document import Document
-from app.parsers.text_parser import TextParser
+﻿"""TextParser 测试。"""
+from app.parsers.core.document import Document
+from app.parsers.implementations.text import TextParser
 
 
 def test_parse_utf8_text():

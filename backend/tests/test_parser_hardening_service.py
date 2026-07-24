@@ -1,4 +1,4 @@
-"""上传产品白名单、engine 与机器可读错误载荷测试。"""
+﻿"""上传产品白名单、engine 与机器可读错误载荷测试。"""
 
 import json
 
@@ -6,12 +6,12 @@ import pytest
 from starlette.requests import Request
 
 from app.config import settings
-from app.config.exceptions import (
+from app.core.exceptions import (
     BusinessValidationException,
-    validation_exception_handler,
 )
-from app.parsers.result import ParseErrorCode
-from app.services.document_service import validate_parser_request
+from app.parsers.schemas import ParseErrorCode
+from app.parsers.service.document import validate_parser_request
+from app.web.exception_handlers import validation_exception_handler
 
 
 @pytest.mark.parametrize(

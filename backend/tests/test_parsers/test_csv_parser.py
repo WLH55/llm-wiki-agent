@@ -1,18 +1,18 @@
-"""CSV 解析器契约测试。"""
+﻿"""CSV 解析器契约测试。"""
 
 from importlib import import_module
 
 import pytest
 
-from app.parsers.base import BaseParser
-from app.parsers.document import Document
+from app.parsers.core.base import BaseParser
+from app.parsers.core.document import Document
 
 
 def _csv_parser_class():
     try:
-        module = import_module("app.parsers.csv_parser")
+        module = import_module("app.parsers.implementations.csv")
     except ModuleNotFoundError:
-        pytest.fail("planned module is missing: app.parsers.csv_parser")
+        pytest.fail("planned module is missing: app.parsers.implementations.csv")
     return module.CsvParser
 
 
@@ -60,7 +60,7 @@ def test_registry_routes_csv_to_csv_parser():
 
 
 def test_csv_dimension_guard_rejects_excessive_rows_and_columns():
-    module = import_module("app.parsers.csv_parser")
+    module = import_module("app.parsers.implementations.csv")
     validator = getattr(module, "_validate_csv_dimensions", None)
     assert validator is not None, "CSV parser must expose an internal dimension guard"
     with pytest.raises(ValueError, match="csv_too_large"):

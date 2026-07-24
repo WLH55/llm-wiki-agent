@@ -1,4 +1,4 @@
-"""
+﻿"""
 异步解析文档任务
 
 流程：
@@ -21,12 +21,13 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.integrations.embedding import embed_texts
+from app.integrations.object_storage import get_bytes
 from app.models.document import Document
-from app.parsers.dispatch import parse_document as _parse_document
-from app.parsers.result import ParseErrorCode, ParseResult
-from app.services.embedding_service import embed_texts
-from app.services.minio_service import get_bytes
-from app.services.parser_asset_service import ParserAssetError, persist_parser_images
+from app.parsers.errors import ParserAssetError
+from app.parsers.schemas import ParseErrorCode, ParseResult
+from app.parsers.service.asset import persist_parser_images
+from app.parsers.service.dispatch import parse_document as _parse_document
 from app.workers.chunker import chunk_text
 
 logger = logging.getLogger(__name__)

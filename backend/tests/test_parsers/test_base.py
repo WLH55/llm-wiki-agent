@@ -1,8 +1,8 @@
-"""BaseParser 抽象基类测试。"""
+﻿"""BaseParser 抽象基类测试。"""
 import pytest
 
-from app.parsers.base import BaseParser
-from app.parsers.document import Document
+from app.parsers.core.base import BaseParser
+from app.parsers.core.document import Document
 
 
 def test_base_parser_cannot_be_instantiated():

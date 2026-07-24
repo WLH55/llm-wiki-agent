@@ -1,4 +1,4 @@
-"""XLSX 解析套件契约测试。"""
+﻿"""XLSX 解析套件契约测试。"""
 
 import zipfile
 from importlib import import_module
@@ -7,28 +7,28 @@ from io import BytesIO
 import openpyxl
 import pytest
 
-import app.parsers.excel_convert as excel_convert_module
-import app.parsers.excel_parser as excel_parser_module
-import app.parsers.xlsx_repair as xlsx_repair_module
+import app.parsers.implementations.excel as excel_parser_module
+import app.parsers.utils.excel_convert as excel_convert_module
+import app.parsers.utils.xlsx_repair as xlsx_repair_module
 from app.parsers import registry
-from app.parsers.base import BaseParser
-from app.parsers.document import Document
-from app.parsers.excel_convert import detect_excel_format, normalize_excel_bytes
-from app.parsers.excel_parser import ExcelParser
-from app.parsers.xlsx_merge import fill_merged_cells_xlsx
-from app.parsers.xlsx_repair import repair_xlsx_bytes
+from app.parsers.core.base import BaseParser
+from app.parsers.core.document import Document
+from app.parsers.implementations.excel import ExcelParser
+from app.parsers.utils.excel_convert import detect_excel_format, normalize_excel_bytes
+from app.parsers.utils.xlsx_merge import fill_merged_cells_xlsx
+from app.parsers.utils.xlsx_repair import repair_xlsx_bytes
 
 
 @pytest.mark.parametrize(
     ("module_name", "symbols"),
     [
-        ("app.parsers.excel_parser", ("ExcelParser",)),
+        ("app.parsers.implementations.excel", ("ExcelParser",)),
         (
-            "app.parsers.excel_convert",
+            "app.parsers.utils.excel_convert",
             ("detect_excel_format", "normalize_excel_bytes"),
         ),
-        ("app.parsers.xlsx_merge", ("fill_merged_cells_xlsx",)),
-        ("app.parsers.xlsx_repair", ("repair_xlsx_bytes",)),
+        ("app.parsers.utils.xlsx_merge", ("fill_merged_cells_xlsx",)),
+        ("app.parsers.utils.xlsx_repair", ("repair_xlsx_bytes",)),
     ],
 )
 def test_excel_suite_exposes_planned_api(module_name, symbols):

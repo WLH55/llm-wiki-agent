@@ -1,4 +1,4 @@
-"""PdfParser 测试。
+﻿"""PdfParser 测试。
 
 测试策略：
 - happy-path：用 hand-crafted minimal PDF bytes 验证 extract_text 能跑通
@@ -6,8 +6,8 @@
 - 技术限制声明：扫描版 PDF（无文字层）→ content 为空，metadata.page_count > 0
 """
 
-from app.parsers.document import Document
-from app.parsers.pdf_parser import PdfParser
+from app.parsers.core.document import Document
+from app.parsers.implementations.pdf import PdfParser
 
 
 def _build_minimal_pdf(text: str = "hello pdf") -> bytes:

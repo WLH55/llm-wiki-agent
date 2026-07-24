@@ -1,4 +1,4 @@
-"""文档解析模块（参考 docreader/parser/ 移植）。
+﻿"""文档解析模块（参考 docreader/parser/ 移植）。
 
 公共 API：
 - `Document`：parser 输出契约
@@ -26,35 +26,39 @@
 - 未知扩展名 → dispatch 返回 unsupported_type，禁止文本兜底
 """
 
-from app.parsers.base import BaseParser
-from app.parsers.chain import FirstParser, PipelineParser
-from app.parsers.csv_parser import CsvParser
-from app.parsers.doc_parser import DocParser
-from app.parsers.document import Document
-from app.parsers.docx2_parser import Docx2Parser
-from app.parsers.epub_parser import EPUBParser
-from app.parsers.excel_parser import ExcelParser
-from app.parsers.image_parser import ImageParser
-from app.parsers.markdown_parser import (
-    MarkdownImageBase64,
-    MarkdownParser,
-    MarkdownTableFormatter,
-)
-from app.parsers.markitdown_parser import MarkitdownParser, markitdown_available
-from app.parsers.mhtml_parser import MHTMLParser
-from app.parsers.opendataloader_parser import OpenDataLoaderParser, opendataloader_available
-from app.parsers.pdf_parser import PdfParser
-from app.parsers.ppt_convert import PptxParser
-from app.parsers.registry import (
+from app.parsers.core.base import BaseParser
+from app.parsers.core.chain import FirstParser, PipelineParser
+from app.parsers.core.document import Document
+from app.parsers.core.registry import (
     BUILTIN_ENGINE,
     ParserEngineRegistry,
     ParserRegistry,
     registry,
 )
-from app.parsers.result import ParseDispatchError, ParseErrorCode, ParseLimits, ParseResult
-from app.parsers.text_parser import TextParser
-from app.parsers.web_parser import WebParser
-from app.parsers.xls_parser import XlsParser
+from app.parsers.errors import ParseDispatchError, ParserAssetError
+from app.parsers.implementations.csv import CsvParser
+from app.parsers.implementations.doc import DocParser
+from app.parsers.implementations.docx import Docx2Parser
+from app.parsers.implementations.epub import EPUBParser
+from app.parsers.implementations.excel import ExcelParser
+from app.parsers.implementations.image import ImageParser
+from app.parsers.implementations.markdown import (
+    MarkdownImageBase64,
+    MarkdownParser,
+    MarkdownTableFormatter,
+)
+from app.parsers.implementations.markitdown import MarkitdownParser, markitdown_available
+from app.parsers.implementations.mhtml import MHTMLParser
+from app.parsers.implementations.opendataloader import (
+    OpenDataLoaderParser,
+    opendataloader_available,
+)
+from app.parsers.implementations.pdf import PdfParser
+from app.parsers.implementations.pptx import PptxParser
+from app.parsers.implementations.text import TextParser
+from app.parsers.implementations.web import WebParser
+from app.parsers.implementations.xls import XlsParser
+from app.parsers.schemas import ParseErrorCode, ParseLimits, ParseResult
 
 __all__ = [
     "Document",
@@ -66,6 +70,7 @@ __all__ = [
     "ParserRegistry",
     "registry",
     "ParseDispatchError",
+    "ParserAssetError",
     "ParseErrorCode",
     "ParseLimits",
     "ParseResult",

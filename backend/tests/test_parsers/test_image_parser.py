@@ -1,4 +1,4 @@
-"""独立图片解析器契约测试。"""
+﻿"""独立图片解析器契约测试。"""
 
 import base64
 from io import BytesIO
@@ -6,7 +6,7 @@ from io import BytesIO
 from PIL import Image
 
 from app.parsers import registry
-from app.parsers.image_parser import ImageParser
+from app.parsers.implementations.image import ImageParser
 
 
 def _jpeg_bytes() -> bytes:
@@ -41,7 +41,7 @@ def test_image_parser_uses_basename_for_document_path():
 
 
 def test_image_parser_rejects_excessive_pixels(monkeypatch):
-    import app.parsers.image_parser as module
+    import app.parsers.implementations.image as module
 
     monkeypatch.setattr(module, "MAX_IMAGE_PIXELS", 10)
     document = ImageParser(file_name="large.jpg").parse(_jpeg_bytes())

@@ -1,18 +1,18 @@
-"""MHTML 网页归档解析契约测试。"""
+﻿"""MHTML 网页归档解析契约测试。"""
 
 from email.message import EmailMessage
 from importlib import import_module
 
 import pytest
 
-from app.parsers.base import BaseParser
+from app.parsers.core.base import BaseParser
 
 
 def _mhtml_module():
     try:
-        return import_module("app.parsers.mhtml_parser")
+        return import_module("app.parsers.implementations.mhtml")
     except ModuleNotFoundError:
-        pytest.fail("缺少计划模块：app.parsers.mhtml_parser")
+        pytest.fail("缺少计划模块：app.parsers.implementations.mhtml")
 
 
 def _mhtml_bytes() -> bytes:

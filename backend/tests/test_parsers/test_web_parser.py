@@ -1,24 +1,24 @@
-"""网页抓取与 HTML 解析契约测试。"""
+﻿"""网页抓取与 HTML 解析契约测试。"""
 
 from importlib import import_module
 
 import pytest
 
-from app.parsers.base import BaseParser
+from app.parsers.core.base import BaseParser
 
 
 def _web_module():
     try:
-        return import_module("app.parsers.web_parser")
+        return import_module("app.parsers.implementations.web")
     except ModuleNotFoundError:
-        pytest.fail("缺少计划模块：app.parsers.web_parser")
+        pytest.fail("缺少计划模块：app.parsers.implementations.web")
 
 
 def _fetcher_module():
     try:
-        return import_module("app.parsers.web_fetcher")
+        return import_module("app.parsers.utils.web_fetcher")
     except ModuleNotFoundError:
-        pytest.fail("缺少计划模块：app.parsers.web_fetcher")
+        pytest.fail("缺少计划模块：app.parsers.utils.web_fetcher")
 
 
 def test_url_validator_rejects_unsafe_targets():
@@ -57,7 +57,10 @@ def test_visible_text_fallback_adds_page_title():
 def test_web_parser_accepts_local_html_bytes():
     module = _web_module()
     assert issubclass(module.WebParser, BaseParser)
-    html = b"<html><head><title>Local</title></head><body><article><h1>Hello</h1><p>World</p></article></body></html>"
+    html = (
+        b"<html><head><title>Local</title></head><body>"
+        b"<article><h1>Hello</h1><p>World</p></article></body></html>"
+    )
     document = module.WebParser(file_name="article.html").parse(html)
     assert "Hello" in document.content
     assert "World" in document.content
@@ -71,7 +74,10 @@ def test_web_parser_fetches_url_then_extracts_markdown(monkeypatch):
     result = fetcher.ScrapeResult(
         url="https://example.com/article",
         final_url="https://example.com/final",
-        html="<html><body><article><h1>Fetched</h1><p>Remote body text.</p></article></body></html>",
+        html=(
+            "<html><body><article><h1>Fetched</h1>"
+            "<p>Remote body text.</p></article></body></html>"
+        ),
         visible_text="Fetched\nRemote body text.",
         page_title="Fetched title",
     )

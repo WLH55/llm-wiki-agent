@@ -3,8 +3,8 @@
 """
 import pytest
 
-from app.auth.jwt_handler import create_access_token, decode_token
-from app.auth.password import hash_password, verify_password
+from app.auth.security.jwt import create_access_token, decode_token
+from app.auth.security.password import hash_password, verify_password
 
 
 def test_password_hash_and_verify():

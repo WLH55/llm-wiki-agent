@@ -1,4 +1,4 @@
-"""旧版 XLS 解析器契约测试。"""
+﻿"""旧版 XLS 解析器契约测试。"""
 
 from importlib import import_module
 from io import BytesIO
@@ -6,15 +6,15 @@ from io import BytesIO
 import pytest
 import xlwt
 
-from app.parsers.base import BaseParser
-from app.parsers.document import Document
+from app.parsers.core.base import BaseParser
+from app.parsers.core.document import Document
 
 
 def _xls_parser_class():
     try:
-        module = import_module("app.parsers.xls_parser")
+        module = import_module("app.parsers.implementations.xls")
     except ModuleNotFoundError:
-        pytest.fail("planned module is missing: app.parsers.xls_parser")
+        pytest.fail("planned module is missing: app.parsers.implementations.xls")
     return module.XlsParser
 
 

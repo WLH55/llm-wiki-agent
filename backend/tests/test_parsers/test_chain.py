@@ -1,7 +1,7 @@
-"""FirstParser / PipelineParser 契约测试。"""
-from app.parsers.base import BaseParser
-from app.parsers.chain import FirstParser, PipelineParser
-from app.parsers.document import Document
+﻿"""FirstParser / PipelineParser 契约测试。"""
+from app.parsers.core.base import BaseParser
+from app.parsers.core.chain import FirstParser, PipelineParser
+from app.parsers.core.document import Document
 
 
 class _AlwaysFailParser(BaseParser):

@@ -1,4 +1,4 @@
-"""Word 系列 parser 测试。
+﻿"""Word 系列 parser 测试。
 
 - Docx2Parser：用 python-docx 在内存中构造一个 .docx bytes（含段落 + 表格），解析后断言
 - DocParser：antiword/catdoc 通常未装，验证 fallback 行为（返回 metadata.error）
@@ -11,9 +11,9 @@ from docx import Document as DocxDocument
 from docx.shared import Inches
 from PIL import Image
 
-from app.parsers.doc_parser import DocParser
-from app.parsers.document import Document
-from app.parsers.docx2_parser import Docx2Parser
+from app.parsers.core.document import Document
+from app.parsers.implementations.doc import DocParser
+from app.parsers.implementations.docx import Docx2Parser
 
 
 def _build_docx_bytes(paragraphs, table_rows=None) -> bytes:

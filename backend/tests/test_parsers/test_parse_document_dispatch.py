@@ -1,15 +1,16 @@
-"""parse dispatch 契约测试（不依赖 DB/worker 运行时）。"""
+﻿"""parse dispatch 契约测试（不依赖 DB/worker 运行时）。"""
 
 import base64
 
 import pytest
 
 from app.parsers import registry
-from app.parsers.base import BaseParser
-from app.parsers.dispatch import parse_document, parse_to_text
-from app.parsers.document import Document
-from app.parsers.markdown_parser import MarkdownParser
-from app.parsers.result import ParseDispatchError, ParseErrorCode, ParseLimits
+from app.parsers.core.base import BaseParser
+from app.parsers.core.document import Document
+from app.parsers.errors import ParseDispatchError
+from app.parsers.implementations.markdown import MarkdownParser
+from app.parsers.schemas import ParseErrorCode, ParseLimits
+from app.parsers.service.dispatch import parse_document, parse_to_text
 
 
 class _EngineProbeParser(BaseParser):
@@ -54,7 +55,7 @@ def test_parse_to_text_uses_explicit_engine(monkeypatch):
     monkeypatch_reg = type(registry)()
     monkeypatch_reg.register("builtin", {"md": MarkdownParser})
     monkeypatch_reg.register("probe", {"md": _EngineProbeParser})
-    monkeypatch.setattr("app.parsers.dispatch.parser_registry", monkeypatch_reg)
+    monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", monkeypatch_reg)
     text = parse_to_text("demo.md", b"# title", engine="probe")
     assert text == "engine-hit"
 
@@ -81,7 +82,7 @@ def test_explicit_engine_does_not_fallback_to_builtin(monkeypatch):
     isolated = type(registry)()
     isolated.register("builtin", {"md": MarkdownParser})
     isolated.register("probe", {"txt": _EngineProbeParser})
-    monkeypatch.setattr("app.parsers.dispatch.parser_registry", isolated)
+    monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)
     result = parse_document("demo.md", b"# title", engine="probe")
     assert result.error_code is ParseErrorCode.ENGINE_UNAVAILABLE
 
@@ -94,7 +95,7 @@ def test_unavailable_engine_is_reported(monkeypatch):
         {"md": _EngineProbeParser},
         check_available=lambda: (False, "missing runtime"),
     )
-    monkeypatch.setattr("app.parsers.dispatch.parser_registry", isolated)
+    monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)
     result = parse_document("demo.md", b"# title", engine="probe")
     assert result.error_code is ParseErrorCode.ENGINE_UNAVAILABLE
 
@@ -102,7 +103,7 @@ def test_unavailable_engine_is_reported(monkeypatch):
 def test_legacy_parser_error_is_mapped(monkeypatch):
     isolated = type(registry)()
     isolated.register("builtin", {"bad": _ErrorParser})
-    monkeypatch.setattr("app.parsers.dispatch.parser_registry", isolated)
+    monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)
     result = parse_document("demo.bad", b"bad")
     assert result.error_code is ParseErrorCode.PARSE_FAILED
 
@@ -114,7 +115,7 @@ def test_file_and_output_limits(monkeypatch):
     )
     isolated = type(registry)()
     isolated.register("builtin", {"txt": _EngineProbeParser})
-    monkeypatch.setattr("app.parsers.dispatch.parser_registry", isolated)
+    monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)
     result = parse_document("a.txt", b"x", limits=_limits(max_output_chars=2))
     assert result.error_code is ParseErrorCode.TOO_LARGE
 
@@ -122,6 +123,6 @@ def test_file_and_output_limits(monkeypatch):
 def test_image_total_limit(monkeypatch):
     isolated = type(registry)()
     isolated.register("builtin", {"img": _ImageParser})
-    monkeypatch.setattr("app.parsers.dispatch.parser_registry", isolated)
+    monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)
     result = parse_document("a.img", b"x", limits=_limits(max_total_image_bytes=2))
     assert result.error_code is ParseErrorCode.TOO_LARGE

@@ -1,20 +1,20 @@
-"""ParserEngineRegistry 单元测试。"""
+﻿"""ParserEngineRegistry 单元测试。"""
 
 from importlib import import_module
 
 import pytest
 
 import app.parsers as parsers_package
-from app.parsers.base import BaseParser
-from app.parsers.document import Document
-from app.parsers.markitdown_parser import MarkitdownParser
-from app.parsers.opendataloader_parser import OpenDataLoaderParser
-from app.parsers.pdf_parser import PdfParser
-from app.parsers.registry import ParserRegistry
-from app.parsers.registry import registry as global_registry
-from app.parsers.text_parser import TextParser
+from app.parsers.core.base import BaseParser
+from app.parsers.core.document import Document
+from app.parsers.core.registry import ParserRegistry
+from app.parsers.core.registry import registry as global_registry
+from app.parsers.implementations.markitdown import MarkitdownParser
+from app.parsers.implementations.opendataloader import OpenDataLoaderParser
+from app.parsers.implementations.pdf import PdfParser
+from app.parsers.implementations.text import TextParser
 
-registry_module = import_module("app.parsers.registry")
+registry_module = import_module("app.parsers.core.registry")
 
 
 class _FakeParser(BaseParser):

@@ -1,5 +1,5 @@
-"""Document 数据契约测试。"""
-from app.parsers.document import Document
+﻿"""Document 数据契约测试。"""
+from app.parsers.core.document import Document
 
 
 def test_empty_document_is_invalid():

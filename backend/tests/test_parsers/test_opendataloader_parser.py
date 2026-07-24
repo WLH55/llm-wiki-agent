@@ -1,11 +1,11 @@
-"""OpenDataLoader 高级解析器契约测试。"""
+﻿"""OpenDataLoader 高级解析器契约测试。"""
 
 import base64
 from pathlib import Path
 from types import SimpleNamespace
 
-import app.parsers.opendataloader_parser as module
-from app.parsers.opendataloader_parser import (
+import app.parsers.implementations.opendataloader as module
+from app.parsers.implementations.opendataloader import (
     OpenDataLoaderParser,
     _collect_images_under_output,
     _find_markdown_file,

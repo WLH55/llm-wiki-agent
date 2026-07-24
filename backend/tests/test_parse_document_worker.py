@@ -9,7 +9,7 @@ from uuid import UUID
 import pytest
 
 from app.config import settings
-from app.parsers.result import ParseErrorCode, ParseResult
+from app.parsers.schemas import ParseErrorCode, ParseResult
 from app.workers import parse_document as worker
 from app.workers.parse_document import _mark_status, _metadata_for_result
 
