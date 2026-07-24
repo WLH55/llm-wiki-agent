@@ -31,8 +31,6 @@ Spec is Truth：设计文档即唯一真理。
 二、 技能 (Skill) 使用约定
 根据任务复杂度自动选择模式：
 sdd-riper-one (默认)：标准模式，用于常规任务。
-sdd-riper-one-light：轻量模式，仅限任务简单、边界清晰、改动极小且无需完整流转时使用。
-简单任务不需要下面这些步骤，在执行代码之前先使用 test-driven-development 进行TDD测试。然后使用 subagent-driven-development 去在不同的上下文窗口去执行任务，防止互相污染。
 原生模式：极简单、无需 Spec/Checkpoint/分阶段控制的任务，可不调用 Skill。
 
 三、 执行规则 (Execution Rules)
