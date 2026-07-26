@@ -44,8 +44,16 @@ _Avoid_: OKF（已弃用）、包含 embedding 的便携包（v4.2 不做，需�
 
 ### 数据模型与存储
 
+**RAG 配置（RAG Configuration）**:
+KB 可选的 RAG 能力配置，独立保存向量/关键词检索开关、嵌入模型与分块策略。没有配置表示该 KB 未配置 RAG；暂停配置不会删除已有文档和 chunks。
+_Avoid_: 把嵌入模型和分块参数直接放在知识库、用知识库类型隐含 RAG 配置
+
+**Wiki 配置（Wiki Configuration）**:
+KB 可选的 Wiki 能力配置，独立保存启用状态、页面生成模式、生成模型与生成策略。Wiki 配置不依赖 RAG 配置；暂停配置不会删除已有页面。
+_Avoid_: 用 RAG 开关隐含 Wiki 能力、把 Wiki 生成模型与 embedding 模型混为一谈
+
 **KB 级嵌入模型绑定（KB-level Embedding Model Binding）**:
-KB 创建时绑定一个嵌入模型 + 维度，库内所有 chunks 维度一致；不同 KB 可以用不同模型。模型升级 = 新建 KB 或全量重嵌入，不做混合维度比较。
+RAG 配置绑定一个嵌入模型 + 维度，库内所有有效 chunks 维度一致；不同 KB 可以用不同模型。模型升级需要全量重嵌入，不做混合维度比较。
 _Avoid_: 全局统一模型、跨 KB 向量比较、维度 padding（反模式）
 
 **多维度共存（Multi-dimension Coexistence）**:
@@ -57,7 +65,7 @@ KB 内的文档来源单元。一个 KB 可挂 N 个 source（manual / rss / yuq
 _Avoid_: 每 source 单独建表（schema 膨胀）、source boost_factor（YAGNI）、source 级 RBAC（粒度过细）
 
 **IndexingStrategy（旧 KB 级检索能力开关）** [已弃用]:
-旧设计把 `vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled` 直接放在 `knowledge_bases`。2026-07-27 数据表评审决定 KB 保持为轻量共享根，RAG 与 Wiki 配置拆分；替代术语待对应配置表审批后确定。
+旧设计把 `vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled` 直接放在 `knowledge_bases`。2026-07-27 数据表评审决定 KB 保持为轻量共享根，由独立的 RAG 配置和 Wiki 配置表达能力。
 _Avoid_: 继续向 `knowledge_bases` 增加能力开关、用单一 `type` 把 KB 固化为 RAG 或 Wiki
 
 **chunk_type（content_chunks 来源区分）**:
