@@ -268,7 +268,7 @@ def build():
     doc.add_paragraph("Alembic 002_parser_hardening.py 同时实现 upgrade 和 downgrade，支持添加或回滚这三列。")
 
     doc.add_heading("4. 模块关系与数据流", level=1)
-    add_code(doc, "routers/document.py\n  接收 file + parser_engine\n        |\nservices/document_service.py\n  校验请求，保存原文件与 Document\n        |\nworkers/queue.py -> RQ\n        |\nworkers/parse_document.py\n  控制状态、超时和全流程编排\n        |\nparsers/dispatch.py -> registry.py -> 具体 Parser\n        |\nparsers/result.py (统一结果契约)\n        |\nparser_asset_service.py (图片保存与引用改写)\n        |\nchunker + embedding -> content_chunks\n        |\ndocuments (状态、错误、metadata)")
+    add_code(doc, "routers/routes.py\n  接收 file + parser_engine\n        |\nservices/document_service.py\n  校验请求，保存原文件与 Document\n        |\nworkers/queue.py -> RQ\n        |\nworkers/parse_document.py\n  控制状态、超时和全流程编排\n        |\nparsers/dispatch.py -> registry.py -> 具体 Parser\n        |\nparsers/result.py (统一结果契约)\n        |\nparser_asset_service.py (图片保存与引用改写)\n        |\nchunker + embedding -> content_chunks\n        |\ndocuments (状态、错误、metadata)")
     add_table(doc, ["模块", "核心职责", "不负责什么"], [
         ("Router", "HTTP 参数与有限读取", "不选择具体 parser"),
         ("Document Service", "业务校验、原文件和任务创建", "不执行耗时解析"),
@@ -328,10 +328,10 @@ def build():
         ("结果契约", "backend/app/parsers/result.py"),
         ("派发与注册", "backend/app/parsers/dispatch.py；registry.py；__init__.py"),
         ("格式解析", "docx2_parser.py；pdf_parser.py"),
-        ("HTTP 与业务", "routers/document.py；services/document_service.py"),
+        ("HTTP 与业务", "routers/routes.py；services/document_service.py"),
         ("异步执行", "workers/queue.py；workers/parse_document.py"),
         ("图片资产", "services/parser_asset_service.py；minio_service.py"),
-        ("数据库", "models/document.py；alembic/versions/002_parser_hardening.py"),
+        ("数据库", "models/routes.py；alembic/versions/002_parser_hardening.py"),
         ("配置与异常", "config/settings.py；config/exceptions.py；main.py"),
         ("验证", "test_parse_document_worker.py 等 7 组新增/增强测试"),
     ], [2300, 7060])

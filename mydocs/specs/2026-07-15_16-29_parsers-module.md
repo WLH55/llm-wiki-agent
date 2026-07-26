@@ -412,7 +412,7 @@ backend/tests/test_parsers/               # 新增测试目录
 #### Document（数据契约）
 
 ```python
-# backend/app/parsers/document.py
+# backend/app/parsers/routes.py
 from pydantic import BaseModel, Field
 from typing import Any, Dict
 

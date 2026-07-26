@@ -64,18 +64,18 @@
 | # | 模块 | 范围 | 关联 ADR |
 |---|------|------|---------|
 | 1 | **Docker Compose 骨架** | Postgres + pgvector + zhparser + Redis + MinIO + FastAPI（含前端静态托管）+ Python worker，共 **5 服务**（无 frontend 容器、无 nginx 容器） | PRD §Solution |
-| 2 | **数据库 schema** | 核心表：`users` / `tenants` / `knowledge_bases` / `sources` / `content_chunks` + IndexingStrategy 四开关 + `chunk_type` 字段 + halfvec 多维度 + partial HNSW 索引 | ADR-0001 / ADR-0009 |
+| 2 | **数据库 schema** | 核心表：`users` / `tenants` / `knowledge_bases` / `sources` / `content_chunks` + IndexingStrategy 四开关 + Wiki/RAG 融合预留字段 + halfvec 多维度 + partial HNSW 索引 | ADR-0001 / ADR-0010 |
 | 3 | **bootstrap owner 鉴权** | env var `BOOTSTRAP_OWNER_EMAIL/PASSWORD` 启动时创建 owner + JWT session（HS256，24h，无 refresh） | ADR-0008 |
 | 4 | **KB 创建 API** | `POST /api/v1/kb` 创建 KB，默认 bge-m3 + 混合 IndexingStrategy；绑定嵌入模型 + 维度 | ADR-0001 / ADR-0009 |
 | 5 | **文档上传 API** | `POST /api/v1/kb/{id}/documents` 上传文档 → MinIO 存原始文件 → Redis 队列异步处理；Python worker 消费：解析（pdfium/pdfplumber/unstructured）+ 分块（CJK 300 词 / 50 词 overlap）+ 嵌入 + 写 `content_chunks` | ADR-0007（manual adapter） |
-| 6 | **路径 B 检索 API** | `GET /api/v1/kb/{id}/search?q=...&mode=rag` 返回 top-K chunks；pgvector 向量检索 + PG 全文 BM25（zhparser 中文分词）+ Python RRF 融合；**wiki chunk boost 1.3 暂不实现**（第一批无 wiki chunk） | ADR-0009 |
+| 6 | **路径 B 检索 API** | `GET /api/v1/kb/{id}/search?q=...&mode=rag` 返回原文 top-K chunks；pgvector 向量检索 + PG 全文 BM25（zhparser 中文分词）+ Python RRF 融合；MVP 不写入或召回 Wiki chunk | ADR-0010 |
 | 7 | **最小前端** | Vite + React 18 SPA，1 个搜索页（query 输入框 + top-K chunks 结果列表）；构建产物由 FastAPI StaticFiles 同源托管（无 BFF、无 nginx） | Q4 推荐方案 B |
 
 ### Out-of-Scope（留给后续批次/P2+）
 
-- **路径 A wiki_search**（ADR-0009）：第二批
+- **路径 A wiki_search**（ADR-0010）：第二批，保持独立检索
 - **LLM 抽取 wiki 页面**（实体/概念/综述）：第二批
-- **wiki chunk boost 1.3**（CHUNK_RERANK plugin）：第二批（wiki 抽取后才有意义）
+- **Wiki/RAG 融合与 boost**：不属于已排期批次；两条路径独立跑完并通过评测后另立 ADR
 - **LLM chat + SSE 流式**：第三批
 - **wiki 手动编辑**（last-write-wins）：第三批
 - **多 user / 邀请制 / workspace context 切换**：P2（ADR-0005）
@@ -211,12 +211,14 @@ MVP 用 FastAPI StaticFiles 托管，正式部署（P2+）再加 nginx，届时�
    - 创建空表 ready：`organizations` / `org_members` / `kb_shares` / `llm_providers` / `user_llm_keys` / `wiki_folders`
    - `sources.source_type` 列创建但只实现 manual adapter
    - `content_chunks.chunk_type` 列创建（默认 `document`，预留 `wiki_page` / `image_ocr` / `image_caption`）
+   - `content_chunks.wiki_page_id` 可空外键创建，MVP 恒为 NULL
+   - `wiki_pages.source_refs` / `chunk_refs` / `version` 创建；用于原文血缘和未来去重，不触发 Wiki chunk 写入
    - `knowledge_bases` 加 IndexingStrategy 四开关（`vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled`），MVP 默认 `vector=true, keyword=true, wiki=true, graph=false`
 
-3. **检索是核心模块**（PRD §Phase 划分行 258 + ADR-0009）：
+3. **检索是核心模块**（PRD §Phase 划分 + ADR-0010）：
    - 路径 B（knowledge_search）= 向量（pgvector halfvec）+ BM25（PG 全文 + zhparser）+ RRF 融合
    - halfvec 多维度共存：`embedding` 列声明为 `halfvec`（不带 N）+ `embedding_dim INT` + partial HNSW 索引 `WHERE embedding_dim = N` + 查询时 SQL 必须 cast `embedding::halfvec(N)`
-   - wiki chunk boost 1.3 第一批不实现（无 wiki chunk 数据）
+   - MVP 不生成 Wiki chunk、不启用 WikiBoost；相关字段只作未来融合预留
 
 4. **鉴权极简**（ADR-0008 §MVP 鉴权极简）：
    - bootstrap owner：env var `BOOTSTRAP_OWNER_EMAIL` + `BOOTSTRAP_OWNER_PASSWORD` 启动时创建唯一 owner
@@ -512,7 +514,7 @@ async def get_kb(kb_id: int, ...) -> KBResponse: ...
 @router.get("", response_model=list[KBResponse])
 async def list_kbs(...) -> list[KBResponse]: ...
 
-# backend/app/routers/document.py
+# backend/app/routers/routes.py
 @router.post("/{kb_id}/documents", response_model=DocumentUploadResponse)
 async def upload_document(kb_id: int, file: UploadFile = File(...), ...) -> DocumentUploadResponse: ...
 # 上传 → MinIO 存原始 → Redis 入队 → 返回 doc_id + status=pending

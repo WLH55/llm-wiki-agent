@@ -1,5 +1,8 @@
 # 检索架构（双路径 + IndexingStrategy + wiki chunk boost）
 
+> 状态：Superseded（2026-07-27）<br>
+> 本文保留为历史决策记录。其中“Wiki 页面写入 `content_chunks`、参与 RAG 召回并固定加权 1.3”的决策已由 [ADR-0010](./0010-mvp-wiki-rag-separation.md) 取代。MVP 实际采用 Wiki/RAG 两条独立路径，字段预留但不实现 Wiki chunk 写入与融合。
+
 llm_wiki3.0 的检索架构由 **KB 级配置开关 + 两条独立检索路径** 构成：
 
 - **IndexingStrategy 四开关**（KB 创建时配置，决定该 KB 的检索能力）：`vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled`。

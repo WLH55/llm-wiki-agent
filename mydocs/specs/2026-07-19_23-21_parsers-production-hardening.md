@@ -79,10 +79,10 @@
 | 决策面 | 冻结结论 |
 |---|---|
 | 第一期范围 | Q1=C：P0 内核 + P1 核心格式/图片/产品接入；P2 观测指标另期 |
-| 生产上传白名单 | `txt/md/markdown/pdf/docx/xlsx/csv/pptx`；其他现有 parser 保留但视为 experimental |
-| 图片 | Markdown/DOCX/PPTX 解析图片写 MinIO；正文改写为稳定 `minio://<bucket>/<key>` 引用；DB metadata 记清单 |
+| 生产上传白名单 | `txt/md/markdown/pdf/docx/doc/xlsx/xls/csv/pptx/html/htm/mhtml/mht/epub` + 常见位图；`.ppt/.xlsb/.ods/.et` 仍不支持 |
+| 图片 | Markdown/DOCX/PPTX/EPUB/MHTML 解析图片写 MinIO；正文改写为稳定 `minio://<bucket>/<key>` 引用；DB metadata 记清单 |
 | PDF 扫描件 | 只检测，不做 OCR；无文本层时 `failed + empty_content` |
-| 旧 Office | `.doc/.ppt` 在上传阶段 400，错误语义为 `unsupported_type` |
+| 旧 Office | `.doc` 由 DocParser（antiword/catdoc）支持；`.ppt` 仍在上传阶段 400，错误语义为 `unsupported_type` |
 | 空内容 | `failed + empty_content`，禁止生成空向量或标记 `processed` |
 | engine | 上传表单可选，默认 `builtin`；未知、不可用或不支持该格式均 400，显式选择不得静默回退 |
 | DB | 新增可空/有默认值字段 `parser_engine/parse_error_code/parse_metadata`，兼容旧行 |
@@ -112,7 +112,7 @@
    - 全局：`max_file_bytes`、`parse_timeout_seconds`、`max_output_chars`
    - 复用并统一各 parser 已有局部限制（CSV/Excel/EPUB/Image/Web）
 4. **扩展名白名单**
-   - 上传阶段只允许 `txt/md/markdown/pdf/docx/xlsx/csv/pptx`
+   - 上传阶段允许 `txt/md/markdown/pdf/docx/doc/xlsx/xls/csv/pptx/html/htm/mhtml/mht/epub` + 常见位图
    - dispatch 对任何未注册类型返回 `unsupported_type`，不允许成功兜底
 5. **去掉危险兜底**
    - 删除“未知类型 → TextParser”的生产路径

@@ -237,7 +237,9 @@ markdown
         PG to_tsvector GIN 索引（独立检索路径）
 ```
 
-### 6.2 为什么 wiki page 不进 chunks 表
+### 6.2 当前分离状态的工程收益（非源码意图证明）
+
+下面四点可以解释双路径分离的工程收益，但它们是架构分析，不是参考项目源码中明确记录的“不做融合”决策：
 
 | 原因 | 说明 |
 |---|---|
@@ -263,7 +265,13 @@ markdown
 | `internal/application/service/wiki_page.go:926` | `deleteChunkForPage` | 删除 wiki page 时会清理 `wp-<pageID>` 前缀的 chunk，但**找不到对应的 `upsertChunkForPage`**（写入端缺失） |
 | `internal/application/service/chat_pipeline/wiki_boost.go` | WikiBoost 插件 | 给 `ChunkTypeWikiPage` chunk 加 1.3× 权重，但因没人写入这种 chunk，**实际空跑** |
 
-> **解读**：这些是设计上**预留的结合点**，为未来"wiki page 参与向量召回"留好了接口。当前实现选择让 wiki 和 RAG 完全分离。
+> **更严谨的解读**：源码能证明作者有过“wiki page 参与向量召回”的实现意图，但链路没有闭环。删除端、类型常量和 boost 插件都存在，唯独缺少写入端；因此更像未完成实现，不能据此断言作者经过权衡后决定永久分离。
+
+### 7.1 融合时必须解决的重复召回风险
+
+Wiki 页面由原始 chunk 经 LLM 综合生成。若二者直接进入同一召回池，同一事实会以原文和 Wiki 转述两种形式重复占用 top-k；固定的 Wiki boost 还可能让二手转述排在一手原文之前，拉长溯源链路。
+
+因此 llm_wiki3.0 的 MVP 不照搬这段未闭环设计：Wiki/RAG 先独立运行，保留 `chunk_type`、`wiki_page_id` 和 Wiki 到原文的 `chunk_refs` 血缘字段。未来只有在独立评测完成、实现血缘去重且保证一手证据优先后，才讨论融合。详见 [ADR-0010](./context/docs/adr/0010-mvp-wiki-rag-separation.md)。
 
 ---
 

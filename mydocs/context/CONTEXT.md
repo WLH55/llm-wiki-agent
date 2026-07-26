@@ -19,8 +19,8 @@ _Avoid_: 桌面客户端、Tauri 应用、胖客户端（v4.2 已放弃）
 ### 知识资产
 
 **知识库（KB / Knowledge Base）**:
-内容资产，单一 owner，可被共享到 0..N 个空间。owner 始终拥有完全控制权，不受任何空间权限约束。
-_Avoid_: 数据库、文档库、笔记
+RAG 与 Wiki 共享的数据归属和生命周期边界。KB 本身只保存身份、归属与通用描述，不携带 RAG/Wiki 类型、嵌入模型或检索能力开关；具体能力由独立配置定义。
+_Avoid_: 数据库、文档库、笔记、RAG 类型 KB、Wiki 类型 KB
 
 **个人知识库（Personal KB）**:
 owner 是当前用户、且未共享到任何空间的 KB。数据物理上仍在内网服务器的 Postgres 里，无独立"本地存储"概念。
@@ -56,9 +56,9 @@ _Avoid_: 维度 padding 到固定 halfvec(N)、按 KB 分表、强制全局单�
 KB 内的文档来源单元。一个 KB 可挂 N 个 source（manual / rss / yuque / feishu / notion / local_dir），所有 source 的 chunks 共享同一 `kb_id`。`sources` 表统一存（`source_type` + `config JSONB` + `sync_cursor JSONB` + `sync_status`）；每种类型一个 `SourceAdapter` 实现。**所有 source 平等**——无检索 boost、无更新覆盖优先级。详见 [ADR-0007](./docs/adr/0007-multi-source-mounting.md)。
 _Avoid_: 每 source 单独建表（schema 膨胀）、source boost_factor（YAGNI）、source 级 RBAC（粒度过细）
 
-**IndexingStrategy（KB 级检索能力开关）**:
-`knowledge_bases` 表的 4 个独立布尔字段：`vector_enabled`（向量 embedding + 向量检索）/ `keyword_enabled`（BM25 关键词索引）/ `wiki_enabled`（自动生成 wiki 页面 + wiki chunk 进 content_chunks）/ `graph_enabled`（知识图谱抽取，P5+）。决定该 KB 的检索能力。MVP 默认混合（前三个 true，graph 关）。三种典型配置：纯 RAG（`wiki=false`）/ 纯 wiki（`vector=false`）/ 混合（全开）。详见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md)。
-_Avoid_: query 级别用户手动选模式（v4.2 已弃用——KB 配置决定能力）、隐式默认（用户不知道 KB 能做什么会出大问题）
+**IndexingStrategy（旧 KB 级检索能力开关）** [已弃用]:
+旧设计把 `vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled` 直接放在 `knowledge_bases`。2026-07-27 数据表评审决定 KB 保持为轻量共享根，RAG 与 Wiki 配置拆分；替代术语待对应配置表审批后确定。
+_Avoid_: 继续向 `knowledge_bases` 增加能力开关、用单一 `type` 把 KB 固化为 RAG 或 Wiki
 
 **chunk_type（content_chunks 来源区分）**:
 `content_chunks` 表的字段，枚举值：`document`（原始文档切块，默认）/ `wiki_page`（wiki 页面切块，关联 `wiki_page_id`）/ `image_ocr`（P4）/ `image_caption`（P4）。所有 chunk_type 共表，参与同一套向量 + BM25 检索。详见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md)。
@@ -119,20 +119,20 @@ LLM API Key 的所有权模型。每个用户在个人设置里填自己的 key�
 _Avoid_: 团队 key、空间 key、全局 key、统一采购、系统兜底 key（v4.2 不做，留作企业版升级路径）
 
 **意图分类（Intent Classification，零 LLM）** [v4.2 已弃用]:
-原方案是对话入口的关键词/规则路由（5 类：`chat` / `search_only` / `summarize` / `compare` / `extract_entities`）。v4.2 grilling 确认弃用——改为 IndexingStrategy KB 级配置 + Agent 显式选检索工具。详见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md) §「KB 类型推断（替代意图分类）」。
+原方案是对话入口的关键词/规则路由（5 类：`chat` / `search_only` / `summarize` / `compare` / `extract_entities`）。v4.2 grilling 确认弃用——改为 IndexingStrategy KB 级配置 + Agent 显式选检索工具。详见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)。
 _Avoid_:（条目已弃用，新增产品不要使用此概念）
 
 **双路径检索（Dual-Path Retrieval）**:
-两条独立检索路径，**不做联合排序**。路径 A `wiki_search`：`wiki_pages` 表 + POSIX 正则 `~*` + 字段权重排序（title=4 / slug=3 / summary=2 / content=1），不走向量/BM25。路径 B `knowledge_search`：`content_chunks` 表 + 向量（pgvector）+ BM25 + RRF 融合；wiki 页面也切块向量化进此表（`chunk_type='wiki_page'`），普通检索时这些 wiki chunk 参与召回且被 × 1.3 加权。详见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md)。
+两条独立检索路径，**MVP 不写入、不混合召回、不做联合排序**。路径 A `wiki_search`：`wiki_pages` 表 + POSIX 正则 `~*` + 字段权重排序（title=4 / slug=3 / summary=2 / content=1），不走向量/BM25。路径 B `knowledge_search`：原始 `content_chunks` + 向量（pgvector）+ BM25 + RRF 融合，不包含 Wiki 页面。详见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)。
 _Avoid_: 双路径间 RRF 联合（rejected，跨路径排序语义模糊）、query 级别用户手动选模式（被 IndexingStrategy 替代）
 
 **wiki_search（POSIX 正则 + 字段权重）**:
 路径 A 的检索方式。独立端点 `GET /api/v1/kb/{id}/wiki/search?q=...&limit=10`，检索 `wiki_pages` 表。完全不用向量/embedding/BM25，用 PG 内建 `~*`（POSIX 正则，大小写不敏感）+ 字段权重 CASE 排序。支持正则特性（`|` 交替 / `.*` 串联 / `^` 前缀）。中文是字节级子串匹配（不需要 zhparser）。limit 默认 10，硬上限 50。
 _Avoid_: BM25 over wiki_pages（相似度排序会把"仅提及关键词"的页面排到"标题就是关键词"的页面之前）、tsvector + ts_query 全文检索（不支持任意正则 + 中文需 zhparser 分词扩展）
 
-**wiki chunk boost**:
-路径 B 检索的加权机制。普通 RAG 检索时 wiki chunk（`chunk_type='wiki_page'`）参与召回，且在 CHUNK_RERANK 阶段被 × **1.3** 加权（硬编码）。触发条件双重校验：① 结果集真的含 wiki_page chunk；② 当前 KB 开了 `wiki_enabled=true`。理由：wiki 页面是 LLM 预综合的知识，比 raw 文档 chunk 更连贯可靠，同分时应优先。
-_Avoid_: boost factor 做成可配置（YAGNI，1.3 是经验值）、无脑加权（不校验 KB 配置会让纯 RAG KB 误触发）
+**wiki chunk boost** [MVP 不启用]:
+`chunk_type='wiki_page'`、`wiki_page_id` 和 rerank 插件仅作未来融合预留。MVP 不生成 Wiki chunk，也不启用固定 1.3 加权。未来是否融合必须先完成 RAG-only / Wiki-only 独立评测、基于 `chunk_refs` 的血缘去重和一手证据优先设计，再另立 ADR。
+_Avoid_: 把预留字段或空跑插件描述成已实现能力；在没有同源去重时让 Wiki 转述挤占原文 top-k。
 
 **统一产品形态**:
 v4.2 是一个产品，从「单人自用」到「小团队」到「公司多团队」无缝扩展。区别不在产品形态，而在**部署时启用的模块**：单人 = 自建账户；团队 = 邀请制 + RBAC；公司 = 强制 SSO + RLS。
@@ -210,6 +210,6 @@ _注_: v4.2 暂不做 Postgres RLS——RLS 是企业级兜底，自注册+邀�
 | 三档 RBAC（workspace/kb_grant/membership min()） | 弃用 | 改为 tenant + organization 两层 + kb_shares + fall-through 合并（见 [ADR-0002](./docs/adr/0002-tenant-org-rbac.md)） |
 | 8 种语义边 / 类型化 link_type | 弃用 | 改为无类型有向 wikilink 边 + 三套边并存（见 [ADR-0003](./docs/adr/0003-three-edge-model.md)） |
 | halfvec(3072) + 维度 padding | 弃用 | 改为 halfvec 不带 N + embedding_dim 字段 + partial HNSW（见 [ADR-0001](./docs/adr/0001-halfvec-multi-dim.md)） |
-| 意图分类（Intent Classification） | 弃用 | IndexingStrategy KB 级配置 + Agent 显式选工具替代（见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md)） |
-| query 级别用户手动选模式（RAG/Wiki 切换） | 弃用 | KB 创建时配置 IndexingStrategy 决定能力（见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md)） |
-| wiki 不嵌入向量（wiki 仅为结构化页面） | 弃用 | wiki 页面也切块向量化进 content_chunks（`chunk_type='wiki_page'`）+ boost 1.3 加权（见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md)） |
+| 意图分类（Intent Classification） | 弃用 | IndexingStrategy KB 级配置 + Agent 显式选工具替代（见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)） |
+| query 级别用户手动选模式（RAG/Wiki 切换） | 弃用 | KB 创建时配置 IndexingStrategy 决定能力（见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)） |
+| Wiki 页面在 MVP 写入 RAG 并固定 boost 1.3 | 弃用 | Wiki/RAG 先独立运行，字段与血缘全预留；通过独立评测和去重设计后再决定是否融合（见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)） |

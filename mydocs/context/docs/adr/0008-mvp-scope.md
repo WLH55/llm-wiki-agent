@@ -12,7 +12,7 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 1. 双路径核心闭环必须完整（RAG 检索 + Wiki 抽取 + chat + 手动编辑）。
 2. 鉴权极简（bootstrap owner + 系统兜底 key），未来扩展到多 user / BYOK 不需要重写。
 3. schema 按 ADR 设计（预留 tenant_id / organizations / kb_shares / sources.source_type / llm_providers / user_llm_keys 等表/列），但**功能不实现**——P2+ 启用即可。
-4. 检索模块的工程质量（混合搜索稳定性 + 中英混排 + 后融合 Boost）是 MVP 的核心交付物。
+4. 检索模块的工程质量是 MVP 的核心交付物：RAG 内部完成向量 + BM25 + RRF，Wiki 检索独立完成；不在 MVP 融合两条路径。
 
 ## Decision
 
@@ -22,7 +22,7 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 |---|------|---------|---------|
 | 1 | KB 创建 | 默认绑定 bge-m3（1024 维），用户无需选 | [ADR-0001](./0001-halfvec-multi-dim.md) |
 | 2 | 文档上传 + 解析 + 分块 + 嵌入 | manual only；Python worker + Redis；CJK 300 词分块 | [ADR-0007](./0007-multi-source-mounting.md) |
-| 3 | **检索（双路径独立）** | IndexingStrategy 四开关 + 路径 A wiki_search（正则+字段权重）+ 路径 B 向量+BM25+RRF + wiki chunk boost 1.3；**工程质量核心** | [ADR-0009](./0009-retrieval-architecture.md) |
+| 3 | **检索（双路径独立）** | IndexingStrategy 四开关 + 路径 A wiki_search（正则+字段权重）+ 路径 B 原文 chunk 的向量+BM25+RRF；Wiki 不写入 RAG、不 boost；**工程质量核心** | [ADR-0010](./0010-mvp-wiki-rag-separation.md) |
 | 4 | LLM chat | 内置 Agent + 单 provider（env var）+ 引用回链 chunks | [ADR-0006](./0006-agent-runtime-byok.md) |
 | 5 | LLM 抽取实体/概念 → wiki_pages + `[[xxx]]` 链接图边 | 链接图边 MVP 必做；目录树 + 物化路径缓存 P2 | [ADR-0003](./0003-three-edge-model.md) |
 | 6 | wiki 页手动编辑 + last-write-wins | version 字段乐观锁；冲突 409 | [ADR-0003](./0003-three-edge-model.md) |
@@ -50,6 +50,8 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 | `pages.folder_id` / `parent_slug` / `category_path` / `depth` / `wiki_path` | 创建列 + 默认空 | P2 启用目录树（folder_id 写入 + 物化路径重算） |
 | `wiki_folders` 表 | 创建空表 | P2 启用目录树 |
 | `kb_embedding_models` 表 | MVP 用 `knowledge_bases.embedding_model_id` 简化字段即可 | P2 多嵌入模型时启用完整表 |
+| `content_chunks.chunk_type` / `wiki_page_id` | 创建列；MVP 只写原文 chunk，`wiki_page_id` 恒为 NULL | 独立评测完成并通过融合 ADR 后启用 Wiki chunk 写入 |
+| `wiki_pages.source_refs` / `chunk_refs` / `version` | 创建列并维护 Wiki 到原文的证据血缘；不据此生成 Wiki chunk | 未来做血缘去重、索引失效和一手证据回链 |
 
 ### MVP（P1）完全不做的（无 schema 预留）
 
@@ -69,7 +71,7 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 ## Consequences
 
 - **工程量大幅缩减**：MVP 砍掉了约 60% 的 ADR 决策（多 user / 邀请 / MCP / 多 provider / 多源 / 目录树 / 意图分类），6 个核心模块可聚焦质量。
-- **检索模块是 MVP 的核心交付物**：混合搜索稳定性（中英混排）+ 后融合 Boost（标题命中加权）+ RRF 融合参数调优——这些是产品差异化的关键，工程精力集中投入。
+- **检索模块是 MVP 的核心交付物**：RAG 路径的混合搜索稳定性（中英混排 + RRF）与 Wiki 路径的结构化检索分别评测；跨路径 Boost 和联合排序延后。
 - **schema 预留的代价**：业务表多了一些默认值列（`tenant_id` 默认 bootstrap owner 的 ID），代码层需要从 env var 读 bootstrap owner → 创建 tenant → 业务表默认 tenant_id。可接受。
 - **失去的能力（MVP 阶段）**：
   - 多人协作（只有 bootstrap owner 一人）
@@ -83,7 +85,7 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 ## Open Questions（留给未来 grilling）
 
 - **Open Question A（MVP 的 chat 是否做 streaming）**：✅ **已决策（2026-07-09）**——MVP 就做 streaming（SSE）。用户体验上 streaming 是 chat 的标配，不做会让 MVP 评审减分；工程复杂度（SSE 长连接 + 前端 EventSource + LLM 流式拼接）可接受。
-- **Open Question B（MVP 的检索结果 UI）**：✅ **已决策（2026-07-09）**——不做双路径联合排序 UI。改为 **IndexingStrategy KB 级配置 + 两条独立检索路径**（详见 [ADR-0009](./0009-retrieval-architecture.md)）：① 路径 A `wiki_search`（POSIX 正则 + 字段权重，独立检索 `wiki_pages`）；② 路径 B `knowledge_search`（向量+BM25+RRF，检索 `content_chunks`，wiki chunk 也参与召回且被 × 1.3 加权）。用户不在 query 时切模式——KB 配置决定能力，工具按 KB 类型分发。
+- **Open Question B（MVP 的检索结果 UI）**：✅ **已修订（2026-07-27）**——不做双路径联合排序 UI。`wiki_search` 独立检索 `wiki_pages`；`knowledge_search` 只检索原文 `content_chunks`。Wiki 页面不写入 RAG、不做 1.3 倍加权；详见 [ADR-0010](./0010-mvp-wiki-rag-separation.md)。
 
 ## 参考实现
 
