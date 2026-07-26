@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
+import { Search as SearchIcon } from 'lucide-react'
+
 import SearchBox from '../components/SearchBox'
 import ResultList from '../components/ResultList'
-import { ChunkHit, KBInfo, listKBs, login, search } from '../api'
+import { ChunkHit, KBInfo, extractErrorMessage, listKBs, login, search } from '../api'
 
 const TOKEN_KEY = 'llm_wiki_jwt'
 const EMAIL_DEFAULT = 'owner@local'
 const PWD_DEFAULT = 'change-me'
 
+/** 知识检索页：复用现有 search API，适配应用壳层布局。 */
 export default function SearchPage() {
   const [token, setToken] = useState<string>(() => localStorage.getItem(TOKEN_KEY) || '')
   const [kbs, setKBs] = useState<KBInfo[]>([])
@@ -15,39 +18,38 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
 
-  // 首次加载：登录 + 拉取 KB 列表
   useEffect(() => {
     async function bootstrap() {
       try {
-        let t = token
-        if (!t) {
-          const r = await login(EMAIL_DEFAULT, PWD_DEFAULT)
-          t = r.access_token
-          localStorage.setItem(TOKEN_KEY, t)
-          setToken(t)
+        let activeToken = token
+        if (!activeToken) {
+          const response = await login(EMAIL_DEFAULT, PWD_DEFAULT)
+          activeToken = response.access_token
+          localStorage.setItem(TOKEN_KEY, activeToken)
+          setToken(activeToken)
         }
-        const kbList = await listKBs(t)
+        const kbList = await listKBs(activeToken)
         setKBs(kbList)
         if (kbList.length > 0 && selectedKb === null) {
           setSelectedKb(kbList[0].id)
         }
-      } catch (e: any) {
-        setError(`初始化失败: ${e.message}`)
+      } catch (requestError) {
+        setError(`初始化失败: ${extractErrorMessage(requestError)}`)
       }
     }
-    bootstrap()
+    void bootstrap()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function handleSearch(q: string) {
+  async function handleSearch(query: string) {
     if (!token || selectedKb === null) return
     setLoading(true)
     setError('')
     try {
-      const res = await search(token, selectedKb, q)
-      setResults(res.hits)
-    } catch (e: any) {
-      setError(`搜索失败: ${e.message}`)
+      const response = await search(token, selectedKb, query)
+      setResults(response.hits)
+    } catch (requestError) {
+      setError(`搜索失败: ${extractErrorMessage(requestError)}`)
       setResults([])
     } finally {
       setLoading(false)
@@ -55,16 +57,26 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">LLM Wiki 3.0 知识检索</h1>
+    <main className="page-panel">
+      <section className="page-hero">
+        <div>
+          <p className="eyebrow">Knowledge Search</p>
+          <h1>知识检索</h1>
+          <p className="page-desc">基于已入库内容的检索联调入口，与解析预览链路隔离。</p>
+        </div>
+        <div className="hero-badge">
+          <SearchIcon size={16} aria-hidden="true" />
+          RAG / Wiki
+        </div>
+      </section>
 
-        <div className="mb-4">
-          <label className="block text-sm text-gray-600 mb-1">选择知识库</label>
+      <section className="card stack-form">
+        <label className="field">
+          <span>选择知识库</span>
           <select
-            className="w-full p-2 border rounded"
             value={selectedKb ?? ''}
-            onChange={(e) => setSelectedKb(Number(e.target.value))}
+            onChange={(event) => setSelectedKb(Number(event.target.value))}
+            disabled={loading || kbs.length === 0}
           >
             {kbs.map((kb) => (
               <option key={kb.id} value={kb.id}>
@@ -72,16 +84,20 @@ export default function SearchPage() {
               </option>
             ))}
           </select>
-        </div>
+        </label>
 
         <SearchBox onSearch={handleSearch} loading={loading} />
 
-        {error && <div className="mt-4 text-red-600">{error}</div>}
+        {error && (
+          <div className="alert alert-error" role="alert">
+            {error}
+          </div>
+        )}
 
-        <div className="mt-6">
+        <div className="search-results">
           <ResultList results={results} />
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   )
 }
