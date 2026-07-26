@@ -1,9 +1,20 @@
-version: "3.9"
+# 用法：
+#   1) 仅基础组件：docker compose up -d
+#   2) 基础 + 前后端（本地代码/日志/env 挂载）：
+#        docker compose --profile app up -d --build
+#   3) 环境切换：改项目根 .env 的 ENVIRONMENT=dev|prod|test
+#        或临时：ENVIRONMENT=prod docker compose --profile app up -d
+#   4) 改 backend/.env.* 或根 .env 后重启生效：
+#        docker compose --profile app up -d
+#        # 或 docker compose --profile app restart backend worker
+#   5) 日志：./storage/logs/backend/app.log
+#   6) Redis 宿主机端口 6380（避免与本机 Redis5 的 6379 冲突）
 
 services:
   postgres:
-    build:
-      context: ./postgres
+    # 默认用预构建 pgvector 镜像，避免本地编译时受 Debian 源网络抖动影响。
+    # 如需 zhparser，可改回 build: ./postgres
+    image: pgvector/pgvector:pg16
     container_name: llm-wiki-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-llmwiki}
@@ -13,6 +24,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-pgvector-only.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmwiki}"]
       interval: 5s
@@ -25,7 +37,8 @@ services:
     image: redis:7-alpine
     container_name: llm-wiki-redis
     ports:
-      - "6379:6379"
+      # 宿主机 6380 -> 容器 6379，避免与本机 Redis5(6379) 冲突
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -57,28 +70,33 @@ services:
       - llm-wiki-net
 
   backend:
+    profiles: ["app"]
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: llm-wiki-backend
     environment:
-      ENVIRONMENT: production
-      POSTGRES_DSN: postgresql+asyncpg://${POSTGRES_USER:-llmwiki}:${POSTGRES_PASSWORD:-llmwiki}@postgres:5432/${POSTGRES_DB:-llmwiki}
-      REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-llmwiki}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-llmwiki123}
-      MINIO_BUCKET: ${MINIO_BUCKET:-llm-wiki}
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
-      JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-24}
-      BOOTSTRAP_OWNER_EMAIL: ${BOOTSTRAP_OWNER_EMAIL:-owner@local}
-      BOOTSTRAP_OWNER_PASSWORD: ${BOOTSTRAP_OWNER_PASSWORD:-change-me}
-      EMBEDDING_API_BASE: ${EMBEDDING_API_BASE:-https://api.siliconflow.cn/v1}
-      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-m3}
-      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+      # 决定 settings 读取哪个 backend/.env.*（dev/prod/test）
+      ENVIRONMENT: ${ENVIRONMENT:-dev}
+    env_file:
+      - ./backend/.env.${ENVIRONMENT:-dev}
     ports:
       - "8000:8000"
+    volumes:
+      # 本地代码热更新
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
+      # 多环境 env 挂载；改文件后 restart 即按 ENVIRONMENT 重新加载
+      - ./backend/.env.dev:/app/.env.dev:ro
+      - ./backend/.env.prod:/app/.env.prod:ro
+      - ./backend/.env.test:/app/.env.test:ro
+      # 日志落到宿主机 ./storage/logs/backend
+      - ./storage/logs/backend:/app/logs
+    command: >
+      sh -c "mkdir -p /app/logs &&
+             alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,23 +108,26 @@ services:
       - llm-wiki-net
 
   worker:
+    profiles: ["app"]
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: llm-wiki-worker
-    command: sh -c "alembic upgrade head && python -m app.workers.worker"
     environment:
-      ENVIRONMENT: production
-      POSTGRES_DSN: postgresql+asyncpg://${POSTGRES_USER:-llmwiki}:${POSTGRES_PASSWORD:-llmwiki}@postgres:5432/${POSTGRES_DB:-llmwiki}
-      REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-llmwiki}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-llmwiki123}
-      MINIO_BUCKET: ${MINIO_BUCKET:-llm-wiki}
-      EMBEDDING_API_BASE: ${EMBEDDING_API_BASE:-https://api.siliconflow.cn/v1}
-      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-m3}
-      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+      ENVIRONMENT: ${ENVIRONMENT:-dev}
+    env_file:
+      - ./backend/.env.${ENVIRONMENT:-dev}
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
+      - ./backend/.env.dev:/app/.env.dev:ro
+      - ./backend/.env.prod:/app/.env.prod:ro
+      - ./backend/.env.test:/app/.env.test:ro
+      - ./storage/logs/worker:/app/logs
+    command: >
+      sh -c "mkdir -p /app/logs &&
+             python -m app.workers.worker"
     depends_on:
       postgres:
         condition: service_healthy
@@ -114,6 +135,33 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - llm-wiki-net
+
+  frontend:
+    profiles: ["app"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: llm-wiki-frontend
+    working_dir: /app
+    environment:
+      VITE_BACKEND_URL: http://backend:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      # 使用容器内 node_modules，避免宿主机/容器平台二进制不一致
+      - frontend_node_modules:/app/node_modules
+      - ./storage/logs/frontend:/app/logs
+    command: >
+      sh -c "npm install &&
+             mkdir -p /app/logs &&
+             npm run dev -- --host 0.0.0.0 --port 5173"
+    depends_on:
+      - backend
     networks:
       - llm-wiki-net
 
@@ -121,6 +169,7 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  frontend_node_modules:
 
 networks:
   llm-wiki-net:
