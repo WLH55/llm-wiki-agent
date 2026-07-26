@@ -1,4 +1,4 @@
-﻿"""MarkItDown 高级解析器契约测试。"""
+"""MarkItDown 高级解析器契约测试。"""
 
 from types import SimpleNamespace
 
@@ -67,4 +67,4 @@ def test_markitdown_parser_returns_error_for_empty_result(monkeypatch):
 
 
 def test_markitdown_parser_keeps_default_registry_unchanged():
-    assert registry.get_parser_class("pdf") is PdfParser
+    assert registry.get_parser_class("builtin", "pdf") is PdfParser

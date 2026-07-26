@@ -3,33 +3,46 @@
 
 沿用脚手架的多环境切换 + CORS + 日志配置；扩展 spec 要求的 DB / Redis / MinIO / JWT /
 Bootstrap owner / Embedding 业务字段。
+
+环境文件（位于 backend/ 根目录）：
+- dev  -> .env.dev
+- prod -> .env.prod
+- test -> .env.test
+也可用 ENV_FILE 显式指定绝对/相对路径。
 """
 
 import os
 from pathlib import Path
 
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# 提取基础路径（常量）
+# backend/ 根目录（app/config/settings.py -> 上三级）
 _BASE_PATH = Path(__file__).resolve().parent.parent.parent
 
 
 def get_env_file() -> str:
-    """根据环境变量 ENVIRONMENT 获取 .env 文件路径"""
-    env = os.getenv("ENVIRONMENT", "development")
+    """根据 ENVIRONMENT / ENV_FILE 解析要加载的 env 文件路径。"""
+    override = os.getenv("ENV_FILE", "").strip()
+    if override:
+        path = Path(override)
+        if not path.is_absolute():
+            path = _BASE_PATH / path
+        return str(path)
+    env = os.getenv("ENVIRONMENT", "dev").strip().lower()
     env_files = {
-        "development": ".env.development",
-        "production": ".env.production",
+        "dev": ".env.dev",
+        "prod": ".env.prod",
         "test": ".env.test",
     }
-    target_file = env_files.get(env, ".env.development")
+    target_file = env_files.get(env, f".env.{env}")
     return str(_BASE_PATH / target_file)
 
 
 class Settings(BaseSettings):
     """应用配置类（Pydantic V2 BaseSettings）
 
-    沿用脚手架字段命名风格（大写），保证 env_file 加载时大小写敏感。
+    字段名即环境变量名（大小写敏感）。Docker 通过 env_file + 挂载 backend/.env.* 注入。
     """
 
     model_config = SettingsConfigDict(
@@ -39,73 +52,83 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # ========== 环境配置（沿用脚手架） ==========
-    ENVIRONMENT: str = "development"
+    # ========== 环境配置 ==========
+    ENVIRONMENT: str = "dev"
 
-    # ========== 应用基础配置（沿用脚手架） ==========
+    # ========== 应用基础配置 ==========
     APP_NAME: str = "LLM Wiki 3.0"
     APP_VERSION: str = "0.1.0"
     API_PREFIX: str = "/api/v1"
     DEBUG: bool = False
 
-    # ========== 服务器与 HTTP 配置（沿用脚手架） ==========
+    # ========== 服务器与 HTTP 配置 ==========
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     HTTP_TIMEOUT: int = 30
 
-    # ========== CORS 配置（沿用脚手架） ==========
+    # ========== CORS 配置 ==========
     ALLOW_ORIGINS: list[str] = ["*"]
     ALLOW_CREDENTIALS: bool = True
     ALLOW_METHODS: list[str] = ["*"]
     ALLOW_HEADERS: list[str] = ["*"]
 
-    # ========== 日志配置（沿用脚手架） ==========
+    # ========== 日志 / 存储 ==========
     LOG_LEVEL: str = "INFO"
-    STORAGE_DIR: Path = _BASE_PATH / "storage"
-    LOGS_DIR: Path = _BASE_PATH / "storage" / "logs"
+    # 默认 backend/logs；Docker 中通过 LOGS_DIR=/app/logs 并挂载 ./storage/logs/backend
+    STORAGE_DIR: Path = Field(default_factory=lambda: _BASE_PATH / "storage")
+    LOGS_DIR: Path = Field(default_factory=lambda: _BASE_PATH / "logs")
     LOG_RETENTION_DAYS: int = 30
 
-    # ========== 数据库配置（spec 扩展） ==========
+    # ========== 数据库 ==========
     POSTGRES_DSN: str = ""  # postgresql+asyncpg://user:pwd@host:5432/dbname
 
-    # ========== Redis 配置（spec 扩展） ==========
-    REDIS_URL: str = "redis://localhost:6379/0"
+    # ========== Redis ==========
+    # Docker 内: redis://redis:6379/0；宿主机连容器: redis://localhost:6380/0
+    REDIS_URL: str = "redis://localhost:6380/0"
 
-    # ========== MinIO 配置（spec 扩展） ==========
+    # ========== MinIO ==========
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = ""
     MINIO_SECRET_KEY: str = ""
     MINIO_BUCKET: str = "llm-wiki"
     MINIO_SECURE: bool = False
 
-    # ========== JWT 配置（spec 扩展，HS256，24h） ==========
+    # ========== JWT ==========
     JWT_SECRET: str = ""
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_HOURS: int = 24
 
-    # ========== Bootstrap owner 配置（spec 扩展） ==========
+    # ========== Bootstrap owner ==========
     BOOTSTRAP_OWNER_EMAIL: str = ""
     BOOTSTRAP_OWNER_PASSWORD: str = ""
 
-    # ========== Embedding 配置（spec 扩展，SiliconFlow bge-m3） ==========
-    EMBEDDING_API_BASE: str = "https://api.siliconflow.cn/v1"
+    # ========== Embedding ==========
+    # 默认 Jina Embeddings（OpenAI 兼容协议）
+    EMBEDDING_API_BASE: str = "https://api.jina.ai/v1"
     EMBEDDING_API_KEY: str = ""
-    EMBEDDING_MODEL: str = "BAAI/bge-m3"
+    EMBEDDING_MODEL: str = "jina-embeddings-v5-text-small"
     EMBEDDING_DIM: int = 1024
 
     # ========== 文档解析生产护栏 ==========
+    # 字节数配置：50 MiB = 50 * 1024 * 1024 bytes
     PARSER_MAX_FILE_BYTES: int = 50 * 1024 * 1024
     PARSER_MAX_OUTPUT_CHARS: int = 5_000_000
+    # 字节数配置：20 MiB = 20 * 1024 * 1024 bytes
     PARSER_MAX_TOTAL_IMAGE_BYTES: int = 20 * 1024 * 1024
     PARSER_TIMEOUT_SECONDS: int = 300
     PARSER_JOB_TIMEOUT_SECONDS: int = 600
 
-    # ========== RAG 检索配置（spec 扩展） ==========
-    RAG_TOP_K_EACH: int = 20  # 向量 / BM25 各自召回 top-K
-    RAG_RRF_K: int = 60  # RRF 融合常数，经验默认值
+    # ========== RAG 检索 ==========
+    RAG_TOP_K_EACH: int = 20
+    RAG_RRF_K: int = 60
 
-    # ========== 前端静态托管配置（spec 扩展，无 nginx） ==========
-    FRONTEND_DIST_DIR: Path = _BASE_PATH / "static" / "dist"
+    @field_validator("STORAGE_DIR", "LOGS_DIR", mode="before")
+    @classmethod
+    def _parse_path(cls, value: object) -> Path:
+        """将环境变量中的路径字符串规范为 Path。"""
+        if value is None or value == "":
+            raise ValueError("path setting must not be empty")
+        return Path(str(value))
 
 
 # 全局配置实例

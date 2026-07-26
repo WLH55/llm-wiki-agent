@@ -1,4 +1,4 @@
-﻿"""旧版 XLS 解析器契约测试。"""
+"""旧版 XLS 解析器契约测试。"""
 
 from importlib import import_module
 from io import BytesIO
@@ -66,4 +66,4 @@ def test_invalid_xls_returns_error_metadata():
 def test_registry_routes_xls_to_xls_parser():
     parser_class = _xls_parser_class()
     from app.parsers import registry
-    assert registry.get_parser_class("xls") is parser_class
+    assert registry.get_parser_class("builtin", "xls") is parser_class

@@ -1,4 +1,4 @@
-﻿"""Markdown 解析：表格标准化 + Base64 图片抽取 + 管道组合。
+"""Markdown 解析：表格标准化 + Base64 图片抽取 + 管道组合。
 
 阶段拆分：
 1. MarkdownTableFormatter：GFM 表格规范化

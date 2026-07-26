@@ -1,4 +1,4 @@
-﻿"""XLSX 解析套件契约测试。"""
+"""XLSX 解析套件契约测试。"""
 
 import zipfile
 from importlib import import_module
@@ -154,13 +154,13 @@ def test_invalid_excel_returns_error_metadata():
 
 
 def test_registry_routes_xlsx_to_excel_parser():
-    assert registry.get_parser_class("xlsx") is ExcelParser
+    assert registry.get_parser_class("builtin", "xlsx") is ExcelParser
 
 
 @pytest.mark.parametrize("file_type", ["xlsb", "ods", "et"])
 def test_registry_does_not_advertise_unimplemented_spreadsheet_formats(file_type):
     with pytest.raises(KeyError):
-        registry.get_parser_class(file_type)
+        registry.get_parser_class("builtin", file_type)
 
 
 def test_external_conversion_api_is_absent_and_legacy_xls_is_rejected():

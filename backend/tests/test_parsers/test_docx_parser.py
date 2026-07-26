@@ -1,4 +1,4 @@
-﻿"""Word 系列 parser 测试。
+"""Word 系列 parser 测试。
 
 - Docx2Parser：用 python-docx 在内存中构造一个 .docx bytes（含段落 + 表格），解析后断言
 - DocParser：antiword/catdoc 通常未装，验证 fallback 行为（返回 metadata.error）

@@ -1,4 +1,4 @@
-﻿"""将 XLSX 工作簿解析为 Markdown 表格。"""
+"""将 XLSX 工作簿解析为 Markdown 表格。"""
 
 import logging
 from io import BytesIO

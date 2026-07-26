@@ -9,7 +9,7 @@ from uuid import UUID
 import pytest
 
 from app.config import settings
-from app.parsers.schemas import ParseErrorCode, ParseResult
+from app.parsers.core.schemas import ParseErrorCode, ParseResult
 from app.workers import parse_document as worker
 from app.workers.parse_document import _mark_status, _metadata_for_result
 
@@ -31,7 +31,7 @@ def _install_fake_database(monkeypatch):
     context = _SessionContext()
     monkeypatch.setitem(
         sys.modules,
-        "app.database",
+        "app.models.database",
         SimpleNamespace(async_session_factory=lambda: context),
     )
     return context.db

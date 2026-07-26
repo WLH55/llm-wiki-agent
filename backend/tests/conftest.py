@@ -15,6 +15,16 @@ import asyncio
 import os
 from typing import AsyncIterator
 
+# 在导入 app 模块前提供可解析的默认 DSN，避免 collection 阶段 URL 解析失败。
+# 真实集成测试仍应通过环境变量/compose 指向可用 Postgres。
+os.environ.setdefault(
+    "POSTGRES_DSN",
+    "postgresql+asyncpg://llmwiki:llmwiki@localhost:5432/llmwiki",
+)
+os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ.setdefault("BOOTSTRAP_OWNER_EMAIL", "owner@local")
+os.environ.setdefault("BOOTSTRAP_OWNER_PASSWORD", "change-me")
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -31,7 +41,7 @@ def event_loop():
 @pytest_asyncio.fixture
 async def db_session() -> AsyncIterator:
     """异步 db session"""
-    from app.database import async_session_factory
+    from app.models.database import async_session_factory
 
     async with async_session_factory() as session:
         yield session

@@ -1,4 +1,4 @@
-﻿"""FirstParser / PipelineParser 契约测试。"""
+"""FirstParser / PipelineParser 契约测试。"""
 from app.parsers.core.base import BaseParser
 from app.parsers.core.chain import FirstParser, PipelineParser
 from app.parsers.core.document import Document

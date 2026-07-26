@@ -1,4 +1,4 @@
-﻿"""BaseParser 抽象基类测试。"""
+"""BaseParser 抽象基类测试。"""
 import pytest
 
 from app.parsers.core.base import BaseParser

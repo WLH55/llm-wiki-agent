@@ -1,4 +1,4 @@
-﻿"""TextParser 测试。"""
+"""TextParser 测试。"""
 from app.parsers.core.document import Document
 from app.parsers.implementations.text import TextParser
 

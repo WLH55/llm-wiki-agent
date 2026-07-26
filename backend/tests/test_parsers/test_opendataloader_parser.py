@@ -1,4 +1,4 @@
-﻿"""OpenDataLoader 高级解析器契约测试。"""
+"""OpenDataLoader 高级解析器契约测试。"""
 
 import base64
 from pathlib import Path

@@ -1,6 +1,6 @@
 """Document：所有 parser 的统一输出契约。
 
-裁剪自 docreader/models/document.py：去掉 chunks 字段（分块独立在 workers/chunker.py）。
+裁剪自 docreader/models/routes.py：去掉 chunks 字段（分块独立在 workers/chunker.py）。
 """
 from typing import Any, Dict
 

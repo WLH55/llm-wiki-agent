@@ -1,4 +1,4 @@
-﻿"""MarkdownParser 升级版契约测试：表格标准化 + base64 图片抽取。"""
+"""MarkdownParser 升级版契约测试：表格标准化 + base64 图片抽取。"""
 import base64
 import re
 

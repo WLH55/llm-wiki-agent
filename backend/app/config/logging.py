@@ -3,9 +3,20 @@
 """
 import logging
 import logging.handlers
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from app.config.settings import settings
+
+CHINA_STANDARD_TIME = ZoneInfo("Asia/Shanghai")
+
+
+class BeijingFormatter(logging.Formatter):
+    """将日志时间统一格式化为北京时间。"""
+
+    def converter(self, timestamp):
+        return datetime.fromtimestamp(timestamp, CHINA_STANDARD_TIME).timetuple()
 
 
 def setup_logging():
@@ -25,7 +36,7 @@ def setup_logging():
     date_format = "%Y-%m-%d %H:%M:%S"
 
     # 创建 formatter
-    formatter = logging.Formatter(log_format, datefmt=date_format)
+    formatter = BeijingFormatter(log_format, datefmt=date_format)
 
     # 控制台处理器
     console_handler = logging.StreamHandler()

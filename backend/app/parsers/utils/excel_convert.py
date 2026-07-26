@@ -1,4 +1,4 @@
-﻿"""表格格式识别与 XLSX 输入归一化。"""
+"""表格格式识别与 XLSX 输入归一化。"""
 
 import zipfile
 from io import BytesIO

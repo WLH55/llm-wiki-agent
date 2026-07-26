@@ -1,6 +1,6 @@
 """旧 parser 错误到稳定错误码的映射。"""
 
-from app.parsers.schemas import ParseErrorCode
+from app.parsers.core.schemas import ParseErrorCode
 
 
 def map_legacy_error(value: object) -> ParseErrorCode:

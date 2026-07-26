@@ -32,3 +32,20 @@ class DocumentStatusResponse(BaseModel):
     processed_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class ParserEngineInfo(BaseModel):
+    """单个解析引擎的能力与可用性。"""
+
+    name: str
+    description: str = ""
+    available: bool = True
+    unavailable_reason: str = ""
+    file_types: list[str] = Field(default_factory=list)
+
+
+class ParserEnginesResponse(BaseModel):
+    """全站解析引擎能力清单。"""
+
+    uploadable_file_types: list[str] = Field(default_factory=list)
+    engines: list[ParserEngineInfo] = Field(default_factory=list)

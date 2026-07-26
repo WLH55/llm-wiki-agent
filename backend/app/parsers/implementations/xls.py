@@ -1,4 +1,4 @@
-﻿"""使用 xlrd 解析旧版 XLS 工作簿。"""
+"""使用 xlrd 解析旧版 XLS 工作簿。"""
 
 import logging
 from typing import Any

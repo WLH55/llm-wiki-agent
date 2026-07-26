@@ -1,4 +1,4 @@
-﻿"""CSV 解析器契约测试。"""
+"""CSV 解析器契约测试。"""
 
 from importlib import import_module
 
@@ -56,7 +56,7 @@ def test_empty_csv_returns_empty_document():
 def test_registry_routes_csv_to_csv_parser():
     parser_class = _csv_parser_class()
     from app.parsers import registry
-    assert registry.get_parser_class("csv") is parser_class
+    assert registry.get_parser_class("builtin", "csv") is parser_class
 
 
 def test_csv_dimension_guard_rejects_excessive_rows_and_columns():

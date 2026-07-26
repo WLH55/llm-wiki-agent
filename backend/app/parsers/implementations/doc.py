@@ -1,4 +1,4 @@
-﻿"""DocParser：老式 Word .doc 二进制格式解析（Stage 3 简化版）。
+"""DocParser：老式 Word .doc 二进制格式解析（Stage 3 简化版）。
 
 移植自 docreader/parser/doc_parser.py 的 antiword 命令行链路。
 Stage 3 刻意不移植：

@@ -1,4 +1,4 @@
-﻿"""ParserEngineRegistry 单元测试。"""
+"""ParserEngineRegistry 单元测试。"""
 
 from importlib import import_module
 
@@ -7,7 +7,7 @@ import pytest
 import app.parsers as parsers_package
 from app.parsers.core.base import BaseParser
 from app.parsers.core.document import Document
-from app.parsers.core.registry import ParserRegistry
+from app.parsers.core.registry import ParserEngineRegistry
 from app.parsers.core.registry import registry as global_registry
 from app.parsers.implementations.markitdown import MarkitdownParser
 from app.parsers.implementations.opendataloader import OpenDataLoaderParser
@@ -24,97 +24,73 @@ class _FakeParser(BaseParser):
         return Document(content="fake")
 
 
-def _registry_with_builtin() -> ParserRegistry:
-    reg = ParserRegistry()
+def _registry_with_builtin() -> ParserEngineRegistry:
+    """构造带 builtin 的隔离注册表。"""
+    reg = ParserEngineRegistry()
     reg.register("builtin", {"txt": TextParser, "pdf": PdfParser})
     return reg
-
-
-# ---------- 双 key 路由与 builtin 兜底 ----------
 
 
 def test_get_parser_class_hits_requested_engine():
     reg = _registry_with_builtin()
     reg.register("markitdown", {"pdf": _FakeParser})
-
     assert reg.get_parser_class("markitdown", "pdf") is _FakeParser
 
 
-@pytest.mark.parametrize("engine", ["unknown", "markitdown"])
-def test_get_parser_class_falls_back_to_builtin(engine):
+def test_get_parser_class_does_not_fallback_to_builtin():
     reg = _registry_with_builtin()
     reg.register("markitdown", {"pdf": _FakeParser})
+    with pytest.raises(KeyError):
+        reg.get_parser_class("markitdown", "txt")
 
-    assert reg.get_parser_class(engine, "txt") is TextParser
 
-
-def test_get_parser_class_single_argument_uses_builtin():
+def test_get_parser_class_unknown_error_has_context():
     reg = _registry_with_builtin()
-
-    assert reg.get_parser_class("pdf") is PdfParser
-
-
-def test_get_parser_class_final_unknown_error_has_context():
-    reg = _registry_with_builtin()
-
     with pytest.raises(KeyError) as exc_info:
         reg.get_parser_class("markitdown", "docx")
-
     message = str(exc_info.value)
     assert "markitdown" in message
     assert "docx" in message
-    assert "pdf" in message
-    assert "txt" in message
 
 
 def test_register_and_lookup_normalize_engine_and_file_type():
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register(" MarkItDown ", {" .PDF ": _FakeParser})
-
     assert reg.get_parser_class(" MARKITDOWN ", " .PDF ") is _FakeParser
     assert reg.get_engine_names() == ["markitdown"]
     assert reg.list_supported(" MARKITDOWN ") == ["pdf"]
 
 
 def test_register_rejects_empty_normalized_engine():
-    reg = ParserRegistry()
-
+    reg = ParserEngineRegistry()
     with pytest.raises(ValueError, match="engine"):
         reg.register("   ", {"pdf": PdfParser})
 
 
 def test_register_rejects_empty_normalized_file_type():
-    reg = ParserRegistry()
-
+    reg = ParserEngineRegistry()
     with pytest.raises(ValueError, match="file_type"):
         reg.register("custom", {" ... ": PdfParser})
 
 
 def test_register_rejects_duplicate_normalized_file_types():
-    reg = ParserRegistry()
-
+    reg = ParserEngineRegistry()
     with pytest.raises(ValueError, match="pdf"):
         reg.register("custom", {"pdf": PdfParser, " .PDF ": _FakeParser})
 
 
-# ---------- 注册原子性 ----------
-
-
 def test_register_validates_whole_mapping_before_replacing_engine():
     reg = _registry_with_builtin()
-
     with pytest.raises(TypeError):
         reg.register("builtin", {"md": _FakeParser, "bad": str})
-
     assert reg.list_supported() == ["pdf", "txt"]
-    assert reg.get_parser_class("txt") is TextParser
+    assert reg.get_parser_class("builtin", "txt") is TextParser
 
 
 def test_register_replaces_the_engine_mapping_as_a_whole():
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register("custom", {"txt": TextParser, "pdf": PdfParser})
     reg.register("custom", {"md": _FakeParser})
-
     assert reg.list_supported("custom") == ["md"]
 
 
@@ -122,7 +98,7 @@ def test_failed_register_preserves_complete_engine_state():
     def old_probe() -> tuple[bool, str]:
         return False, "旧探针原因"
 
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register(
         "custom",
         {"txt": TextParser},
@@ -131,7 +107,6 @@ def test_failed_register_preserves_complete_engine_state():
         unavailable_hint="旧提示",
     )
     before = reg.list_engines()[0]
-
     with pytest.raises(ValueError):
         reg.register(
             "custom",
@@ -140,34 +115,28 @@ def test_failed_register_preserves_complete_engine_state():
             check_available=lambda: (True, ""),
             unavailable_hint="新提示",
         )
-
     assert reg.get_parser_class("custom", "txt") is TextParser
     assert reg.list_supported("custom") == ["txt"]
     assert reg.list_engines()[0] == before
 
 
-# ---------- 枚举能力 ----------
-
-
 def test_list_supported_is_sorted_and_unknown_engine_is_empty():
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register("builtin", {"txt": TextParser, ".md": _FakeParser, "pdf": PdfParser})
-
     assert reg.list_supported() == ["md", "pdf", "txt"]
     assert reg.list_supported("unknown") == []
 
 
 def test_get_engine_names_is_sorted():
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register("zeta", {"txt": TextParser})
     reg.register("builtin", {"txt": TextParser})
     reg.register("alpha", {"pdf": PdfParser})
-
     assert reg.get_engine_names() == ["alpha", "builtin", "zeta"]
 
 
 def test_list_engines_reports_availability_reason_and_sorted_metadata():
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register(
         "zeta",
         {"txt": TextParser},
@@ -182,9 +151,7 @@ def test_list_engines_reports_availability_reason_and_sorted_metadata():
         description="A 引擎",
         check_available=lambda: (True, ""),
     )
-
     engines = reg.list_engines()
-
     assert [item["name"] for item in engines] == ["alpha", "builtin", "zeta"]
     assert engines[0] == {
         "name": "alpha",
@@ -204,32 +171,28 @@ def test_list_engines_converts_probe_exception_to_unavailable():
     def broken_probe() -> tuple[bool, str]:
         raise RuntimeError("探针失败")
 
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register(
         "broken",
         {"txt": TextParser},
         check_available=broken_probe,
         unavailable_hint="检查运行环境",
     )
-
     engine = reg.list_engines()[0]
-
     assert engine["available"] is False
     assert "探针失败" in engine["unavailable_reason"]
     assert "检查运行环境" in engine["unavailable_reason"]
 
 
 def test_list_engines_always_reports_builtin_available():
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register(
         "builtin",
         {"txt": TextParser},
         check_available=lambda: (False, "forced down"),
         unavailable_hint="不应出现",
     )
-
     engine = reg.list_engines()[0]
-
     assert engine["available"] is True
     assert engine["unavailable_reason"] == ""
 
@@ -242,11 +205,9 @@ def test_list_engines_never_calls_builtin_probe():
         probe_calls += 1
         raise RuntimeError("builtin probe 不应执行")
 
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register("builtin", {"txt": TextParser}, check_available=raising_probe)
-
     engine = reg.list_engines()[0]
-
     assert probe_calls == 0
     assert engine["available"] is True
     assert engine["unavailable_reason"] == ""
@@ -258,33 +219,27 @@ def test_list_engines_never_calls_builtin_probe():
     ids=["non-string-reason", "non-bool-available"],
 )
 def test_list_engines_converts_malformed_probe_result_to_unavailable(probe_result):
-    reg = ParserRegistry()
+    reg = ParserEngineRegistry()
     reg.register(
         "malformed",
         {"txt": TextParser},
         check_available=lambda: probe_result,
         unavailable_hint="检查探针实现",
     )
-
     engine = reg.list_engines()[0]
-
     assert engine["available"] is False
     assert "可用性检查返回值无效" in engine["unavailable_reason"]
     assert "检查探针实现" in engine["unavailable_reason"]
 
 
-# ---------- 兼容别名与全局默认映射 ----------
-
-
-def test_compatibility_aliases_and_package_exports():
+def test_package_exports():
     engine_registry_cls = getattr(registry_module, "ParserEngineRegistry", None)
-
     assert getattr(registry_module, "BUILTIN_ENGINE", None) == "builtin"
-    assert ParserRegistry is engine_registry_cls
-    assert parsers_package.ParserRegistry is engine_registry_cls
     assert parsers_package.ParserEngineRegistry is engine_registry_cls
     assert parsers_package.BUILTIN_ENGINE == "builtin"
     assert isinstance(global_registry, engine_registry_cls)
+    assert not hasattr(registry_module, "ParserRegistry")
+    assert not hasattr(parsers_package, "ParserRegistry")
 
 
 def test_global_registry_has_three_default_engines():
@@ -293,7 +248,7 @@ def test_global_registry_has_three_default_engines():
         "markitdown",
         "opendataloader",
     ]
-    assert global_registry.get_parser_class("pdf") is PdfParser
+    assert global_registry.get_parser_class("builtin", "pdf") is PdfParser
     assert global_registry.get_parser_class("markitdown", "pdf") is MarkitdownParser
     assert global_registry.get_parser_class("opendataloader", "pdf") is OpenDataLoaderParser
     assert global_registry.list_supported("markitdown") == [
@@ -309,3 +264,28 @@ def test_global_registry_has_three_default_engines():
         "xlsx",
     ]
     assert global_registry.list_supported("opendataloader") == ["pdf"]
+    assert global_registry.list_supported("builtin") == [
+        "bmp",
+        "csv",
+        "doc",
+        "docx",
+        "epub",
+        "gif",
+        "htm",
+        "html",
+        "jpeg",
+        "jpg",
+        "markdown",
+        "md",
+        "mht",
+        "mhtml",
+        "pdf",
+        "png",
+        "pptx",
+        "tif",
+        "tiff",
+        "txt",
+        "webp",
+        "xls",
+        "xlsx",
+    ]

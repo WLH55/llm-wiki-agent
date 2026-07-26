@@ -5,7 +5,7 @@ from typing import Annotated, AsyncIterator
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import async_session_factory
+from app.models.database import async_session_factory
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:

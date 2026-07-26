@@ -1,4 +1,4 @@
-﻿"""PPTX 幻灯片文本与媒体解析器。"""
+"""PPTX 幻灯片文本与媒体解析器。"""
 
 import logging
 import zipfile

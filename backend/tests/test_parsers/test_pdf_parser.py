@@ -1,4 +1,4 @@
-﻿"""PdfParser 测试。
+"""PdfParser 测试。
 
 测试策略：
 - happy-path：用 hand-crafted minimal PDF bytes 验证 extract_text 能跑通

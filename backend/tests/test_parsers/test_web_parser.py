@@ -1,4 +1,4 @@
-﻿"""网页抓取与 HTML 解析契约测试。"""
+"""网页抓取与 HTML 解析契约测试。"""
 
 from importlib import import_module
 
@@ -92,5 +92,5 @@ def test_web_parser_fetches_url_then_extracts_markdown(monkeypatch):
 def test_registry_routes_html_and_htm_to_web_parser():
     module = _web_module()
     from app.parsers import registry
-    assert registry.get_parser_class("html") is module.WebParser
-    assert registry.get_parser_class("htm") is module.WebParser
+    assert registry.get_parser_class("builtin", "html") is module.WebParser
+    assert registry.get_parser_class("builtin", "htm") is module.WebParser

@@ -1,6 +1,6 @@
 """Parser 模块内部异常。"""
 
-from app.parsers.schemas import ParseErrorCode
+from app.parsers.core.schemas import ParseErrorCode
 
 
 class ParserError(RuntimeError):

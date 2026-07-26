@@ -5,8 +5,8 @@ from uuid import UUID
 
 import pytest
 
-from app.parsers.errors import ParserAssetError
-from app.parsers.schemas import ParseErrorCode
+from app.parsers.core.errors import ParserAssetError
+from app.parsers.core.schemas import ParseErrorCode
 from app.parsers.service.asset import persist_parser_images
 
 DOC_ID = UUID("11111111-1111-1111-1111-111111111111")

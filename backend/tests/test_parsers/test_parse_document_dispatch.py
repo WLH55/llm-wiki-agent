@@ -1,16 +1,12 @@
-﻿"""parse dispatch 契约测试（不依赖 DB/worker 运行时）。"""
+"""parse dispatch 契约测试（不依赖 DB/worker 运行时）。"""
 
 import base64
 
-import pytest
-
-from app.parsers import registry
 from app.parsers.core.base import BaseParser
 from app.parsers.core.document import Document
-from app.parsers.errors import ParseDispatchError
+from app.parsers.core.schemas import ParseErrorCode, ParseLimits
 from app.parsers.implementations.markdown import MarkdownParser
-from app.parsers.schemas import ParseErrorCode, ParseLimits
-from app.parsers.service.dispatch import parse_document, parse_to_text
+from app.parsers.service.dispatch import parse_document
 
 
 class _EngineProbeParser(BaseParser):
@@ -34,6 +30,7 @@ class _ImageParser(BaseParser):
 
 
 def _limits(**overrides) -> ParseLimits:
+    """构造测试用解析预算。"""
     values = {
         "max_file_bytes": 100,
         "max_output_chars": 100,
@@ -43,21 +40,24 @@ def _limits(**overrides) -> ParseLimits:
     return ParseLimits(**values)
 
 
-def test_parse_to_text_defaults_to_builtin_markdown():
+def test_parse_document_defaults_to_builtin_markdown():
     """未指定 engine 时，.md 走 builtin MarkdownParser。"""
-    text = parse_to_text("demo.md", b"# title")
-    assert text == "# title"
-    assert registry.get_parser_class("md") is MarkdownParser
+    result = parse_document("demo.md", b"# title")
+    assert result.content == "# title"
+    assert result.engine == "builtin"
+    assert result.error_code is None
 
 
-def test_parse_to_text_uses_explicit_engine(monkeypatch):
+def test_parse_document_uses_explicit_engine(monkeypatch):
     """显式 engine 应命中对应注册 parser。"""
+    from app.parsers import registry
     monkeypatch_reg = type(registry)()
     monkeypatch_reg.register("builtin", {"md": MarkdownParser})
     monkeypatch_reg.register("probe", {"md": _EngineProbeParser})
     monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", monkeypatch_reg)
-    text = parse_to_text("demo.md", b"# title", engine="probe")
-    assert text == "engine-hit"
+    result = parse_document("demo.md", b"# title", engine="probe")
+    assert result.content == "engine-hit"
+    assert result.engine == "probe"
 
 
 def test_parse_document_returns_complete_result():
@@ -73,12 +73,10 @@ def test_parse_document_returns_complete_result():
 def test_unknown_extension_is_rejected():
     result = parse_document("notes.log", b"hello-log")
     assert result.error_code is ParseErrorCode.UNSUPPORTED_TYPE
-    with pytest.raises(ParseDispatchError) as exc_info:
-        parse_to_text("notes.log", b"hello-log")
-    assert exc_info.value.error_code is ParseErrorCode.UNSUPPORTED_TYPE
 
 
 def test_explicit_engine_does_not_fallback_to_builtin(monkeypatch):
+    from app.parsers import registry
     isolated = type(registry)()
     isolated.register("builtin", {"md": MarkdownParser})
     isolated.register("probe", {"txt": _EngineProbeParser})
@@ -88,6 +86,7 @@ def test_explicit_engine_does_not_fallback_to_builtin(monkeypatch):
 
 
 def test_unavailable_engine_is_reported(monkeypatch):
+    from app.parsers import registry
     isolated = type(registry)()
     isolated.register("builtin", {"md": MarkdownParser})
     isolated.register(
@@ -101,6 +100,7 @@ def test_unavailable_engine_is_reported(monkeypatch):
 
 
 def test_legacy_parser_error_is_mapped(monkeypatch):
+    from app.parsers import registry
     isolated = type(registry)()
     isolated.register("builtin", {"bad": _ErrorParser})
     monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)
@@ -113,6 +113,7 @@ def test_file_and_output_limits(monkeypatch):
         parse_document("a.md", b"too large", limits=_limits(max_file_bytes=2)).error_code
         is ParseErrorCode.TOO_LARGE
     )
+    from app.parsers import registry
     isolated = type(registry)()
     isolated.register("builtin", {"txt": _EngineProbeParser})
     monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)
@@ -121,6 +122,7 @@ def test_file_and_output_limits(monkeypatch):
 
 
 def test_image_total_limit(monkeypatch):
+    from app.parsers import registry
     isolated = type(registry)()
     isolated.register("builtin", {"img": _ImageParser})
     monkeypatch.setattr("app.parsers.service.dispatch.parser_registry", isolated)

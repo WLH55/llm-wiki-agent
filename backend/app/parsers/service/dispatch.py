@@ -1,4 +1,4 @@
-﻿"""按文件名与可选 engine 派发 parser，并返回完整生产结果。"""
+"""按文件名与可选 engine 派发 parser，并返回完整生产结果。"""
 
 import base64
 import binascii
@@ -8,14 +8,14 @@ import os
 from app.config import settings
 from app.parsers.core.registry import BUILTIN_ENGINE
 from app.parsers.core.registry import registry as parser_registry
-from app.parsers.errors import ParseDispatchError
-from app.parsers.schemas import ParseErrorCode, ParseLimits, ParseResult
+from app.parsers.core.schemas import ParseErrorCode, ParseLimits, ParseResult
 from app.parsers.utils.error_mapping import map_legacy_error
 
 logger = logging.getLogger(__name__)
 
 
 def _default_limits() -> ParseLimits:
+    """从 settings 构造默认解析预算。"""
     return ParseLimits(
         max_file_bytes=settings.PARSER_MAX_FILE_BYTES,
         max_output_chars=settings.PARSER_MAX_OUTPUT_CHARS,
@@ -29,6 +29,7 @@ def _failure(
     message: str,
     metadata: dict | None = None,
 ) -> ParseResult:
+    """构造统一失败结果。"""
     result_metadata = dict(metadata or {})
     result_metadata.setdefault("error", message)
     return ParseResult(
@@ -45,7 +46,6 @@ def parse_document(
     limits: ParseLimits | None = None,
 ) -> ParseResult:
     """严格派发 parser，并把所有失败收敛为 ParseResult。"""
-
     selected_engine = (engine or BUILTIN_ENGINE).strip().lower()
     active_limits = limits or _default_limits()
     file_type = os.path.splitext(filename or "")[1].lstrip(".").lower()
@@ -58,11 +58,7 @@ def parse_document(
         )
         return _failure(selected_engine, ParseErrorCode.ENGINE_UNAVAILABLE, reason)
     try:
-        parser_cls = parser_registry.get_parser_class(
-            selected_engine,
-            file_type,
-            fallback_to_builtin=False,
-        )
+        parser_cls = parser_registry.get_parser_class(selected_engine, file_type)
     except KeyError:
         error_code = (
             ParseErrorCode.UNSUPPORTED_TYPE
@@ -131,19 +127,3 @@ def parse_document(
         engine=selected_engine,
         warnings=list(dict.fromkeys(warnings)),
     )
-
-
-def parse_to_text(
-    filename: str,
-    raw_bytes: bytes,
-    engine: str | None = None,
-) -> str:
-    """兼容旧文本调用；失败时抛出带稳定错误码的异常。"""
-
-    result = parse_document(filename, raw_bytes, engine or BUILTIN_ENGINE)
-    if result.error_code is not None:
-        raise ParseDispatchError(
-            result.error_code,
-            str(result.metadata.get("error", result.error_code.value)),
-        )
-    return result.content

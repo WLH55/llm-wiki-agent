@@ -1,4 +1,4 @@
-﻿"""使用 Python 标准库解析 CSV。"""
+"""使用 Python 标准库解析 CSV。"""
 
 import csv
 from io import StringIO

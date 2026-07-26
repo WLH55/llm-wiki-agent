@@ -1,4 +1,4 @@
-﻿"""TextParser：最简单的 parser，bytes → str，无格式处理。
+"""TextParser：最简单的 parser，bytes → str，无格式处理。
 
 用途：
 1. 验证 BaseParser 抽象能工作

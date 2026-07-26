@@ -1,4 +1,4 @@
-﻿"""MHTML 网页归档解析契约测试。"""
+"""MHTML 网页归档解析契约测试。"""
 
 from email.message import EmailMessage
 from importlib import import_module
@@ -69,5 +69,5 @@ def test_mhtml_parser_can_skip_images():
 def test_registry_routes_mhtml_and_mht():
     module = _mhtml_module()
     from app.parsers import registry
-    assert registry.get_parser_class("mhtml") is module.MHTMLParser
-    assert registry.get_parser_class("mht") is module.MHTMLParser
+    assert registry.get_parser_class("builtin", "mhtml") is module.MHTMLParser
+    assert registry.get_parser_class("builtin", "mht") is module.MHTMLParser

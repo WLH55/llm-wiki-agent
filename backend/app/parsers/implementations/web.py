@@ -1,4 +1,4 @@
-﻿"""网页正文提取与 HTML 到 Markdown 转换。"""
+"""网页正文提取与 HTML 到 Markdown 转换。"""
 
 import html
 import logging

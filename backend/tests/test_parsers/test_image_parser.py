@@ -1,4 +1,4 @@
-﻿"""独立图片解析器契约测试。"""
+"""独立图片解析器契约测试。"""
 
 import base64
 from io import BytesIO
@@ -57,4 +57,4 @@ def test_invalid_image_returns_error_metadata():
 
 def test_registry_routes_supported_images():
     for extension in ("png", "jpg", "jpeg", "gif", "webp", "bmp", "tif", "tiff"):
-        assert registry.get_parser_class(extension) is ImageParser
+        assert registry.get_parser_class("builtin", extension) is ImageParser

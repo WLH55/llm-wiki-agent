@@ -1,4 +1,4 @@
-﻿"""MarkItDown 高级解析器适配器。"""
+"""MarkItDown 高级解析器适配器。"""
 
 import logging
 from io import BytesIO

@@ -24,8 +24,8 @@ from app.config import settings
 from app.integrations.embedding import embed_texts
 from app.integrations.object_storage import get_bytes
 from app.models.document import Document
-from app.parsers.errors import ParserAssetError
-from app.parsers.schemas import ParseErrorCode, ParseResult
+from app.parsers.core.errors import ParserAssetError
+from app.parsers.core.schemas import ParseErrorCode, ParseResult
 from app.parsers.service.asset import persist_parser_images
 from app.parsers.service.dispatch import parse_document as _parse_document
 from app.workers.chunker import chunk_text
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 async def parse_document_task(doc_id_str: str) -> None:
     """主流程：异步解析文档并入库"""
-    from app.database import async_session_factory
+    from app.models.database import async_session_factory
 
     doc_id = UUID(doc_id_str)
     async with async_session_factory() as db:

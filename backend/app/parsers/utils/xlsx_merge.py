@@ -1,4 +1,4 @@
-﻿"""XLSX 合并单元格归一化工具。"""
+"""XLSX 合并单元格归一化工具。"""
 
 import zipfile
 from io import BytesIO

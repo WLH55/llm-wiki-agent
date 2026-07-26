@@ -1,4 +1,4 @@
-﻿"""
+"""
 Document service：上传 + 状态查询
 """
 
@@ -14,14 +14,51 @@ from app.integrations.object_storage import upload_bytes
 from app.knowledge_bases.service.knowledge_base import get_kb
 from app.models.document import Document
 from app.models.user import User
-from app.parsers.api.schemas import DocumentStatusResponse, DocumentUploadResponse
+from app.parsers.api.schemas import (
+    DocumentStatusResponse,
+    DocumentUploadResponse,
+    ParserEngineInfo,
+    ParserEnginesResponse,
+)
 from app.parsers.core.registry import BUILTIN_ENGINE
 from app.parsers.core.registry import registry as parser_registry
-from app.parsers.schemas import ParseErrorCode
+from app.parsers.core.schemas import ParseErrorCode
 
 logger = logging.getLogger(__name__)
 
-PRODUCTION_FILE_TYPES = frozenset({"txt", "md", "markdown", "pdf", "docx", "xlsx", "csv", "pptx"})
+BYTES_PER_MEGABYTE = 1024 * 1024
+
+PRODUCTION_FILE_TYPES = frozenset(
+    {
+        "txt",
+        "md",
+        "markdown",
+        "pdf",
+        "docx",
+        "doc",
+        "xlsx",
+        "xls",
+        "csv",
+        "pptx",
+        "html",
+        "htm",
+        "mhtml",
+        "mht",
+        "epub",
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "webp",
+        "bmp",
+        "tif",
+        "tiff",
+    }
+)
+
+
+def _format_megabytes(size_bytes: int) -> str:
+    return f"{size_bytes / BYTES_PER_MEGABYTE:.2f} MB"
 
 
 def validate_parser_request(
@@ -30,7 +67,6 @@ def validate_parser_request(
     parser_engine: str,
 ) -> tuple[str, str]:
     """校验生产格式白名单、文件预算与显式解析引擎。"""
-
     file_type = os.path.splitext(filename or "")[1].lstrip(".").lower()
     if file_type not in PRODUCTION_FILE_TYPES:
         raise BusinessValidationException(
@@ -39,7 +75,7 @@ def validate_parser_request(
         )
     if len(content) > settings.PARSER_MAX_FILE_BYTES:
         raise BusinessValidationException(
-            f"文件过大: {len(content)} bytes（max={settings.PARSER_MAX_FILE_BYTES}）",
+            f"文件过大: {_format_megabytes(len(content))}（最大 {_format_megabytes(settings.PARSER_MAX_FILE_BYTES)}）",
             error_code=ParseErrorCode.TOO_LARGE.value,
         )
     selected_engine = (parser_engine or BUILTIN_ENGINE).strip().lower()
@@ -56,6 +92,24 @@ def validate_parser_request(
     return file_type, selected_engine
 
 
+def list_parser_engines() -> ParserEnginesResponse:
+    """汇总生产白名单与各引擎可实际上传格式（registry 格式与生产白名单取交集）。"""
+    uploadable = sorted(PRODUCTION_FILE_TYPES)
+    engines = [
+        ParserEngineInfo(
+            name=status["name"],
+            description=status["description"],
+            available=status["available"],
+            unavailable_reason=status["unavailable_reason"],
+            file_types=sorted(
+                t for t in status["file_types"] if t in PRODUCTION_FILE_TYPES
+            ),
+        )
+        for status in parser_registry.list_engines()
+    ]
+    return ParserEnginesResponse(uploadable_file_types=uploadable, engines=engines)
+
+
 async def upload_document(
     db: AsyncSession,
     kb_id: int,
@@ -67,13 +121,10 @@ async def upload_document(
 ) -> DocumentUploadResponse:
     """上传文档 → MinIO → 入队异步解析"""
     kb = await get_kb(db, kb_id, user)
-
     _, selected_engine = validate_parser_request(filename, content, parser_engine)
-
     doc_id = uuid.uuid4()
     minio_key = f"{kb.id}/{doc_id}/{filename}"
     upload_bytes(minio_key, content, content_type or "application/octet-stream")
-
     doc = Document(
         tenant_id=user.tenant_id,
         kb_id=kb.id,
@@ -86,13 +137,9 @@ async def upload_document(
     )
     db.add(doc)
     await db.commit()
-
     from app.workers.queue import enqueue_parse_document
-
     enqueue_parse_document(str(doc_id))
-
     logger.info(f"文档已上传: doc_id={doc_id} kb_id={kb.id} filename={filename}")
-
     return DocumentUploadResponse(
         doc_id=doc_id,
         status="pending",
@@ -110,7 +157,6 @@ async def get_document_status(
     """查询文档处理状态"""
     kb = await get_kb(db, kb_id, user)
     from sqlalchemy import select
-
     result = await db.execute(
         select(Document)
         .where(
@@ -123,7 +169,6 @@ async def get_document_status(
     doc = result.scalar_one_or_none()
     if doc is None:
         raise ResourceNotFoundException(f"文档 {doc_id} 不存在")
-
     return DocumentStatusResponse(
         doc_id=doc.doc_id,
         status=doc.status,

@@ -1,4 +1,4 @@
-﻿"""EPUB 解析器契约测试。"""
+"""EPUB 解析器契约测试。"""
 
 import zipfile
 from io import BytesIO
@@ -92,4 +92,4 @@ def test_invalid_epub_returns_error_metadata():
 
 
 def test_registry_routes_epub():
-    assert registry.get_parser_class("epub") is EPUBParser
+    assert registry.get_parser_class("builtin", "epub") is EPUBParser

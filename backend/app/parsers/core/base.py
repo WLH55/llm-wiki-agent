@@ -1,4 +1,4 @@
-﻿"""BaseParser：所有 parser 的抽象基类。
+"""BaseParser：所有 parser 的抽象基类。
 
 设计模式：
 - 抽象基类（abc.ABC）：阻止直接实例化

@@ -1,4 +1,4 @@
-﻿"""解析派生图片的安全持久化与正文引用替换。"""
+"""解析派生图片的安全持久化与正文引用替换。"""
 
 import base64
 import binascii
@@ -12,9 +12,9 @@ from uuid import UUID
 
 from app.config import settings
 from app.integrations.object_storage import upload_bytes
-from app.parsers.errors import ParserAssetError
+from app.parsers.core.errors import ParserAssetError
+from app.parsers.core.schemas import ParseErrorCode
 from app.parsers.implementations.markdown import MarkdownImageUtil
-from app.parsers.schemas import ParseErrorCode
 
 _UNSAFE_NAME = re.compile(r"[^\w.-]+")
 

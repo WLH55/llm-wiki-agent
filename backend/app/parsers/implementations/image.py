@@ -1,4 +1,4 @@
-﻿"""独立图片解析器。"""
+"""独立图片解析器。"""
 
 import base64
 import logging

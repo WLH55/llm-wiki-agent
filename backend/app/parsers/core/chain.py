@@ -1,4 +1,4 @@
-﻿"""责任链与管道组合 parser。
+"""责任链与管道组合 parser。
 
 FirstParser：依次尝试多个 parser，返回第一个 is_valid 的结果。
 PipelineParser：前一个 parser 的 content 作为后一个 parser 的输入，并合并 images/metadata。

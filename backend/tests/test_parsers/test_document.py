@@ -1,4 +1,4 @@
-﻿"""Document 数据契约测试。"""
+"""Document 数据契约测试。"""
 from app.parsers.core.document import Document
 
 

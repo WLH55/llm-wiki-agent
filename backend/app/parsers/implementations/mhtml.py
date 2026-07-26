@@ -1,4 +1,4 @@
-﻿"""解析 MHTML 网页归档及其中的内嵌图片。"""
+"""解析 MHTML 网页归档及其中的内嵌图片。"""
 
 import base64
 import email

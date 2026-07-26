@@ -1,4 +1,4 @@
-﻿"""PdfParser：PDF 文档解析（Stage 3 简化版）。
+"""PdfParser：PDF 文档解析（Stage 3 简化版）。
 
 移植自 docreader/parser/pdf_parser.py 的 pdfplumber 文字版分支。
 Stage 3 刻意不移植：

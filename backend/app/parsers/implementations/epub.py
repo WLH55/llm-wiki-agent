@@ -1,4 +1,4 @@
-﻿"""EPUB 电子书解析器。"""
+"""EPUB 电子书解析器。"""
 
 import base64
 import logging

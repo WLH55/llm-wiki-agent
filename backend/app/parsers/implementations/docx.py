@@ -1,4 +1,4 @@
-﻿"""Docx2Parser：Word .docx 文档解析。
+"""Docx2Parser：Word .docx 文档解析。
 
 基于 python-docx 的生产基础路径：
 - 用 python-docx 加载 BytesIO(content)

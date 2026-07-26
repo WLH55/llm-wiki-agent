@@ -1,4 +1,4 @@
-﻿"""OpenDataLoader PDF 高级解析器适配器。"""
+"""OpenDataLoader PDF 高级解析器适配器。"""
 
 import base64
 import html

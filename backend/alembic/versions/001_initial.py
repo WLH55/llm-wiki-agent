@@ -30,13 +30,31 @@ def upgrade() -> None:
 
     # ========== 1. 扩展 ==========
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
-    op.execute("CREATE EXTENSION IF NOT EXISTS zhparser")
-
-    # ========== 2. 中文分词配置 ==========
-    op.execute("CREATE TEXT SEARCH CONFIGURATION chinese_zh (PARSER = zhparser)")
+    # zhparser 在自定义 postgres 镜像中可用；开发默认 pgvector 镜像可能缺失。
+    # 缺失时降级为 simple 配置，保证迁移与联调可启动。
     op.execute(
-        "ALTER TEXT SEARCH CONFIGURATION chinese_zh "
-        "ADD MAPPING FOR n,v,a,i,e,j WITH simple"
+        """
+        DO $$
+        BEGIN
+            BEGIN
+                CREATE EXTENSION IF NOT EXISTS zhparser;
+                CREATE TEXT SEARCH CONFIGURATION chinese_zh (PARSER = zhparser);
+                ALTER TEXT SEARCH CONFIGURATION chinese_zh
+                    ADD MAPPING FOR n,v,a,i,e,j WITH simple;
+            EXCEPTION
+                WHEN OTHERS THEN
+                    RAISE NOTICE 'zhparser unavailable, fallback to simple: %', SQLERRM;
+                    IF NOT EXISTS (
+                        SELECT 1
+                        FROM pg_ts_config
+                        WHERE cfgname = 'chinese_zh'
+                    ) THEN
+                        CREATE TEXT SEARCH CONFIGURATION chinese_zh (COPY = simple);
+                    END IF;
+            END;
+        END
+        $$;
+        """
     )
 
     # ========== 3. 核心表 ==========
@@ -126,6 +144,7 @@ def upgrade() -> None:
     op.execute("CREATE INDEX ix_documents_status ON documents(status) WHERE deleted_at IS NULL")
 
     # ========== 4. content_chunks（核心表，halfvec + tsvector） ==========
+    # wiki_page_id 外键在 wiki_pages 创建后再补，避免前向引用失败
     op.execute("""
     CREATE TABLE content_chunks (
         id              BIGSERIAL PRIMARY KEY,
@@ -138,19 +157,12 @@ def upgrade() -> None:
         embedding       halfvec NOT NULL,
         embedding_dim   INT NOT NULL,
         search_vector   tsvector,
-        wiki_page_id    INT REFERENCES wiki_pages(id) ON DELETE CASCADE,
+        wiki_page_id    INT,
         created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
         deleted_at      TIMESTAMPTZ
     )
     """)
-
-    # 注意：wiki_pages 表在下面才创建，content_chunks.wiki_page_id 引用它，
-    # PG 允许 forward reference（DEFERRABLE），但稳妥起见用 ALTER 添加外键
-    op.execute("""
-    ALTER TABLE content_chunks DROP CONSTRAINT IF EXISTS content_chunks_wiki_page_id_fkey
-    """)
-    # wiki_pages 表在后面创建后再加 FK
 
     # ========== 5. partial HNSW 索引（按维度分） ==========
     # 1024 维（bge-m3 默认）
