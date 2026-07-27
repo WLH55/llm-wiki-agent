@@ -39,7 +39,7 @@ _Avoid_: kb_grants.user_id（粒度错误）、ACL 单独建表（无组织语�
 _Avoid_:（条目已弃用，新增产品不要使用此概念）
 
 **MD 导出包（Markdown Export Bundle）**:
-v4.2 唯一的导出格式。zip 包含：① markdown 文件（按 `wiki_path` 目录结构组织）；② 每个文件头部 YAML frontmatter（`page_type` / `slug` / `chunk_refs` / `folder_path` / `version`）。**不导出 embeddings**——导入时按 KB 当前绑定模型重嵌入。适合"人读 + 跨 wiki 系统迁移（Obsidian / Logseq / 其他）"。RAG 类型 KB 不支持整库导出（无 wiki 页面），只支持原始文档下载。
+v4.2 唯一的导出格式。zip 包含：① markdown 文件（按页面所属目录组织）；② 每个文件头部 YAML frontmatter（`page_type` / `slug` / `chunk_refs` / `folder_path` / `version`）。**不导出 embeddings**——导入时按 KB 当前绑定模型重嵌入。适合"人读 + 跨 wiki 系统迁移（Obsidian / Logseq / 其他）"。RAG 类型 KB 不支持整库导出（无 wiki 页面），只支持原始文档下载。
 _Avoid_: OKF（已弃用）、包含 embedding 的便携包（v4.2 不做，需要时用 pg_dump）、跨实例同步通道（导出是一次性快照，不是同步）
 
 ### 数据模型与存储
@@ -64,13 +64,33 @@ _Avoid_: 维度 padding 到固定 halfvec(N)、按 KB 分表、强制全局单�
 KB 内的文档来源单元。一个 KB 可挂 N 个 source（manual / rss / yuque / feishu / notion / local_dir），所有 source 的 chunks 共享同一 `kb_id`。`sources` 表统一存（`source_type` + `config JSONB` + `sync_cursor JSONB` + `sync_status`）；每种类型一个 `SourceAdapter` 实现。**所有 source 平等**——无检索 boost、无更新覆盖优先级。详见 [ADR-0007](./docs/adr/0007-multi-source-mounting.md)。
 _Avoid_: 每 source 单独建表（schema 膨胀）、source boost_factor（YAGNI）、source 级 RBAC（粒度过细）
 
+**逻辑文档（Document）**:
+KB 中一篇来源文档的稳定身份；同一来源文档后续上传或同步时仍是同一个 Document，并在其下产生新的 Document Revision。
+_Avoid_: 把一次上传、一次同步或一个具体文件称为 Document
+
+**文档版本（Document Revision）**:
+Document 在某次上传或同步时取得的不可变内容快照；原文件、内容指纹和来源版本属于 Revision，处理失败的 Revision 不取代既有生效版本。
+_Avoid_: 用覆盖 Document 的方式保存更新、把解析重试称为新版本
+
+**生效版本（Active Revision）**:
+Document 当前正式用于分块与检索的成功 Revision；新 Revision 只有完整处理成功后才能原子切换为生效版本。
+_Avoid_: 最新上传版本（最新收到的版本可能仍在处理或已经失败）
+
+**生效分块集（Active Chunk Set）**:
+Document 的 Active Revision 当前用于检索的一组派生 chunks；历史 Revision 保留原文件但不长期保留 chunks，新版本切换成功后旧 chunks 被物理删除。
+_Avoid_: 历史 chunk 版本库、把可重建 chunks 当成不可变业务事实
+
+**BM25 关键词检索（BM25 Keyword Retrieval）**:
+`knowledge_search` 的词法召回路径，由 PostgreSQL `pg_search` 扩展对 `content_chunks.text` 建立真正 BM25 索引，并与向量召回通过 RRF 融合。
+_Avoid_: 把 PostgreSQL `tsvector` + `ts_rank` / `ts_rank_cd` 全文排序称为 BM25
+
 **IndexingStrategy（旧 KB 级检索能力开关）** [已弃用]:
 旧设计把 `vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled` 直接放在 `knowledge_bases`。2026-07-27 数据表评审决定 KB 保持为轻量共享根，由独立的 RAG 配置和 Wiki 配置表达能力。
 _Avoid_: 继续向 `knowledge_bases` 增加能力开关、用单一 `type` 把 KB 固化为 RAG 或 Wiki
 
-**chunk_type（content_chunks 来源区分）**:
-`content_chunks` 表的字段，枚举值：`document`（原始文档切块，默认）/ `wiki_page`（wiki 页面切块，关联 `wiki_page_id`）/ `image_ocr`（P4）/ `image_caption`（P4）。所有 chunk_type 共表，参与同一套向量 + BM25 检索。详见 [ADR-0009](./docs/adr/0009-retrieval-architecture.md)。
-_Avoid_: 每 chunk_type 单独建表（schema 膨胀 + 切向量库时逻辑分裂）
+**chunk_type（旧 content_chunks 来源区分）** [已弃用]:
+旧设计用 `document` / `wiki_page` / `image_ocr` / `image_caption` 区分同表内容；逐表审批后 `content_chunks` 只保存当前生效 Document Revision 的 RAG 分块，不再保留 `chunk_type` 或 `wiki_page_id`。
+_Avoid_: 把 Wiki 页面或其他派生内容静默写入 RAG chunk 池
 
 ### 页面与图谱模型
 
@@ -78,25 +98,33 @@ _Avoid_: 每 chunk_type 单独建表（schema 膨胀 + 切向量库时逻辑分�
 wiki 页面的 7 种枚举。自动生成 5 种：`summary`（文档摘要）/ `entity`（实体页）/ `concept`（概念页）/ `index`（系统索引页，slug 固定）/ `log`（系统日志页，slug 固定）；Agent 手建 2 种：`synthesis`（综合分析）/ `comparison`（对比页）。`index`/`log` 是系统页，排除在用户目录之外。
 _Avoid_: 文档类型（doc_type 是 chunks 表的字段，指原始文档格式如 pdf/md/html，与 PageType 是两回事）、页面分类
 
+**页面预览（Page Excerpt）**:
+对任意 Wiki 页面的简短概括，用于目录列表、搜索结果和 Agent 在读取全文前筛选页面。它不是一种页面类型；文档摘要页仍称为 `summary` 页面，其完整内容属于页面正文。
+_Avoid_: 把页面预览称为 summary 字段、把预览文本当作完整页面正文
+
 **链接图边（Link Graph Edges）**:
-页面之间的"图谱"关系，无类型、无权、有向。从 markdown `[[xxx]]` wikilink 正则抽取，双向冗余存 `pages.in_links` / `pages.out_links` 数组。图谱可视化只能展示"谁连谁"，不能展示"什么关系"——这是有意的简化（详见 [ADR-0003](./docs/adr/0003-three-edge-model.md)）。
-_Avoid_: 类型化边、语义边、link_type 字段（永久放弃——LLM 抽取不可靠，70%+ 兜底到 related_to）
+页面之间由正文 wikilink 形成的无类型、无权、有向关系。链接关系独立于页面正文保存，可用于反向链接、邻居遍历和图谱可视化；它只表达"谁链接谁"，不表达预定义语义类型。
+_Avoid_: 把链接数组塞进页面本体、类型化边、语义边、link_type
 
 **目录树边（Folder Tree Edges）**:
-页面的归档结构。两套并存：`folder_id`（source of truth，引用 `wiki_folders.id`）+ `parent_slug`（语义父级，可选）。深度硬上限 3 层。
-_Avoid_: 单一 parent_id 邻接表（无法兼顾"按文件夹归类"和"语义父子"两种需求）
+页面的归档结构，只表达页面位于哪个目录以及目录之间的父子关系；它不表达页面主题之间的语义关系。
+_Avoid_: 把页面语义关系混入目录树、为页面同时维护目录父级和语义父级
 
-**物化路径缓存（Materialized Path Cache）**:
-`category_path` / `depth` / `wiki_path` 三个字段，全是从 `folder_id` 链路反向重算的缓存。每次写 page 都重算（应用层 service 透明兜底）。避免列表/索引/搜索查询时 JOIN `wiki_folders` 表。
-_Avoid_: 实时 JOIN 算路径（性能差）、不缓存（每次查询都递归 CTE）
+**页面目录归属（Page Folder Membership）**:
+每个普通 Wiki 页面归属于一个目录；目录是页面导航位置的唯一事实来源。页面移动表示改变其目录归属，页面自身不拥有另一套可能与目录树冲突的路径。
+_Avoid_: 页面物化路径缓存、在页面与目录上重复维护同一条路径
 
 **溯源边（Provenance Edges）**:
-页面 → 原文档/chunk 的引用。`source_refs`（文档级，格式 `<kb_id>|<doc_title>`）+ `chunk_refs`（chunk 级 UUID）。`summary` 页通常 `chunk_refs` 为空；`entity`/`concept`/`synthesis`/`comparison` 页带 chunk 级引用。用途：原文档删除时清掉对应引用、对话里点"查看证据"跳回原文。
-_Avoid_: 单一 doc_id 外键（无法表达"这一段综合了 3 篇文档的 5 个 chunk"）、不带 chunk 级精度（无法精确溯源）
+Wiki 页面到原始 Document 或 Chunk 的证据关系，分别承担文档级来源说明和 chunk 级精确回看。一个页面可以引用多篇文档和多个 chunk，溯源关系独立于页面本体保存。
+_Avoid_: 把溯源数组塞进页面本体、把单个 doc_id 当作完整溯源、只保留文档级来源而失去证据精度
 
 **Slug 唯一性（KB-Scoped Slug Uniqueness）**:
 slug 在同一个 KB 内唯一（`UNIQUE(kb_id, slug)`），**跨 KB 不唯一**。两个 KB 都有"苹果"实体不冲突。`index` / `log` 两个 slug 在每个 KB 内保留给系统页，用户不能占用。
 _Avoid_: 全局 slug 唯一（跨 KB 撞名是常态，强制全局唯一会让"苹果"被某个 KB 独占）
+
+**页面别名（Page Alias）**:
+Wiki 页面名称的其他常用写法，用于让用户通过简称、旧称或中英文名称找到同一页面。别名不改变页面身份，也不作为页面链接的解析目标。
+_Avoid_: 用别名代替 slug、依赖别名唯一、用有歧义的别名解析页面链接
 
 ### AI 子系统
 
@@ -131,7 +159,7 @@ _Avoid_: 团队 key、空间 key、全局 key、统一采购、系统兜底 key�
 _Avoid_:（条目已弃用，新增产品不要使用此概念）
 
 **双路径检索（Dual-Path Retrieval）**:
-两条独立检索路径，**MVP 不写入、不混合召回、不做联合排序**。路径 A `wiki_search`：`wiki_pages` 表 + POSIX 正则 `~*` + 字段权重排序（title=4 / slug=3 / summary=2 / content=1），不走向量/BM25。路径 B `knowledge_search`：原始 `content_chunks` + 向量（pgvector）+ BM25 + RRF 融合，不包含 Wiki 页面。详见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)。
+两条独立检索路径，**MVP 不写入、不混合召回、不做联合排序**。路径 A `wiki_search`：在 `wiki_pages` 的标题、slug、别名、预览和正文中检索并按字段重要性排序，不走向量/BM25。路径 B `knowledge_search`：原始 `content_chunks` + 向量（pgvector）+ BM25 + RRF 融合，不包含 Wiki 页面。详见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)。
 _Avoid_: 双路径间 RRF 联合（rejected，跨路径排序语义模糊）、query 级别用户手动选模式（被 IndexingStrategy 替代）
 
 **wiki_search（POSIX 正则 + 字段权重）**:

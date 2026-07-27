@@ -1,7 +1,8 @@
-# MVP Wiki/RAG 独立运行与融合预留
+# MVP Wiki/RAG 独立运行
 
 > 状态：Accepted（2026-07-27）<br>
 > 取代：[ADR-0009](./0009-retrieval-architecture.md) 中“Wiki 页面在 MVP 写入 `content_chunks` 并固定加权 1.3”的决策。
+> 修订：2026-07-27 逐表审批取消 `content_chunks.chunk_type` / `wiki_page_id` 融合预留；未来融合必须另立 ADR 与 migration。
 
 ## Context
 
@@ -19,19 +20,9 @@ MVP 同时完成两条能力闭环，但数据面和召回面保持独立：
 - `vector_enabled` / `keyword_enabled` 控制 RAG 路径，`wiki_enabled` 控制 Wiki 生成与独立检索；同时开启表示“两条能力都可用”，不表示结果已融合。
 - MVP 不做跨路径联合排序、自动混合 top-k 或 query 级手动模式开关；调用方显式选择 `knowledge_search` 或 `wiki_search`。
 
-## Schema 预留
+## Schema 边界
 
-MVP 不写入 Wiki chunk，但保留未来融合所需的数据契约：
-
-| 位置 | 预留字段 | 用途 |
-|---|---|---|
-| `content_chunks` | `chunk_type` | 区分 `document` / `wiki_page` 等内容类型；MVP 不产出 `wiki_page` |
-| `content_chunks` | `wiki_page_id`（nullable） | 未来 Wiki chunk 回链源页面；MVP 恒为 NULL |
-| `wiki_pages` | `source_refs` | 文档级来源血缘 |
-| `wiki_pages` | `chunk_refs` | 原始 chunk 级证据血缘，是未来同源去重和一手证据回链的必要输入 |
-| `wiki_pages` | `version` / `updated_at` | 页面更新后识别派生内容版本，支持未来索引失效与重建 |
-
-“预留”只表示 schema/ORM/API 能表达这些数据，不包括 Wiki chunk 生成、embedding、索引、删除同步、boost 或混合召回实现。
+`content_chunks` 只保存当前生效 Document Revision 的 RAG 分块，不保留 `chunk_type`、`wiki_page_id` 或其他 Wiki 融合字段。Wiki 血缘由独立的 `wiki_page_document_refs` 与 `wiki_page_chunk_refs` 表表达；如果未来评测证明需要融合，必须另立 ADR 并显式增加 schema 与写入链路。
 
 ## 融合启用门槛
 
@@ -47,6 +38,6 @@ MVP 不写入 Wiki chunk，但保留未来融合所需的数据契约：
 ## Consequences
 
 - MVP 范围更清晰，两条路径可以独立验证质量和故障域。
-- `chunk_type='wiki_page'`、`wiki_page_id` 和 rerank 插件在 MVP 中保持未启用状态，不能作为已实现能力写入验收标准。
-- schema 会承担少量暂未使用字段的成本，以换取未来融合时无需对大规模 chunk 表做高风险结构迁移。
+- `chunk_type='wiki_page'`、`wiki_page_id` 和 rerank 插件均不进入最终 schema 或验收标准。
+- schema 不为未经评测的未来融合承担预留字段成本；未来启用融合时接受显式 migration。
 - 普通 RAG chat 不会自动召回 Wiki 页面；需要 Wiki 知识时，由 Agent 或调用方显式调用 `wiki_search`，待独立评测完成后再决定是否融合。
