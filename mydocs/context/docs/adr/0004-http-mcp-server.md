@@ -1,5 +1,7 @@
 # HTTP MCP 工具集
 
+> 状态：接口方向保留；文中 `in_links` / `out_links` / `source_refs` / `chunk_refs` 等旧页面内字段已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 取代，最终 API 契约留待实现 Plan。
+
 llm_wiki3.0 的 FastAPI 服务暴露 `/mcp` 端点，使用 **Streamable HTTP MCP 协议**（MCP spec 2025-03-26+），让外部 AI 应用（Claude Desktop 通过 mcp-remote 桥接、Cursor、其他 Web 应用）能通过 8 个工具读写知识库。
 
 **API Key 鉴权**：用户在 Web UI 生成 API Key（绑定 user_id + workspace context），MCP 客户端在 `Authorization: Bearer <key>` 里带 key。RBAC 走 [ADR-0002](./0002-tenant-org-rbac.md) 的 fall-through 三步短路。

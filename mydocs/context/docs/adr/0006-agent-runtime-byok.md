@@ -1,5 +1,7 @@
 # Agent Runtime + BYOK + 双 AI 通道
 
+> 状态：Agent/BYOK 方向保留；文中基于 `chunk_refs` 的 Wiki 写入参数属于旧 schema，已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 的文档引用与原文证据模型取代。
+
 llm_wiki3.0 的 AI 子系统由 **两条通路 + 一个抽象层** 构成：
 
 - **双 AI 通道**（两个入口）：

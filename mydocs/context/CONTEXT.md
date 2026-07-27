@@ -39,7 +39,7 @@ _Avoid_: kb_grants.user_id（粒度错误）、ACL 单独建表（无组织语�
 _Avoid_:（条目已弃用，新增产品不要使用此概念）
 
 **MD 导出包（Markdown Export Bundle）**:
-v4.2 唯一的导出格式。zip 包含：① markdown 文件（按页面所属目录组织）；② 每个文件头部 YAML frontmatter（`page_type` / `slug` / `chunk_refs` / `folder_path` / `version`）。**不导出 embeddings**——导入时按 KB 当前绑定模型重嵌入。适合"人读 + 跨 wiki 系统迁移（Obsidian / Logseq / 其他）"。RAG 类型 KB 不支持整库导出（无 wiki 页面），只支持原始文档下载。
+v4.2 唯一的导出格式。zip 包含按页面目录组织的 Markdown，以及 `page_type`、`slug`、`folder_path`、`version`、文档来源和原文证据等 frontmatter；不导出 embeddings。适合人读和跨 Wiki 系统迁移；没有 Wiki 页面的 KB 只提供原始文档下载。
 _Avoid_: OKF（已弃用）、包含 embedding 的便携包（v4.2 不做，需要时用 pg_dump）、跨实例同步通道（导出是一次性快照，不是同步）
 
 ### 数据模型与存储
@@ -61,7 +61,7 @@ content_chunks 表用 halfvec 不带 N 的列声明 + embedding_dim 字段，同
 _Avoid_: 维度 padding 到固定 halfvec(N)、按 KB 分表、强制全局单模型
 
 **数据源（Source）**:
-KB 内的文档来源单元。一个 KB 可挂 N 个 source（manual / rss / yuque / feishu / notion / local_dir），所有 source 的 chunks 共享同一 `kb_id`。`sources` 表统一存（`source_type` + `config JSONB` + `sync_cursor JSONB` + `sync_status`）；每种类型一个 `SourceAdapter` 实现。**所有 source 平等**——无检索 boost、无更新覆盖优先级。详见 [ADR-0007](./docs/adr/0007-multi-source-mounting.md)。
+KB 内的文档来源或连接器；一个 Source 可以产生多篇 Document。Source 保存类型、非敏感配置、增量游标、启停状态和最近成功同步时间；每种类型由一个 `SourceAdapter` 实现，运行状态与错误属于 Processing Run。所有 Source 平等，不参与检索加权或更新覆盖优先级。
 _Avoid_: 每 source 单独建表（schema 膨胀）、source boost_factor（YAGNI）、source 级 RBAC（粒度过细）
 
 **逻辑文档（Document）**:
@@ -111,16 +111,16 @@ _Avoid_: 把链接数组塞进页面本体、类型化边、语义边、link_typ
 _Avoid_: 把页面语义关系混入目录树、为页面同时维护目录父级和语义父级
 
 **页面目录归属（Page Folder Membership）**:
-每个普通 Wiki 页面归属于一个目录；目录是页面导航位置的唯一事实来源。页面移动表示改变其目录归属，页面自身不拥有另一套可能与目录树冲突的路径。
+普通 Wiki 页面可以归属于一个目录，也可以位于 Wiki 根目录；`folder_id` 是页面导航位置的唯一事实来源。页面移动表示改变目录归属，页面自身不保存另一套路径。
 _Avoid_: 页面物化路径缓存、在页面与目录上重复维护同一条路径
 
 **溯源边（Provenance Edges）**:
-Wiki 页面到原始 Document 或 Chunk 的证据关系，分别承担文档级来源说明和 chunk 级精确回看。一个页面可以引用多篇文档和多个 chunk，溯源关系独立于页面本体保存。
-_Avoid_: 把溯源数组塞进页面本体、把单个 doc_id 当作完整溯源、只保留文档级来源而失去证据精度
+Wiki 页面到具体 Document Revision 及其原文证据的关系：文档引用说明页面使用了哪些版本，证据引用保存准确引文与原文位置。它不依赖 RAG Chunk；未来融合只允许通过可空 `rag_chunk_id` 建立快捷关联。
+_Avoid_: 把溯源数组塞进页面本体、只引用可删除的 RAG Chunk、让 AI 自由改写证据原文
 
 **Slug 唯一性（KB-Scoped Slug Uniqueness）**:
-slug 在同一个 KB 内唯一（`UNIQUE(kb_id, slug)`），**跨 KB 不唯一**。两个 KB 都有"苹果"实体不冲突。`index` / `log` 两个 slug 在每个 KB 内保留给系统页，用户不能占用。
-_Avoid_: 全局 slug 唯一（跨 KB 撞名是常态，强制全局唯一会让"苹果"被某个 KB 独占）
+slug 是页面创建后不可修改的稳定链接标识，在同一个 KB 内唯一，跨 KB 可以重复。页面改名只修改标题和别名；`index` / `log` 两个 slug 在每个 KB 内保留给系统页。
+_Avoid_: 全局 slug 唯一、用修改 slug 实现页面改名、批量重写其他页面的 wikilink
 
 **页面别名（Page Alias）**:
 Wiki 页面名称的其他常用写法，用于让用户通过简称、旧称或中英文名称找到同一页面。别名不改变页面身份，也不作为页面链接的解析目标。
@@ -167,8 +167,8 @@ _Avoid_: 双路径间 RRF 联合（rejected，跨路径排序语义模糊）、q
 _Avoid_: BM25 over wiki_pages（相似度排序会把"仅提及关键词"的页面排到"标题就是关键词"的页面之前）、tsvector + ts_query 全文检索（不支持任意正则 + 中文需 zhparser 分词扩展）
 
 **wiki chunk boost** [MVP 不启用]:
-`chunk_type='wiki_page'`、`wiki_page_id` 和 rerank 插件仅作未来融合预留。MVP 不生成 Wiki chunk，也不启用固定 1.3 加权。未来是否融合必须先完成 RAG-only / Wiki-only 独立评测、基于 `chunk_refs` 的血缘去重和一手证据优先设计，再另立 ADR。
-_Avoid_: 把预留字段或空跑插件描述成已实现能力；在没有同源去重时让 Wiki 转述挤占原文 top-k。
+MVP 不生成 Wiki chunk，也不在 `content_chunks` 保留 `chunk_type` / `wiki_page_id`，不启用固定 1.3 加权。`wiki_page_evidence_refs.rag_chunk_id` 仅是始终为空的未来融合快捷关联；启用前必须完成两条路径独立评测、血缘去重和一手证据优先设计，并另立 ADR。
+_Avoid_: 把可空关联描述成已实现融合、在没有同源去重时让 Wiki 转述挤占原文 top-k
 
 **统一产品形态**:
 v4.2 是一个产品，从「单人自用」到「小团队」到「公司多团队」无缝扩展。区别不在产品形态，而在**部署时启用的模块**：单人 = 自建账户；团队 = 邀请制 + RBAC；公司 = 强制 SSO + RLS。
