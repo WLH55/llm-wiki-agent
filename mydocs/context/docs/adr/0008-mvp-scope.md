@@ -1,6 +1,6 @@
 # MVP 范围与砍点决策
 
-> 状态：MVP 范围方向保留；“schema 预留但不实现”章节中的页面数组、物化路径、`content_chunks.chunk_type` / `wiki_page_id` 等旧字段已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 取代。
+> 状态：MVP 范围方向保留；“schema 预留但不实现”章节中的页面数组、物化路径、`content_chunks.chunk_type` / `wiki_page_id` 等旧字段已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 取代；共享分块底座见 [ADR-0013](./0013-shared-content-chunk-substrate.md)。
 
 llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性决策**极简**，把工程精力集中到检索模块质量上。前面 7 个 ADR（0001-0007）描述的是**长期架构方向**——MVP 只实现其中**核心子集**，但 schema 按 ADR 设计以避免未来 migration。
 

@@ -1,7 +1,7 @@
 # 检索架构（双路径 + IndexingStrategy + wiki chunk boost）
 
 > 状态：Superseded（2026-07-27）<br>
-> 本文保留为历史决策记录。其中“Wiki 页面写入 `content_chunks`、参与 RAG 召回并固定加权 1.3”的决策已由 [ADR-0010](./0010-mvp-wiki-rag-separation.md) 取代。MVP 实际采用 Wiki/RAG 两条独立路径，`content_chunks` 不预留 Wiki 内容字段；最终 schema 见 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md)。
+> 本文保留为历史决策记录。其中“Wiki 页面写入 `content_chunks`、参与 RAG 召回并固定加权 1.3”的决策已由 [ADR-0010](./0010-mvp-wiki-rag-separation.md) 取代。MVP 实际采用 Wiki/RAG 两条独立下游路径，`content_chunks` 不预留 Wiki 页面字段；最终 schema 见 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md)，共享原文分块底座见 [ADR-0013](./0013-shared-content-chunk-substrate.md)。
 
 llm_wiki3.0 的检索架构由 **KB 级配置开关 + 两条独立检索路径** 构成：
 

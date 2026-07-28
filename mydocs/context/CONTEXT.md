@@ -19,7 +19,7 @@ _Avoid_: 桌面客户端、Tauri 应用、胖客户端（v4.2 已放弃）
 ### 知识资产
 
 **知识库（KB / Knowledge Base）**:
-RAG 与 Wiki 共享的数据归属和生命周期边界。KB 本身只保存身份、归属与通用描述，不携带 RAG/Wiki 类型、嵌入模型或检索能力开关；具体能力由独立配置定义。
+RAG 与 Wiki 共享的数据归属、生命周期和文档分块策略边界。KB 不携带 RAG/Wiki 类型、嵌入模型或能力开关；具体能力由独立配置定义。
 _Avoid_: 数据库、文档库、笔记、RAG 类型 KB、Wiki 类型 KB
 
 **个人知识库（Personal KB）**:
@@ -45,8 +45,8 @@ _Avoid_: OKF（已弃用）、包含 embedding 的便携包（v4.2 不做，需�
 ### 数据模型与存储
 
 **RAG 配置（RAG Configuration）**:
-KB 可选的 RAG 能力配置，独立保存向量/关键词检索开关、嵌入模型与分块策略。没有配置表示该 KB 未配置 RAG；暂停配置不会删除已有文档和 chunks。
-_Avoid_: 把嵌入模型和分块参数直接放在知识库、用知识库类型隐含 RAG 配置
+KB 可选的 RAG 能力配置，只保存向量/关键词检索开关与嵌入模型。分块是 RAG/Wiki 共享摄取策略，不属于 RAG 配置。
+_Avoid_: 在 RAG 配置中定义第二套分块规则、用知识库类型隐含 RAG 配置
 
 **Wiki 配置（Wiki Configuration）**:
 KB 可选的 Wiki 能力配置，独立保存启用状态、页面生成模式、生成模型与生成策略。Wiki 配置不依赖 RAG 配置；暂停配置不会删除已有页面。
@@ -73,12 +73,12 @@ Document 在某次上传或同步时取得的不可变内容快照；原文件�
 _Avoid_: 用覆盖 Document 的方式保存更新、把解析重试称为新版本
 
 **生效版本（Active Revision）**:
-Document 当前正式用于分块与检索的成功 Revision；新 Revision 只有完整处理成功后才能原子切换为生效版本。
+Document 当前已完成原文解析和共享分块、正式供 RAG/Wiki 消费的 Revision。RAG embedding 或 Wiki 生成的独立失败不改变它的生效身份。
 _Avoid_: 最新上传版本（最新收到的版本可能仍在处理或已经失败）
 
 **生效分块集（Active Chunk Set）**:
-Document 的 Active Revision 当前用于检索的一组派生 chunks；历史 Revision 保留原文件但不长期保留 chunks，新版本切换成功后旧 chunks 被物理删除。
-_Avoid_: 历史 chunk 版本库、把可重建 chunks 当成不可变业务事实
+Document 的 Active Revision 当前共享的一组 `content_chunks`，同时作为 RAG 召回单元和 Wiki Map 输入。它可从 Revision 重建，旧 Revision 切换后不长期保留对应 chunks。详见 [ADR-0013](./docs/adr/0013-shared-content-chunk-substrate.md)。
+_Avoid_: RAG chunks（会误以为 Wiki 不能消费）、历史 chunk 版本库、把可重建 chunks 当成不可变业务事实
 
 **BM25 关键词检索（BM25 Keyword Retrieval）**:
 `knowledge_search` 的词法召回路径，由 PostgreSQL `pg_search` 扩展对 `content_chunks.text` 建立真正 BM25 索引，并与向量召回通过 RRF 融合。
@@ -89,7 +89,7 @@ _Avoid_: 把 PostgreSQL `tsvector` + `ts_rank` / `ts_rank_cd` 全文排序称为
 _Avoid_: 继续向 `knowledge_bases` 增加能力开关、用单一 `type` 把 KB 固化为 RAG 或 Wiki
 
 **chunk_type（旧 content_chunks 来源区分）** [已弃用]:
-旧设计用 `document` / `wiki_page` / `image_ocr` / `image_caption` 区分同表内容；逐表审批后 `content_chunks` 只保存当前生效 Document Revision 的 RAG 分块，不再保留 `chunk_type` 或 `wiki_page_id`。
+旧设计用 `document` / `wiki_page` / `image_ocr` / `image_caption` 区分同表内容；最终 `content_chunks` 只保存 Document Revision 派生的共享原文块，不保存 Wiki 页面，因此不需要 `chunk_type` 或 `wiki_page_id`。
 _Avoid_: 把 Wiki 页面或其他派生内容静默写入 RAG chunk 池
 
 ### 页面与图谱模型
@@ -115,8 +115,8 @@ _Avoid_: 把页面语义关系混入目录树、为页面同时维护目录父�
 _Avoid_: 页面物化路径缓存、在页面与目录上重复维护同一条路径
 
 **溯源边（Provenance Edges）**:
-Wiki 页面到具体 Document Revision 及其原文证据的关系：文档引用说明页面使用了哪些版本，证据引用保存准确引文与原文位置。它不依赖 RAG Chunk；未来融合只允许通过可空 `rag_chunk_id` 建立快捷关联。
-_Avoid_: 把溯源数组塞进页面本体、只引用可删除的 RAG Chunk、让 AI 自由改写证据原文
+Wiki 页面到具体 Document Revision 及其原文证据的关系：文档引用锁定版本，证据引用保存准确引文与位置，并可通过可空 `content_chunk_id` 回到生成时的共享 chunk。
+_Avoid_: 把溯源数组塞进页面本体、只引用可删除的 chunk ID、让 AI 自由改写证据原文
 
 **Slug 唯一性（KB-Scoped Slug Uniqueness）**:
 slug 是页面创建后不可修改的稳定链接标识，在同一个 KB 内唯一，跨 KB 可以重复。页面改名只修改标题和别名；`index` / `log` 两个 slug 在每个 KB 内保留给系统页。
@@ -167,7 +167,7 @@ _Avoid_: 双路径间 RRF 联合（rejected，跨路径排序语义模糊）、q
 _Avoid_: BM25 over wiki_pages（相似度排序会把"仅提及关键词"的页面排到"标题就是关键词"的页面之前）、tsvector + ts_query 全文检索（不支持任意正则 + 中文需 zhparser 分词扩展）
 
 **wiki chunk boost** [MVP 不启用]:
-MVP 不生成 Wiki chunk，也不在 `content_chunks` 保留 `chunk_type` / `wiki_page_id`，不启用固定 1.3 加权。`wiki_page_evidence_refs.rag_chunk_id` 仅是始终为空的未来融合快捷关联；启用前必须完成两条路径独立评测、血缘去重和一手证据优先设计，并另立 ADR。
+MVP 不生成 Wiki chunk，也不在 `content_chunks` 保留 `chunk_type` / `wiki_page_id`，不启用固定 1.3 加权。`wiki_page_evidence_refs.content_chunk_id` 只连接 Wiki 证据与共享原文块，不代表 Wiki 页面已进入 RAG 召回池；融合启用前仍必须完成独立评测、血缘去重和一手证据优先设计，并另立 ADR。
 _Avoid_: 把可空关联描述成已实现融合、在没有同源去重时让 Wiki 转述挤占原文 top-k
 
 **统一产品形态**:
