@@ -24,7 +24,7 @@ MVP 同时完成两条能力闭环。摄取层共享，派生数据与召回面�
 
 `content_chunks` 只保存当前 Active Revision 派生的共享原文块，同时供 RAG 召回与 Wiki Map 消费；它不保存 `chunk_type`、`wiki_page_id` 或其他 Wiki 页面内容字段。Wiki 血缘由独立的 `wiki_page_document_refs` 与 `wiki_page_evidence_refs` 表表达；证据以具体 Revision、准确引文和原文位置长期成立，并可通过可空的 `content_chunk_id` 回到生成时使用的共享 chunk。
 
-Wiki 按 `chunk_index` 完整遍历 Active Chunk Set，并将相邻 chunks 确定性组合成 token 预算内的 Map 批次，再执行“批次级 Map -> 文档级 Reduce -> 跨文档按 slug Reduce”；不得重建一个超长字符串后截断。带 TTL 的 Redis checkpoint 只保存 manifest、批次完成状态和 Map 结果，不复制 chunk 正文。Redis 是可丢失的恢复缓存；全部批次未成功时不得部分更新 Wiki，checkpoint 丢失后从同一 Active Chunk Set 重做。缺块或顺序不一致时任务显式失败，Wiki Worker 不得绕过共享底座秘密重解析原文件。具体契约以逐表审批 Spec 为准。
+Wiki 按 `chunk_index` 完整遍历 Active Chunk Set，并将相邻 chunks 确定性组合成 token 预算内的 Map 批次，再执行“批次级 Map -> 文档级 Reduce -> 跨文档按 slug Reduce”；不得重建一个超长字符串后截断。MVP 不保存跨运行 checkpoint：manifest 与 Map 结果只存在于当前 Worker 内存，失败或进程退出后从同一 Active Chunk Set 完整重做。`processing_runs` 与 `processing_spans` 保存权威状态和进度，Redis 只作为 RQ 队列后端。全部批次未成功时不得部分更新 Wiki；缺块或顺序不一致时任务显式失败，Wiki Worker 不得绕过共享底座秘密重解析原文件。具体契约以逐表审批 Spec 为准。
 
 ## 融合启用门槛
 

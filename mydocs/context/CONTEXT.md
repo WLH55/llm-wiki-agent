@@ -69,16 +69,28 @@ KB 中一篇来源文档的稳定身份；同一来源文档后续上传或同�
 _Avoid_: 把一次上传、一次同步或一个具体文件称为 Document
 
 **文档版本（Document Revision）**:
-Document 在某次上传或同步时取得的不可变内容快照；原文件、内容指纹和来源版本属于 Revision，处理失败的 Revision 不取代既有生效版本。
-_Avoid_: 用覆盖 Document 的方式保存更新、把解析重试称为新版本
+Document 在某次上传或同步时取得的不可变内容快照；原文件、内容指纹和来源版本属于 Revision，`status` 表示它当前能否成为生效版本。每次处理尝试的错误和执行时间属于 Processing Run；处理失败的 Revision 不取代既有生效版本。
+_Avoid_: 用覆盖 Document 的方式保存更新、把解析重试称为新版本、在 Revision 和 Processing Run 中重复保存运行诊断
+
+**候选版本（Candidate Revision）**:
+已经完成共享解析与分块、`status=ready`，但尚未通过当前 KB 激活门槛的 Document Revision。启用向量检索时，候选版本必须完成整套 chunks 的 embedding 后才能成为 Active Revision。
+_Avoid_: 把 `ready` 直接等同于 Active、让未完成向量化的新版本替换仍可服务的旧版本
 
 **生效版本（Active Revision）**:
-Document 当前已完成原文解析和共享分块、正式供 RAG/Wiki 消费的 Revision。RAG embedding 或 Wiki 生成的独立失败不改变它的生效身份。
+Document 当前已经通过激活门槛、正式供 RAG/Wiki 消费的 Revision。未启用向量检索时共享解析与分块完成即可激活；启用时还必须完成候选 chunks 的 embedding。Wiki 生成不是激活门槛。
 _Avoid_: 最新上传版本（最新收到的版本可能仍在处理或已经失败）
 
 **生效分块集（Active Chunk Set）**:
-Document 的 Active Revision 当前共享的一组 `content_chunks`，同时作为 RAG 召回单元和 Wiki Map 输入。它可从 Revision 重建，旧 Revision 切换后不长期保留对应 chunks。详见 [ADR-0013](./docs/adr/0013-shared-content-chunk-substrate.md)。
-_Avoid_: RAG chunks（会误以为 Wiki 不能消费）、历史 chunk 版本库、把可重建 chunks 当成不可变业务事实
+Document 的 Active Revision 当前共享的一组 `content_chunks`，同时作为 RAG 召回单元和 Wiki Map 输入。它可从 Revision 重建；两阶段激活期间允许候选 chunks 与旧 Active Chunk Set 共存，但在线读取只消费 Active。详见 [ADR-0013](./docs/adr/0013-shared-content-chunk-substrate.md)。
+_Avoid_: 把候选 chunks 暴露给在线检索、RAG chunks（会误以为 Wiki 不能消费）、历史 chunk 版本库、把可重建 chunks 当成不可变业务事实
+
+**处理运行（Processing Run）**:
+一次可独立调度或取消的业务处理尝试；保存目标、配置快照、整体状态、错误和起止时间。RQ 自动重试是同一 Run 的再次执行，只有终态后的业务重跑才创建新 Run。父 Run 只对独立子任务进行编排归组，不代表内部执行步骤，也不要求兄弟 Run 串行。Run 不保存含义模糊的“主要模型”。
+_Avoid_: 把队列自动重投称为新 Run、把普通函数步骤建成 Run、用父 Run 状态覆盖子 Run 的独立成败、在 Revision 中复制运行诊断
+
+**处理阶段（Processing Span）**:
+Processing Run 内一次计划或实际执行的可观测阶段；保存阶段状态、具体模型、token、指标、错误和起止时间。`skipped` 表示主动不执行，`cancelled` 表示因用户、Run 或上游失败而中止。Span 可以串行或并行；固定阶段顺序和依赖来自应用注册表与编排代码，`parent_span_id` 只表达嵌套归属。
+_Avoid_: 用 `skipped` 掩盖上游失败、把 Span 当成可独立排队的任务、在数据库保存全局执行序号、在 Run 中重复保存阶段模型
 
 **BM25 关键词检索（BM25 Keyword Retrieval）**:
 `knowledge_search` 的词法召回路径，由 PostgreSQL `pg_search` 扩展对 `content_chunks.text` 建立真正 BM25 索引，并与向量召回通过 RRF 融合。
