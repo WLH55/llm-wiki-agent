@@ -14,12 +14,12 @@ from app.web.dependencies import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_PREFIX}/auth/login",
-    auto_error=True,
+    auto_error=False,
 )
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    token: Annotated[Optional[str], Depends(oauth2_scheme)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> User:
     """从 JWT 解析当前有效用户。"""
@@ -28,6 +28,24 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not settings.AUTH_ENABLED:
+        result = await db.execute(
+            select(User)
+            .where(
+                User.email == settings.BOOTSTRAP_OWNER_EMAIL,
+                User.is_active.is_(True),
+                User.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            raise credentials_exception
+        return user
+
+    if token is None:
+        raise credentials_exception
+
     try:
         payload = decode_token(token)
         user_id_str: Optional[str] = payload.get("sub")

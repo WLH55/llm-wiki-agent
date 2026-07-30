@@ -10,6 +10,7 @@ import {
   createKB,
   extractErrorMessage,
   getDocumentStatus,
+  isUnauthorizedError,
   listKBs,
   listParserEngines,
   login,
@@ -52,10 +53,18 @@ export default function DocumentsPage() {
           localStorage.setItem(TOKEN_KEY, activeToken)
           setToken(activeToken)
         }
-        const results = await Promise.allSettled([
-          listKBs(activeToken),
-          listParserEngines(activeToken),
-        ])
+        let results = await loadBootstrapData(activeToken)
+        const failedRequest = results.find((result) => result.status === 'rejected') as
+          | PromiseRejectedResult
+          | undefined
+        if (failedRequest && isUnauthorizedError(failedRequest.reason)) {
+          localStorage.removeItem(TOKEN_KEY)
+          const response = await login(EMAIL_DEFAULT, PWD_DEFAULT)
+          activeToken = response.access_token
+          localStorage.setItem(TOKEN_KEY, activeToken)
+          setToken(activeToken)
+          results = await loadBootstrapData(activeToken)
+        }
         const [kbResult, engineResult] = results
         if (kbResult.status === 'fulfilled') {
           setKbs(kbResult.value)
@@ -395,6 +404,10 @@ export default function DocumentsPage() {
 }
 
 /** 将 metadata 值格式化为可读字符串。 */
+function loadBootstrapData(token: string) {
+  return Promise.allSettled([listKBs(token), listParserEngines(token)])
+}
+
 function formatMetaValue(value: unknown): string {
   if (value === null || value === undefined) return '-'
   if (typeof value === 'string') return value

@@ -3,7 +3,15 @@ import { Search as SearchIcon } from 'lucide-react'
 
 import SearchBox from '../components/SearchBox'
 import ResultList from '../components/ResultList'
-import { ChunkHit, KBInfo, extractErrorMessage, listKBs, login, search } from '../api'
+import {
+  ChunkHit,
+  KBInfo,
+  extractErrorMessage,
+  isUnauthorizedError,
+  listKBs,
+  login,
+  search,
+} from '../api'
 
 const TOKEN_KEY = 'llm_wiki_jwt'
 const EMAIL_DEFAULT = 'owner@local'
@@ -28,7 +36,18 @@ export default function SearchPage() {
           localStorage.setItem(TOKEN_KEY, activeToken)
           setToken(activeToken)
         }
-        const kbList = await listKBs(activeToken)
+        let kbList: KBInfo[]
+        try {
+          kbList = await listKBs(activeToken)
+        } catch (requestError) {
+          if (!isUnauthorizedError(requestError)) throw requestError
+          localStorage.removeItem(TOKEN_KEY)
+          const response = await login(EMAIL_DEFAULT, PWD_DEFAULT)
+          activeToken = response.access_token
+          localStorage.setItem(TOKEN_KEY, activeToken)
+          setToken(activeToken)
+          kbList = await listKBs(activeToken)
+        }
         setKBs(kbList)
         if (kbList.length > 0 && selectedKb === null) {
           setSelectedKb(kbList[0].id)

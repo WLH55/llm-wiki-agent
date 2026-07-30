@@ -11,6 +11,7 @@ const apiMocks = vi.hoisted(() => ({
   uploadDocument: vi.fn(),
   getDocumentStatus: vi.fn(),
   listParserEngines: vi.fn(),
+  isUnauthorizedError: vi.fn(),
 }))
 
 vi.mock('./api', () => ({
@@ -20,6 +21,7 @@ vi.mock('./api', () => ({
   uploadDocument: apiMocks.uploadDocument,
   getDocumentStatus: apiMocks.getDocumentStatus,
   listParserEngines: apiMocks.listParserEngines,
+  isUnauthorizedError: apiMocks.isUnauthorizedError,
   extractErrorMessage: (error: unknown, fallback = '请求失败') =>
     error instanceof Error ? error.message : fallback,
 }))
@@ -71,7 +73,7 @@ describe('App', () => {
   afterEach(() => {
     cleanup()
     localStorage.clear()
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   it('renders navigation and the document upload workspace at /documents', async () => {
@@ -87,6 +89,30 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: /文档解析/ })).toBeDefined()
     expect(screen.getByRole('link', { name: /知识检索/ })).toBeDefined()
     expect(await screen.findByRole('option', { name: 'Parser Lab' })).toBeDefined()
+  })
+
+  it('re-authenticates when the stored token is rejected', async () => {
+    const unauthorized = new Error('Could not validate credentials')
+    apiMocks.listKBs.mockRejectedValueOnce(unauthorized).mockResolvedValueOnce([
+      { id: 8, name: 'Fresh KB', embedding_model: 'unused', embedding_dim: 1024 },
+    ])
+    apiMocks.listParserEngines.mockRejectedValueOnce(unauthorized).mockResolvedValueOnce({
+      uploadable_file_types: [],
+      engines: [],
+    })
+    apiMocks.isUnauthorizedError.mockReturnValue(true)
+    apiMocks.login.mockResolvedValue({ access_token: 'fresh-token' })
+
+    render(
+      <MemoryRouter initialEntries={['/documents']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('option', { name: 'Fresh KB' })).toBeDefined()
+    expect(apiMocks.login).toHaveBeenCalledWith('owner@local', 'change-me')
+    expect(localStorage.getItem('llm_wiki_jwt')).toBe('fresh-token')
+    expect(apiMocks.listKBs).toHaveBeenLastCalledWith('fresh-token')
   })
 
   it('uploads a document and renders the processed status', async () => {

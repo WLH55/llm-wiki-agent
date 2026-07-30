@@ -93,6 +93,10 @@ export function extractErrorMessage(error: unknown, fallback = '请求失败'): 
   return fallback
 }
 
+export function isUnauthorizedError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 401
+}
+
 export async function login(email: string, password: string): Promise<TokenResponse> {
   const res = await api.post<ApiResponse<TokenResponse>>('/auth/login', { email, password })
   return res.data.data

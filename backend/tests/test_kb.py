@@ -3,6 +3,8 @@ KB 测试：创建 / 列表 / 详情
 """
 import pytest
 
+from app.config import settings
+
 
 @pytest.mark.asyncio
 async def test_create_kb_default_config(client, auth_token):
@@ -41,6 +43,19 @@ async def test_list_kbs(client, auth_token):
     data = response.json()["data"]
     assert isinstance(data, list)
     assert any(kb["name"] == "KB for list" for kb in data)
+
+
+@pytest.mark.asyncio
+async def test_list_kbs_without_token_in_dev(client):
+    """开发调试阶段允许不带 token 访问 KB 接口"""
+    previous = settings.AUTH_ENABLED
+    settings.AUTH_ENABLED = False
+    try:
+        response = await client.get("/api/v1/kb")
+    finally:
+        settings.AUTH_ENABLED = previous
+    assert response.status_code == 200
+    assert isinstance(response.json()["data"], list)
 
 
 @pytest.mark.asyncio

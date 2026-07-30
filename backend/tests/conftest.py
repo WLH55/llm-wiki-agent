@@ -22,6 +22,7 @@ os.environ.setdefault(
     "postgresql+asyncpg://llmwiki:llmwiki@localhost:5432/llmwiki",
 )
 os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ.setdefault("AUTH_ENABLED", "true")
 os.environ.setdefault("BOOTSTRAP_OWNER_EMAIL", "owner@local")
 os.environ.setdefault("BOOTSTRAP_OWNER_PASSWORD", "change-me")
 

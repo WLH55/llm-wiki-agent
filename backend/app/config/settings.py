@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0"
     API_PREFIX: str = "/api/v1"
     DEBUG: bool = False
+    AUTH_ENABLED: bool = True
 
     # ========== 服务器与 HTTP 配置 ==========
     HOST: str = "0.0.0.0"
