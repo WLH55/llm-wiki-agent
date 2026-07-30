@@ -196,8 +196,10 @@ Python 后端。承担业务逻辑、Agent Runtime、文档解析、向量检索
 _Avoid_: Node 后端（v4.2 已放弃）、Next.js API Routes 业务化
 
 **Redis + 任务队列**:
-异步任务（PDF 解析、嵌入生成、Wiki 生成、向量索引）的执行通道。Python worker 进程消费。Redis 还允许保存可丢失的同 KB Wiki 租约锁和删除墓碑；任务权威状态、进度、Map/Reduce 结果和最终业务数据均不放在 Redis。详见 [ADR-0017](./docs/adr/0017-redis-ephemeral-wiki-coordination.md)。
-_Avoid_: 桌面端 setInterval（v4.2 已不可行）、把 Redis checkpoint 当成任务进度事实、无 owner token 的租约锁
+异步任务（PDF 解析、嵌入生成、Wiki 生成、向量索引）的投递通道。API 是生产者，独立 Python Worker 是消费者；二者可以复用同一个镜像和 Python 包，但由不同入口进程执行。代码位于 `app/parsers` 不代表由 API 进程执行，正式解析由 Worker 导入共享 Parser 实现。Redis 还允许保存可丢失的同 KB Wiki 租约锁和删除墓碑；任务权威状态、进度、Map/Reduce 结果和最终业务数据均不放在 Redis。详见 [ADR-0017](./docs/adr/0017-redis-ephemeral-wiki-coordination.md)。
+
+当前实现使用 RQ：业务上是异步投递，但标准 RQ Worker 一次只执行一个 Job；`asyncio.run` 只让单个 Job 能调用协程，不提供多 Job 协程并发。目标 Worker 运行时仍在评估，尚未批准保留 RQ 或切换到 `arq` 等 async-native 队列，也未批准具体并发数和队列容量。
+_Avoid_: 桌面端 setInterval（v4.2 已不可行）、把 Redis checkpoint 当成任务进度事实、无 owner token 的租约锁、把消息异步等同于协程并发、因代码目录位置误判实际执行进程
 
 ### 隔离与认证
 

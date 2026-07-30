@@ -1,9 +1,8 @@
 ﻿"""
 FastAPI 应用入口
 
-沿用脚手架 create_app() 模式 + 全局异常 + CORS；扩展：
-- lifespan 启动时 ensure_bootstrap_owner
-- 仅提供 API；前端由独立 frontend 服务/容器托管
+沿用脚手架 create_app() 模式 + 全局异常 + CORS；
+仅提供 API；前端由独立 frontend 服务/容器托管。
 """
 
 import logging
@@ -25,14 +24,6 @@ async def lifespan(app: FastAPI):
     logger.info(f"应用启动: {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"运行环境: {settings.ENVIRONMENT}")
     logger.info(f"调试模式: {settings.DEBUG}")
-    # 启动时确保 bootstrap owner 存在
-    try:
-        from app.auth.service.bootstrap import ensure_bootstrap_owner
-        from app.models.database import async_session_factory
-        async with async_session_factory() as db:
-            await ensure_bootstrap_owner(db)
-    except Exception as e:
-        logger.error(f"ensure_bootstrap_owner 失败: {e}", exc_info=True)
     yield
     logger.info("应用关闭")
 

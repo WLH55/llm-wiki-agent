@@ -4,7 +4,7 @@ Pytest 全局 fixtures
 测试前置条件：
 1. docker-compose up（postgres + redis + minio 已起）
 2. alembic upgrade head（schema 已迁移）
-3. ensure_bootstrap_owner 已跑（启动 backend 时自动跑）
+3. 如测试需要认证用户，须自行准备测试数据
 
 测试 fixture：
 - db_session: 异步 db 会话

@@ -24,7 +24,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init-pgvector-only.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
+      - ./postgres/init-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmwiki}"]
       interval: 5s
@@ -81,7 +81,7 @@ services:
     env_file:
       - ./backend/.env.${ENVIRONMENT:-dev}
     ports:
-      - "8000:8000"
+      - "8008:8008"
     volumes:
       # 本地代码热更新
       - ./backend/app:/app/app
@@ -96,7 +96,7 @@ services:
     command: >
       sh -c "mkdir -p /app/logs &&
              alembic upgrade head &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+             uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload"
     depends_on:
       postgres:
         condition: service_healthy
@@ -148,7 +148,7 @@ services:
     container_name: llm-wiki-frontend
     working_dir: /app
     environment:
-      VITE_BACKEND_URL: http://backend:8000
+      VITE_BACKEND_URL: http://backend:8008
     ports:
       - "5173:5173"
     volumes:
