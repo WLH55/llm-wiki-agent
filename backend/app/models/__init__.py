@@ -5,7 +5,7 @@ import 所有 model 模块以触发 Base.metadata 注册（Alembic autogenerate 
 """
 from app.models.base import Base, TenantMixin, TimestampMixin
 from app.models.chunk import ContentChunk
-from app.models.document import Document
+from app.models.document import Document, DocumentRevision
 from app.models.kb import KnowledgeBase
 from app.models.reserved import (
     KBShare,
@@ -17,6 +17,8 @@ from app.models.reserved import (
     WikiPage,
 )
 from app.models.source import Source
+from app.models.rag_config import KnowledgeBaseRagConfig
+from app.models.task_runtime import ProcessingRun, ProcessingSpan, TaskOutbox
 from app.models.user import Tenant, User
 
 __all__ = [
@@ -28,7 +30,12 @@ __all__ = [
     "KnowledgeBase",
     "Source",
     "Document",
+    "DocumentRevision",
+    "KnowledgeBaseRagConfig",
     "ContentChunk",
+    "ProcessingRun",
+    "ProcessingSpan",
+    "TaskOutbox",
     # Reserved (P2+)
     "Organization",
     "OrgMember",

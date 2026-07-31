@@ -87,6 +87,20 @@ class Settings(BaseSettings):
     # Docker 内: redis://redis:6379/0；宿主机连容器: redis://localhost:6380/0
     REDIS_URL: str = "redis://localhost:6380/0"
 
+    # ========== Taskiq Worker ==========
+    TASK_WORKER_CONCURRENCY: int = 16
+    TASK_CRITICAL_RESERVED_CONCURRENCY: int = 2
+    TASK_PARSER_PROCESSES: int = 2
+    TASK_LEASE_SECONDS: int = 900
+    TASK_HEARTBEAT_SECONDS: int = 15
+    TASK_STREAM_IDLE_TIMEOUT_MS: int = 1_800_000
+    TASK_OUTBOX_BATCH_SIZE: int = 100
+    TASK_OUTBOX_LOCK_SECONDS: int = 30
+    TASK_OUTBOX_POLL_SECONDS: float = 0.5
+    TASK_MAX_AUTO_RETRIES: int = 3
+    TASK_RETRY_BASE_SECONDS: int = 5
+    TASK_RETRY_MAX_SECONDS: int = 300
+
     # ========== MinIO ==========
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = ""
