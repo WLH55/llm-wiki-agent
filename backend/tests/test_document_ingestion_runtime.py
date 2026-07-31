@@ -16,7 +16,7 @@ from app.models.task_runtime import ProcessingRun, TaskOutbox
 from app.models.user import Tenant, User
 
 TEST_TENANT_ID = 98_003
-TEST_KB_ID = 203
+TEST_KB_ID = 98_204
 
 
 async def _delete_ingestion_rows() -> None:
@@ -33,7 +33,12 @@ async def _delete_ingestion_rows() -> None:
         await db.execute(delete(DocumentRevision).where(DocumentRevision.id.in_(revision_ids)))
         await db.execute(delete(Document).where(Document.id.in_(document_ids)))
         await db.execute(delete(Source).where(Source.tenant_id == TEST_TENANT_ID))
-        await db.execute(delete(KnowledgeBase).where(KnowledgeBase.id == TEST_KB_ID))
+        await db.execute(
+            delete(KnowledgeBase).where(
+                KnowledgeBase.id == TEST_KB_ID,
+                KnowledgeBase.tenant_id == TEST_TENANT_ID,
+            )
+        )
         await db.execute(delete(User).where(User.tenant_id == TEST_TENANT_ID))
         await db.execute(delete(Tenant).where(Tenant.id == TEST_TENANT_ID))
         await db.commit()

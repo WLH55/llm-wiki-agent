@@ -104,7 +104,10 @@ async def document_process_handler(context: RunExecutionContext) -> None:
         live_document, live_revision = await _load_document_revision(db, context)
         existing = await db.scalar(
             select(ContentChunk.id)
-            .where(ContentChunk.revision_id == live_revision.id)
+            .where(
+                ContentChunk.revision_id == live_revision.id,
+                ContentChunk.deleted_at.is_(None),
+            )
             .limit(1)
         )
         if existing is not None:
@@ -159,7 +162,10 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
         candidates = (
             await db.execute(
                 select(ContentChunk)
-                .where(ContentChunk.revision_id == revision.id)
+                .where(
+                    ContentChunk.revision_id == revision.id,
+                    ContentChunk.deleted_at.is_(None),
+                )
                 .order_by(ContentChunk.chunk_index)
             )
         ).scalars().all()
@@ -191,7 +197,10 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
         live_candidates = (
             await db.execute(
                 select(ContentChunk)
-                .where(ContentChunk.revision_id == live_revision.id)
+                .where(
+                    ContentChunk.revision_id == live_revision.id,
+                    ContentChunk.deleted_at.is_(None),
+                )
                 .order_by(ContentChunk.chunk_index)
             )
         ).scalars().all()

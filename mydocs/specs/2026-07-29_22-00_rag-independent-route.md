@@ -80,6 +80,8 @@
 
 ## 1.2 Research Findings
 
+> 状态注记（2026-07-31）：本节的 RQ / async-native 对比属决策前调研。运行时已按 ADR-0018 批准并落地为 PostgreSQL Outbox + Taskiq（Redis Streams），RQ 相关开放问题已关闭。
+
 1. 当前运行时仍使用旧的 `documents.status` 和 `content_chunks.doc_id` 模型。
 2. 已批准的数据设计要求引入 `document_revisions`、`processing_runs`、`processing_spans`，并以候选 Revision 完成索引后再激活。
 3. 当前文档 Worker 在一次任务中直接解析、embedding、写入 chunks，并立即将文档标记为 `processed`，与两阶段激活设计不一致。
@@ -96,14 +98,14 @@
 - 是否保留当前 RAG 检索实现中的 PostgreSQL `tsvector` 路线，还是本轮同步切换到已记录的 BM25 方案？
 - 文档处理完成后，首版是否必须支持取消和业务重跑，还是先完成自动重试与失败恢复？
 - Worker 运行时是否必须支持单进程内同时执行多个独立 Job 协程？
-- 保留 RQ 并用多个 Worker 进程扩容，还是切换到 async-native Redis 队列？若切换，框架选择需单独比较并批准。
+- 保留 RQ 并用多个 Worker 进程扩容，还是切换到 async-native Redis 队列？（已关闭：采用 Taskiq + Redis Streams，见 ADR-0018）
 - 首版允许多少个并发 Processing Run？Parser、Embedding/LLM 和数据库写入是否采用不同的并发预算？
 - 多队列只需要优先级和公平调度，还是必须为长耗时任务提供独立容量，避免共享槽位被占满？
 
 ## 1.4 Next Actions
 
 1. 先批准 Worker 的负载假设和并发目标，包括期望排队时间、单机资源与外部模型限流。
-2. 对 RQ 多进程方案与 async-native 方案进行同一套能力矩阵评估：并发、重试、固定 Job ID、取消、超时、延迟任务、崩溃恢复、优雅停机、监控和测试支持。
+2. 对 RQ 多进程方案与 async-native 方案进行同一套能力矩阵评估（已完成并批准：Taskiq + Redis Streams + Outbox，见 ADR-0018）。
 3. 批准运行时后，再审批队列划分、各资源并发预算和部署拓扑。
 4. 通过逐项讨论确定 RAG 路线的完整验收边界。
 5. 对数据库迁移、模型、Worker、检索服务和 API 建立可执行 Plan。

@@ -210,7 +210,8 @@ async def get_or_create_manual_source(
             .limit(1)
         )
     ).scalar_one_or_none()
-    assert source is not None
+    if source is None:
+        raise RuntimeError("manual source missing after conflict-safe upsert")
     return source
 
 
