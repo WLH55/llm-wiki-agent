@@ -10,7 +10,6 @@ search:        编排入口
 否则规划器认不出 partial HNSW 索引会退化全表扫（参 ADR-0001）。
 """
 import logging
-from typing import List
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,10 +26,10 @@ logger = logging.getLogger(__name__)
 async def vector_search(
     db: AsyncSession,
     kb_id: int,
-    query_embedding: List[float],
+    query_embedding: list[float],
     embedding_dim: int,
     top_k: int = 20,
-) -> List[ChunkHit]:
+) -> list[ChunkHit]:
     """pgvector 向量检索（cosine 距离）
 
     关键 SQL: (embedding::halfvec(N) <=> CAST(:q AS halfvec(N)))
@@ -39,14 +38,18 @@ async def vector_search(
     embedding_str = "[" + ",".join(f"{x:.7f}" for x in query_embedding) + "]"
     sql = text(
         f"""
-        SELECT id, doc_id::text AS doc_id, text,
-               (embedding::halfvec({embedding_dim})
+        SELECT c.id, c.doc_id::text AS doc_id, c.text,
+               (c.embedding::halfvec({embedding_dim})
                 <=> CAST(:q AS halfvec({embedding_dim}))) AS distance
-        FROM content_chunks
-        WHERE kb_id = :kb_id
-          AND embedding_dim = :dim
-          AND chunk_type = 'document'
-          AND deleted_at IS NULL
+        FROM content_chunks c
+        JOIN documents d
+          ON d.id = c.document_id
+         AND d.active_revision_id = c.revision_id
+         AND d.deleted_at IS NULL
+        WHERE c.kb_id = :kb_id
+          AND c.embedding_dim = :dim
+          AND c.chunk_type = 'document'
+          AND c.deleted_at IS NULL
         ORDER BY distance
         LIMIT :top_k
         """
@@ -60,7 +63,7 @@ async def vector_search(
             "top_k": top_k,
         },
     )
-    hits: List[ChunkHit] = []
+    hits: list[ChunkHit] = []
     for row in result:
         hits.append(
             ChunkHit(
@@ -80,17 +83,21 @@ async def bm25_search(
     kb_id: int,
     query: str,
     top_k: int = 20,
-) -> List[ChunkHit]:
+) -> list[ChunkHit]:
     """PG 全文检索（zhparser 中文分词 + ts_rank_cd）"""
     sql = text(
         """
-        SELECT id, doc_id::text AS doc_id, text,
-               ts_rank_cd(search_vector, plainto_tsquery('chinese_zh', :q)) AS rank
-        FROM content_chunks
-        WHERE kb_id = :kb_id
-          AND search_vector @@ plainto_tsquery('chinese_zh', :q)
-          AND chunk_type = 'document'
-          AND deleted_at IS NULL
+        SELECT c.id, c.doc_id::text AS doc_id, c.text,
+               ts_rank_cd(c.search_vector, plainto_tsquery('chinese_zh', :q)) AS rank
+        FROM content_chunks c
+        JOIN documents d
+          ON d.id = c.document_id
+         AND d.active_revision_id = c.revision_id
+         AND d.deleted_at IS NULL
+        WHERE c.kb_id = :kb_id
+          AND c.search_vector @@ plainto_tsquery('chinese_zh', :q)
+          AND c.chunk_type = 'document'
+          AND c.deleted_at IS NULL
         ORDER BY rank DESC
         LIMIT :top_k
         """
@@ -98,7 +105,7 @@ async def bm25_search(
     result = await db.execute(
         sql, {"q": query, "kb_id": kb_id, "top_k": top_k}
     )
-    hits: List[ChunkHit] = []
+    hits: list[ChunkHit] = []
     for row in result:
         hits.append(
             ChunkHit(
@@ -114,10 +121,10 @@ async def bm25_search(
 
 
 def rrf_fuse(
-    vector_results: List[ChunkHit],
-    bm25_results: List[ChunkHit],
+    vector_results: list[ChunkHit],
+    bm25_results: list[ChunkHit],
     k: int = 60,
-) -> List[ChunkHit]:
+) -> list[ChunkHit]:
     """RRF 融合：score(d) = sum(1 / (k + rank_in_list))
 
     k=60 是经验默认值（参 spec §2 §1.7）。
@@ -135,7 +142,7 @@ def rrf_fuse(
         if hit.chunk_id not in metadata:
             metadata[hit.chunk_id] = hit
 
-    fused: List[ChunkHit] = []
+    fused: list[ChunkHit] = []
     for chunk_id, score in sorted(scores.items(), key=lambda x: -x[1]):
         hit = metadata[chunk_id].model_copy(update={"score": score, "rank_source": "rrf"})
         fused.append(hit)
@@ -149,7 +156,7 @@ async def search(
     query: str,
     mode: str = "rag",
     limit: int = 10,
-) -> List[ChunkHit]:
+) -> list[ChunkHit]:
     """编排：embed query → 向量召回 + BM25 召回 → RRF 融合 → top-K"""
     kb: KnowledgeBase = await get_kb_by_id(db, kb_id, user_tenant_id)
 
@@ -163,8 +170,8 @@ async def search(
     top_k_each = settings.RAG_TOP_K_EACH
     rrf_k = settings.RAG_RRF_K
 
-    vector_hits: List[ChunkHit] = []
-    bm25_hits: List[ChunkHit] = []
+    vector_hits: list[ChunkHit] = []
+    bm25_hits: list[ChunkHit] = []
 
     if kb.vector_enabled:
         query_embedding = embed_one(query)

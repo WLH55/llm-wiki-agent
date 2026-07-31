@@ -131,8 +131,6 @@ class Settings(BaseSettings):
     # 字节数配置：20 MiB = 20 * 1024 * 1024 bytes
     PARSER_MAX_TOTAL_IMAGE_BYTES: int = 20 * 1024 * 1024
     PARSER_TIMEOUT_SECONDS: int = 300
-    PARSER_JOB_TIMEOUT_SECONDS: int = 600
-
     # ========== RAG 检索 ==========
     RAG_TOP_K_EACH: int = 20
     RAG_RRF_K: int = 60

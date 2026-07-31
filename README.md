@@ -4,15 +4,17 @@ MVP P1 Batch 1: RAG 基础闭环（pgvector halfvec 多维度 + BM25 + RRF 融�
 
 ## 架构
 
-5 个服务（无 frontend 容器、无 nginx 容器）：
+7 个服务（无 frontend 容器、无 nginx 容器）：
 
 | 服务 | 镜像 | 用途 |
 |------|------|------|
 | postgres | postgres:16 + pgvector + zhparser（自定义） | 主数据库 + 向量检索 + 中文分词 |
-| redis | redis:7-alpine | RQ 异步队列 |
+| redis | redis:7-alpine | Taskiq Redis Streams 传输层 |
 | minio | minio/minio | 原始文档对象存储 |
 | backend | python:3.11-slim（含前端静态托管） | FastAPI + uvicorn |
-| worker | 同 backend 镜像 | RQ worker（异步文档解析） |
+| outbox-publisher | 同 backend 镜像 | 可靠发布 PostgreSQL Outbox |
+| task-worker-shared | 同 backend 镜像 | Taskiq 默认队列消费者 |
+| task-worker-critical | 同 backend 镜像 | Taskiq critical 队列消费者 |
 
 ## 快速启动
 

@@ -51,6 +51,12 @@ def test_process_run_is_registered_on_both_worker_brokers():
     assert tasks.critical_broker.find_task("process_run") is tasks.process_run_critical
 
 
+def test_default_run_handlers_include_revision_document_processing():
+    tasks = _tasks_module()
+    assert "document_process" in tasks.RUN_HANDLERS
+    assert "rag_index" in tasks.RUN_HANDLERS
+
+
 @pytest.mark.asyncio
 async def test_taskiq_sender_routes_identity_message_to_selected_stream(monkeypatch):
     tasks = _tasks_module()

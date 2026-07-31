@@ -2,14 +2,40 @@
 
 ## 0. 状态
 
-- **phase**: Research
-- **approval status**: Research Active
-- **status**: LOCKED
+- **phase**: Execute
+- **approval status**: Runtime decision accepted; implementation in progress
+- **status**: IN PROGRESS
 - **active project**: llm_wiki3.0
-- **active workdir**: `D:\AI\知识库设计\llm_wiki3.0`
+- **active workdir**: `D:\AI\llm-wiki-agent`
 - **Goal**: 先走通可独立使用的 RAG 知识库闭环，为后续 Wiki 能力保留公共内容基础。
 
-## 0.1 当前边界
+## 0.1 执行状态（2026-07-31）
+
+运行时方案已由 [ADR-0018](../context/docs/adr/0018-taskiq-outbox-fenced-run-runtime.md) 固化：PostgreSQL 是 Run 和 Outbox 的权威状态，Taskiq + Redis Streams 仅负责至少一次传输，Worker 通过 lease、fencing token 与 epoch 防止过期执行提交结果。
+
+### 已完成
+
+- 数据库迁移 `003_task_runtime` 和 `004_rag_revisions`：Run/Span/Outbox、不可变 `DocumentRevision`、候选 chunk 与 Active Revision 指针已落库。
+- 上传链路在一次事务中创建 `Document`、`DocumentRevision`、`document_process` Run 和待投递 Outbox；不再直接调用 RQ 入队。
+- `document_process` Handler 按 Revision 从对象存储读取文件并解析，写入未 embedding 的候选 chunks；同一 fenced 事务中创建 critical `rag_index` 子 Run 和 Outbox。
+- `rag_index` Handler 在全部 embedding 成功后原子写入向量并激活 Revision；embedding 失败保留旧 Active Revision。
+- 向量和 BM25 检索均限定为 `documents.active_revision_id`，状态 API 从最新 Revision/Run 推导状态。
+- Compose 已部署 Outbox Publisher、Taskiq shared Worker 和 Taskiq critical Worker；旧 RQ 模块、依赖、测试和容器已删除。
+- Taskiq broker、Outbox 发布/重试/Reaper 与 Run 领取、续租、fencing 已有 PostgreSQL 集成测试覆盖；本地 Docker 已验证上传经 Outbox、Taskiq 到 Revision 激活的闭环。
+
+### 未完成，不能视为闭环
+
+- 完成 Redis Streams 崩溃恢复、重复投递和旧 Worker 租约失效后的端到端验证。
+
+### 当前验收标准
+
+1. 上传成功后，数据库中必须同时存在 Document、Revision、`document_process` Run 和未发布 Outbox；不得依赖直接 RQ 入队。
+2. 文档解析成功后，候选 chunks 与 `rag_index` Run/Outbox 必须原子存在，且旧 `active_revision_id` 不变。
+3. embedding 失败时，旧 Active Revision 仍可搜索；成功时才原子激活新 Revision。
+4. 任意重复消息或 lease 失效的旧 Worker 都不能写入重复 chunks、错误终态或过期激活结果。
+5. 在部署的 Publisher 和 Taskiq Worker 运行时，未发布 Outbox 能被投递、失败发布能重试、Worker 崩溃前未确认的消息能被恢复处理。
+
+## 0.2 当前边界
 
 ### In Scope
 
@@ -37,6 +63,7 @@
 - `mydocs/context/docs/adr/0015-processing-span-concurrency-model.md`
 - `mydocs/context/docs/adr/0016-two-phase-active-revision.md`
 - `mydocs/context/docs/adr/0017-redis-ephemeral-wiki-coordination.md`
+- `mydocs/context/docs/adr/0018-taskiq-outbox-fenced-run-runtime.md`
 - `mydocs/specs/2026-07-27_数据库表逐表审批记录.md`
 - `mydocs/context/2026-07-29_WeKnora处理任务与恢复机制调研.md`
 

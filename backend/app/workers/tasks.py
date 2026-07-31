@@ -15,6 +15,7 @@ from app.workers.broker import (
     shared_broker,
 )
 from app.workers.executor import RunHandler, execute_run_message
+from app.workers.rag_ingestion import document_process_handler, rag_index_handler
 
 QUEUE_ALIASES = {
     "critical": CRITICAL_QUEUE,
@@ -27,7 +28,10 @@ QUEUE_ALIASES = {
     LOW_QUEUE: LOW_QUEUE,
 }
 
-RUN_HANDLERS: dict[str, RunHandler] = {}
+RUN_HANDLERS: dict[str, RunHandler] = {
+    "document_process": document_process_handler,
+    "rag_index": rag_index_handler,
+}
 
 
 def register_run_handlers(handlers: Mapping[str, RunHandler]) -> None:

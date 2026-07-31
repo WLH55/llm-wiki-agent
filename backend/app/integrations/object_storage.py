@@ -57,6 +57,12 @@ def upload_bytes(
     return f"{bucket}/{key}"
 
 
+def delete_object(key: str, bucket: str | None = None) -> None:
+    """删除单个对象，用于补偿未能提交到数据库的上传。"""
+    bucket = bucket or settings.MINIO_BUCKET
+    get_minio_client().remove_object(bucket, key)
+
+
 def get_bytes(key: str, bucket: str | None = None) -> bytes:
     """下载字节流"""
     bucket = bucket or settings.MINIO_BUCKET

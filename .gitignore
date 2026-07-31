@@ -80,3 +80,6 @@ coverage/
 # ---- 本地 Docker 调试产物（日志/临时文件）----
 storage/
 logs/
+/backend/.env.dev
+/backend/.env.prod
+/backend/.env.test

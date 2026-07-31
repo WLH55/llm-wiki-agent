@@ -1,1 +1,1 @@
-"""Workers package: 异步任务（RQ 队列 + worker 启动 + 任务实现）"""
+"""Workers package: Taskiq 消费、Outbox 发布与可靠 Run 执行。"""
