@@ -1,35 +1,39 @@
 """
 ContentChunk model
 
-注意：
-- embedding: halfvec(不带 N)，DDL 在 migration 手写（SQLAlchemy 不直接支持 halfvec）
-- search_vector: tsvector，DDL 在 migration 手写
-- search_vector 由 PG trigger 自动维护（INSERT/UPDATE 时 tsvector_update_trigger）
+按 2026-08-02 定稿 spec 重建：
+- 删除 doc_id / chunk_type / search_vector / wiki_page_id / deleted_at（spec 决策#7、
+  content_chunks 字段边界：不保留 chunk_type / wiki_page_id / is_active / deleted_at /
+  search_vector）。
+- source_id 改 NOT NULL；类型统一 BigInteger。
+- 本表只保留 created_at / updated_at，不带 deleted_at，故不使用 TimestampMixin。
 
-【关键陷阱】：查询 SQL 必须将 embedding cast 成 halfvec(N)，
-否则规划器认不出 partial HNSW 索引会退化全表扫（参 ADR-0001）。
+注意：
+- embedding: halfvec（不带 N），DDL 在 migration 手写（SQLAlchemy 不直接支持 halfvec）
+- 【关键陷阱】：查询 SQL 必须将 embedding cast 成 halfvec(N)，否则规划器认不出
+  partial HNSW 索引会退化全表扫（参 ADR-0001）。
 """
-from typing import Optional
+from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy import BigInteger, DateTime, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TenantMixin, TimestampMixin
+from app.models.base import Base, TenantMixin
 
 
-class ContentChunk(Base, TimestampMixin, TenantMixin):
-    """内容块（向量 + 全文双索引）"""
+class ContentChunk(Base, TenantMixin):
+    """共享内容块（RAG 召回单元 + Wiki Map 输入）；不带软删除。"""
     __tablename__ = "content_chunks"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     public_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), default=uuid4, nullable=False, unique=True
     )
-    kb_id: Mapped[int] = mapped_column(nullable=False, index=True)
-    doc_id: Mapped[UUID] = mapped_column(nullable=False, index=True)
-    source_id: Mapped[Optional[int]] = mapped_column(default=None, index=True)
+    kb_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    source_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
     document_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
     revision_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
     processing_run_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
@@ -38,17 +42,17 @@ class ContentChunk(Base, TimestampMixin, TenantMixin):
     )
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    chunk_type: Mapped[str] = mapped_column(
-        String(50), default="document", nullable=False
-    )  # document / wiki_page / image_ocr / image_caption
-
     text: Mapped[str] = mapped_column(Text, nullable=False)
     token_count: Mapped[int] = mapped_column(Integer, nullable=False)
     text_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     source_locator: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     embedding_dim: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    wiki_page_id: Mapped[Optional[int]] = mapped_column(default=None, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
 
     # embedding: halfvec 列（DDL 在 migration 手写）
-    # search_vector: tsvector 列（DDL 在 migration 手写）

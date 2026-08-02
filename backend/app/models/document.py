@@ -1,49 +1,43 @@
 """
-Document model（上传的文档记录，区别于 Source）
+Document + DocumentRevision models
 
-Document = 一次具体的上传（PDF / MD / Word），归属于某个 Source
-ContentChunk = Document 被解析后的内容块（向量 + 全文索引）
+按 2026-08-02 定稿 spec 重建：
+- documents 删除 doc_id / original_filename / minio_key / status / error_message /
+  parser_engine / parse_error_code / parse_metadata / processed_at（文件与处理信息
+  归属 document_revisions，见 spec 决策）；source_id 改 NOT NULL。
+- document_revisions 与 spec 对齐（无变化，已符合）。
+全库不建外键。
 """
 
 from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import BigInteger, DateTime, Integer, String, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TenantMixin, TimestampMixin
 
 
 class Document(Base, TimestampMixin, TenantMixin):
-    """上传的文档记录"""
+    """来源文档在 KB 中的稳定身份"""
 
     __tablename__ = "documents"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     public_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), default=uuid4, nullable=False, unique=True, index=True
     )
-    doc_id: Mapped[UUID] = mapped_column(default=uuid4, nullable=False, unique=True, index=True)
-    kb_id: Mapped[int] = mapped_column(nullable=False, index=True)
-    source_id: Mapped[int | None] = mapped_column(default=None, index=True)
+    kb_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    source_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
 
     source_document_key: Mapped[str] = mapped_column(String(512), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
-    active_revision_id: Mapped[int | None] = mapped_column(BigInteger, default=None, index=True)
+    active_revision_id: Mapped[int | None] = mapped_column(
+        BigInteger, default=None, index=True
+    )
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-
-    original_filename: Mapped[str] = mapped_column(String(500), nullable=False)
-    minio_key: Mapped[str] = mapped_column(String(500), nullable=False)
-
-    # pending / processing / processed / failed
-    status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
-    error_message: Mapped[str] = mapped_column(String(1000), default="", nullable=False)
-    parser_engine: Mapped[str] = mapped_column(String(50), default="builtin", nullable=False)
-    parse_error_code: Mapped[str | None] = mapped_column(String(50), default=None, nullable=True)
-    parse_metadata: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
-
-    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
 
 class DocumentRevision(Base):
