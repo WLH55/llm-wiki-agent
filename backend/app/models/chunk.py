@@ -28,29 +28,45 @@ class ContentChunk(Base, TenantMixin):
     """共享内容块（RAG 召回单元 + Wiki Map 输入）；不带软删除。"""
     __tablename__ = "content_chunks"
 
+    # 内部 ID，也是后续 pg_search BM25 的 key_field
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    # API 对外 chunk ID，全局唯一
     public_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), default=uuid4, nullable=False, unique=True
     )
+    # KB 过滤
     kb_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    # 来源过滤
     source_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    # 逻辑文档引用
     document_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    # 生效文档版本引用
     revision_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    # 解析并生成本共享 chunk 的 document_process Run
     processing_run_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    # 最近一次写入当前 embedding 的 rag_index Run；未向量化时为空
     embedding_run_id: Mapped[int | None] = mapped_column(
         BigInteger, default=None, index=True
     )
+    # 文档内从 0 开始的顺序
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
+    # 共享原文块；同时作为 BM25 原文、embedding 输入和 Wiki Map 输入
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    # 上下文 token 预算
     token_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    # 文本指纹，用于 embedding 缓存与重复检测
     text_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    # PDF 页码、Excel sheet/行号、Markdown 标题路径等原文位置
     source_locator: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    # 与 embedding 同时为空或同时存在
     embedding_dim: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    # 生成时间
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    # embedding 写入或重建的最近更新时间
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )

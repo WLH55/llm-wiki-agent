@@ -22,17 +22,20 @@ class Base(DeclarativeBase):
 class TimestampMixin:
     """通用时间戳字段（软删除 via deleted_at）"""
 
+    # 创建时间
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
+    # 更新时间
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
     )
+    # 软删除时间
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
@@ -43,4 +46,5 @@ class TimestampMixin:
 class TenantMixin:
     """租户字段（MVP 单租户，P2 多租户）；类型与 DDL 保持一致使用 BigInteger。"""
 
+    # 租户逻辑引用
     tenant_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)

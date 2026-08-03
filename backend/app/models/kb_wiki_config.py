@@ -18,17 +18,25 @@ class KnowledgeBaseWikiConfig(Base):
 
     __tablename__ = "kb_wiki_configs"
 
+    # KB 逻辑引用（主键）
     kb_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    # 暂停或启用整个 Wiki 路径；暂停不删除页面
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # 生成模式：manual 或 on_ingest
     generation_mode: Mapped[str] = mapped_column(
         String(20), default="manual", nullable=False
     )
+    # 自动生成 Wiki 页面使用的 LLM；NULL 表示使用系统默认模型
     generation_model_key: Mapped[str | None] = mapped_column(String(200), default=None)
+    # 自动生成页面类型、输出语言和 prompt profile 等策略参数
     generation_options: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    # Wiki 配置修订号
     config_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    # 创建时间
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    # 更新时间
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
