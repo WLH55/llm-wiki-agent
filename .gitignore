@@ -3,6 +3,9 @@
 *.session.md
 *.tmp.md
 
+# ---- WorkBuddy 本地项目数据 ----
+.workbuddy/
+
 # ---- 系统 ----
 .DS_Store
 Thumbs.db

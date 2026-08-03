@@ -11,25 +11,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.database import async_engine
 from app.models.task_runtime import ProcessingRun, ProcessingSpan, TaskOutbox
-from app.workers.outbox import (
-    claim_outbox_batch,
-    mark_outbox_published,
-    release_outbox_claim,
-)
-from app.workers.publisher import publish_outbox_claim
-from app.workers.runtime import (
+from app.workers.core.runtime import (
     claim_run,
     complete_run,
     create_run_with_outbox,
     retry_run,
 )
-from app.workers import runtime as task_runtime
+from app.workers.outbox.outbox import (
+    claim_outbox_batch,
+    mark_outbox_published,
+    release_outbox_claim,
+)
+from app.workers.outbox.publisher import publish_outbox_claim
+from app.workers.core import runtime as task_runtime
 
 
 def _reaper_module():
-    spec = importlib.util.find_spec("app.workers.reaper")
-    assert spec is not None, "app.workers.reaper must exist"
-    return importlib.import_module("app.workers.reaper")
+    spec = importlib.util.find_spec("app.workers.outbox.reaper")
+    assert spec is not None, "app.workers.outbox.reaper must exist"
+    return importlib.import_module("app.workers.outbox.reaper")
 
 
 @pytest_asyncio.fixture

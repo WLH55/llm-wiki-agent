@@ -6,8 +6,8 @@ import signal
 from app.config import settings
 from app.config.logging import setup_logging
 from app.models.database import async_session_factory
-from app.workers.outbox_service import run_outbox_service
-from app.workers.tasks import send_task_message
+from app.workers.outbox.outbox_service import run_outbox_service
+from app.workers.core.tasks import send_task_message
 
 
 def _install_shutdown_handlers(stop: asyncio.Event) -> None:
@@ -40,7 +40,7 @@ async def run() -> None:
 
 
 def main() -> None:
-    """供容器命令 `python -m app.workers.outbox_worker` 调用。"""
+    """供容器命令 `python -m app.workers.outbox.outbox_worker` 调用。"""
     setup_logging()
     asyncio.run(run())
 

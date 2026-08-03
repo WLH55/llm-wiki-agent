@@ -10,16 +10,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.integrations.embedding import embed_texts
 from app.integrations.object_storage import get_bytes
+from app.knowledge_bases.service.chunker import chunk_text
 from app.models.chunk import ContentChunk
 from app.models.document import Document, DocumentRevision
 from app.models.kb import KnowledgeBase
 from app.parsers.core.errors import ParserAssetError
 from app.parsers.service.asset import persist_parser_images
 from app.parsers.service.dispatch import parse_document
-from app.workers.broker import CRITICAL_QUEUE
-from app.workers.chunker import chunk_text
-from app.workers.executor import RunExecutionContext, TerminalTaskError
-from app.workers.runtime import create_run_with_outbox
+from app.workers import (
+    CRITICAL_QUEUE,
+    RunExecutionContext,
+    TerminalTaskError,
+    create_run_with_outbox,
+    register_run_handler,
+)
 
 
 def _parse_metadata(result) -> dict:
@@ -50,6 +54,7 @@ async def _load_document_revision(
     return document, revision
 
 
+@register_run_handler("document_process")
 async def document_process_handler(context: RunExecutionContext) -> None:
     """解析 Revision，持久化候选 chunks，并可靠投递独立的 embedding Run。"""
     async with context.session_factory() as db:
@@ -152,6 +157,7 @@ async def document_process_handler(context: RunExecutionContext) -> None:
     await context.commit_success(write_candidate_chunks)
 
 
+@register_run_handler("rag_index")
 async def rag_index_handler(context: RunExecutionContext) -> None:
     """为候选 chunks 写入 embedding，并在同一 fenced 事务中激活 Revision。"""
     async with context.session_factory() as db:

@@ -10,15 +10,15 @@ from sqlalchemy import delete, select
 
 from app.models.database import async_engine, async_session_factory
 from app.models.task_runtime import ProcessingRun, ProcessingSpan, TaskOutbox
-from app.workers.runtime import create_run_with_outbox
+from app.workers.core.runtime import create_run_with_outbox
 
 TEST_TENANT_ID = 98_002
 
 
 def _service_module():
-    spec = importlib.util.find_spec("app.workers.outbox_service")
-    assert spec is not None, "app.workers.outbox_service must exist"
-    return importlib.import_module("app.workers.outbox_service")
+    spec = importlib.util.find_spec("app.workers.outbox.outbox_service")
+    assert spec is not None, "app.workers.outbox.outbox_service must exist"
+    return importlib.import_module("app.workers.outbox.outbox_service")
 
 
 @pytest_asyncio.fixture(autouse=True)

@@ -29,8 +29,7 @@ from app.parsers.api.schemas import (
 from app.parsers.core.registry import BUILTIN_ENGINE
 from app.parsers.core.registry import registry as parser_registry
 from app.parsers.core.schemas import ParseErrorCode
-from app.workers.broker import DEFAULT_QUEUE
-from app.workers.runtime import create_run_with_outbox
+from app.workers import DEFAULT_QUEUE, create_run_with_outbox
 
 logger = logging.getLogger(__name__)
 

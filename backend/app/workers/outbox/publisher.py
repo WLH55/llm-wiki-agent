@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.workers.outbox import (
+from app.workers.outbox.outbox import (
     OutboxClaim,
     mark_outbox_published,
     release_outbox_claim,

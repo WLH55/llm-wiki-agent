@@ -6,7 +6,7 @@ import importlib.util
 import pytest
 from taskiq_redis import RedisStreamBroker
 
-from app.workers.broker import (
+from app.workers.core.broker import (
     CRITICAL_QUEUE,
     DEFAULT_QUEUE,
     LOW_QUEUE,
@@ -40,9 +40,9 @@ def test_critical_broker_reserves_capacity_in_same_consumer_group():
 
 
 def _tasks_module():
-    spec = importlib.util.find_spec("app.workers.tasks")
-    assert spec is not None, "app.workers.tasks must exist"
-    return importlib.import_module("app.workers.tasks")
+    spec = importlib.util.find_spec("app.workers.core.tasks")
+    assert spec is not None, "app.workers.core.tasks must exist"
+    return importlib.import_module("app.workers.core.tasks")
 
 
 def test_process_run_is_registered_on_both_worker_brokers():

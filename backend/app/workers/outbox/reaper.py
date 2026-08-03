@@ -6,7 +6,7 @@ from sqlalchemy import and_, exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task_runtime import ProcessingRun, TaskOutbox
-from app.workers.executor import queue_name_for_run
+from app.workers.core.executor import queue_name_for_run
 
 
 def _utc_now() -> datetime:

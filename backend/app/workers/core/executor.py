@@ -6,14 +6,20 @@ import random
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from enum import StrEnum
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models.task_runtime import ProcessingRun
-from app.workers.broker import CRITICAL_QUEUE, DEFAULT_QUEUE, LOW_QUEUE
-from app.workers.runtime import (
+from app.workers.core.broker import CRITICAL_QUEUE, DEFAULT_QUEUE, LOW_QUEUE
+from app.workers.core.errors import (
+    LeaseLostError,
+    TaskExecutionError,
+    TerminalTaskError,
+    TransientTaskError,
+)
+from app.workers.core.schemas import ExecutionOutcome
+from app.workers.core.runtime import (
     ExecutionLease,
     claim_run,
     complete_run,
@@ -29,39 +35,6 @@ logger = logging.getLogger(__name__)
 SuccessWriter = Callable[[AsyncSession, "RunExecutionContext"], Awaitable[None]]
 RunHandler = Callable[["RunExecutionContext"], Awaitable[None]]
 RetryJitter = Callable[[float], float]
-
-
-class ExecutionOutcome(StrEnum):
-    """一条至少一次投递消息的业务处理结果。"""
-
-    IGNORED = "ignored"
-    SUCCEEDED = "succeeded"
-    RETRY_SCHEDULED = "retry_scheduled"
-    FAILED = "failed"
-
-
-class TaskExecutionError(Exception):
-    """带稳定机器错误码的可分类任务错误。"""
-
-    def __init__(self, error_code: str, message: str):
-        super().__init__(message)
-        self.error_code = error_code
-        self.message = message
-
-
-class TransientTaskError(TaskExecutionError):
-    """可以在自动重试预算内再次执行的瞬时错误。"""
-
-
-class TerminalTaskError(TaskExecutionError):
-    """重试不会自行恢复的业务终态错误。"""
-
-
-class LeaseLostError(TaskExecutionError):
-    """当前 Worker 已不再拥有 Run 的提交权。"""
-
-    def __init__(self, message: str = "execution lease lost"):
-        super().__init__("lease_lost", message)
 
 
 @dataclass(frozen=True)

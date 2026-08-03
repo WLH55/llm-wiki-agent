@@ -34,9 +34,9 @@ class ProcessingRun(Base):
     scope_id: Mapped[int] = mapped_column(nullable=False)
     # 上级编排运行；rag_index / wiki_generate 通常指向产生候选共享 chunk set 的 document_process Run
     parent_run_id: Mapped[int | None] = mapped_column(default=None)
-    # 终态后发起业务重跑时指向上一 Run；RQ 自动重试不使用
+    # 终态后发起业务重跑时指向上一 Run；自动重试不使用
     retry_of_run_id: Mapped[int | None] = mapped_column(default=None)
-    # 同一业务重跑链中的 Run 序号；RQ 自动重试不递增
+    # 同一业务重跑链中的 Run 序号；自动重试不递增
     attempt_no: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     # manual / on_ingest / schedule / retry
     trigger_type: Mapped[str] = mapped_column(String(20), nullable=False)

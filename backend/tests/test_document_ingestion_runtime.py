@@ -262,8 +262,9 @@ async def test_database_enforces_one_active_manual_source_per_knowledge_base():
 async def test_document_process_handler_writes_candidate_chunks_and_index_run(monkeypatch):
     from app.parsers.core.schemas import ParseResult
     from app.parsers.service.document import create_document_process_run
-    from app.workers.executor import ExecutionOutcome, execute_run_message
-    from app.workers.rag_ingestion import document_process_handler
+    from app.workers.core.executor import execute_run_message
+    from app.workers import ExecutionOutcome
+    from app.knowledge_bases.service.rag_ingestion import document_process_handler
 
     content = b"# Candidate chunks\n"
     async with async_session_factory() as db:
@@ -301,7 +302,7 @@ async def test_document_process_handler_writes_candidate_chunks_and_index_run(mo
                 requested_by_user_id=None,
             )
 
-    from app.workers import rag_ingestion
+    from app.knowledge_bases.service import rag_ingestion
 
     monkeypatch.setattr(rag_ingestion, "get_bytes", lambda _: content)
     monkeypatch.setattr(
@@ -366,9 +367,10 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
     """索引成功后才写 embedding 并原子激活候选 Revision。"""
     from app.parsers.core.schemas import ParseResult
     from app.parsers.service.document import create_document_process_run
-    from app.workers import rag_ingestion
-    from app.workers.executor import ExecutionOutcome, execute_run_message
-    from app.workers.tasks import RUN_HANDLERS
+    from app.knowledge_bases.service import rag_ingestion
+    from app.workers.core.executor import execute_run_message
+    from app.workers import ExecutionOutcome
+    from app.workers.core.tasks import RUN_HANDLERS
 
     content = b"# Activation candidate\n"
     async with async_session_factory() as db:
@@ -463,11 +465,10 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
 @pytest.mark.asyncio
 async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch):
     """embedding 失败只能重试，不能暴露尚未索引的新版本。"""
-    from app.workers import rag_ingestion
-    from app.workers.broker import CRITICAL_QUEUE
-    from app.workers.executor import ExecutionOutcome, execute_run_message
-    from app.workers.runtime import create_run_with_outbox
-    from app.workers.tasks import RUN_HANDLERS
+    from app.knowledge_bases.service import rag_ingestion
+    from app.workers import CRITICAL_QUEUE, ExecutionOutcome, create_run_with_outbox
+    from app.workers.core.executor import execute_run_message
+    from app.workers.core.tasks import RUN_HANDLERS
 
     async with async_session_factory() as db:
         async with db.begin():
@@ -594,8 +595,7 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
 async def test_search_excludes_candidate_revision_chunks():
     """候选 Revision 的 chunks 在激活前不得进入在线检索。"""
     from app.search.service.search import bm25_search
-    from app.workers.broker import DEFAULT_QUEUE
-    from app.workers.runtime import create_run_with_outbox
+    from app.workers import DEFAULT_QUEUE, create_run_with_outbox
 
     async with async_session_factory() as db:
         async with db.begin():

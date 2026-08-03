@@ -1,12 +1,14 @@
 """Taskiq 任务注册、Run Handler 注册表与 Outbox 发送适配器。"""
 
+import importlib
 import os
 import socket
 from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 from app.config import settings
 from app.models.database import async_session_factory
-from app.workers.broker import (
+from app.workers.core.broker import (
     CRITICAL_QUEUE,
     DEFAULT_QUEUE,
     LOW_QUEUE,
@@ -14,8 +16,11 @@ from app.workers.broker import (
     critical_broker,
     shared_broker,
 )
-from app.workers.executor import RunHandler, execute_run_message
-from app.workers.rag_ingestion import document_process_handler, rag_index_handler
+from app.workers.core.executor import execute_run_message
+
+if TYPE_CHECKING:
+    from app.workers.core.executor import RunHandler
+
 
 QUEUE_ALIASES = {
     "critical": CRITICAL_QUEUE,
@@ -28,15 +33,34 @@ QUEUE_ALIASES = {
     LOW_QUEUE: LOW_QUEUE,
 }
 
-RUN_HANDLERS: dict[str, RunHandler] = {
-    "document_process": document_process_handler,
-    "rag_index": rag_index_handler,
-}
+
+RUN_HANDLERS: dict[str, "RunHandler"] = {}
 
 
-def register_run_handlers(handlers: Mapping[str, RunHandler]) -> None:
-    """启动时注册应用 Run 类型；重复名称由后加载实现显式覆盖。"""
+# 显式 handler 模块清单（新增 handler 时加一行路径）
+HANDLER_MODULES = [
+    "app.knowledge_bases.service.rag_ingestion",
+    # 未来: "app.knowledge_bases.service.wiki_generate",
+]
+
+
+def register_run_handler(run_type: str):
+    """业务 handler 注册装饰器，由各领域 service 模块使用。"""
+    def decorator(handler: "RunHandler") -> "RunHandler":
+        RUN_HANDLERS[run_type] = handler
+        return handler
+    return decorator
+
+
+def register_run_handlers(handlers: Mapping[str, "RunHandler"]) -> None:
+    """批量注册应用 Run 类型；重复名称由后加载实现显式覆盖。"""
     RUN_HANDLERS.update(handlers)
+
+
+def _load_handlers() -> None:
+    """启动时加载显式清单中的 handler 模块，触发装饰器注册。"""
+    for module_path in HANDLER_MODULES:
+        importlib.import_module(module_path)
 
 
 def worker_identity(lane: str) -> str:

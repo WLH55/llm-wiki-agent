@@ -7,9 +7,9 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.workers.outbox import claim_outbox_batch
-from app.workers.publisher import TaskSender, publish_outbox_claim
-from app.workers.reaper import recover_stalled_runs
+from app.workers.outbox.outbox import claim_outbox_batch
+from app.workers.outbox.publisher import TaskSender, publish_outbox_claim
+from app.workers.outbox.reaper import recover_stalled_runs
 
 logger = logging.getLogger(__name__)
 

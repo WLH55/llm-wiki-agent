@@ -11,15 +11,15 @@ from sqlalchemy import delete, select
 
 from app.models.database import async_engine, async_session_factory
 from app.models.task_runtime import ProcessingRun, ProcessingSpan, TaskOutbox
-from app.workers.runtime import claim_run, create_run_with_outbox
+from app.workers.core.runtime import claim_run, create_run_with_outbox
 
 TEST_TENANT_ID = 98_001
 
 
 def _executor_module():
-    spec = importlib.util.find_spec("app.workers.executor")
-    assert spec is not None, "app.workers.executor must exist"
-    return importlib.import_module("app.workers.executor")
+    spec = importlib.util.find_spec("app.workers.core.executor")
+    assert spec is not None, "app.workers.core.executor must exist"
+    return importlib.import_module("app.workers.core.executor")
 
 
 @pytest_asyncio.fixture(autouse=True)

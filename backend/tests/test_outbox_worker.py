@@ -8,9 +8,9 @@ import pytest
 
 
 def _worker_module():
-    spec = importlib.util.find_spec("app.workers.outbox_worker")
+    spec = importlib.util.find_spec("app.workers.outbox.outbox_worker")
     assert spec is not None, "Outbox Publisher process entrypoint must exist"
-    return importlib.import_module("app.workers.outbox_worker")
+    return importlib.import_module("app.workers.outbox.outbox_worker")
 
 
 @pytest.mark.asyncio

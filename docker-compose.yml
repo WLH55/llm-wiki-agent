@@ -127,7 +127,7 @@ services:
       - ./storage/logs/outbox-publisher:/app/logs
     command: >
       sh -c "mkdir -p /app/logs &&
-             python -m app.workers.outbox_worker"
+             python -m app.workers.outbox.outbox_worker"
     depends_on:
       postgres:
         condition: service_healthy
@@ -155,7 +155,7 @@ services:
       - ./backend/.env.test:/app/.env.test:ro
       - ./storage/logs/task-worker-shared:/app/logs
     command: >
-      sh -c "mkdir -p /app/logs && taskiq worker --ack-type when_executed --workers 1 --max-async-tasks 14 --max-prefetch 14 --shutdown-timeout 60 app.workers.broker:shared_broker app.workers.tasks"
+      sh -c "mkdir -p /app/logs && taskiq worker --ack-type when_executed --workers 1 --max-async-tasks 14 --max-prefetch 14 --shutdown-timeout 60 app.workers.core.broker:shared_broker app.workers.core.tasks"
     depends_on:
       postgres:
         condition: service_healthy
@@ -183,7 +183,7 @@ services:
       - ./backend/.env.test:/app/.env.test:ro
       - ./storage/logs/task-worker-critical:/app/logs
     command: >
-      sh -c "mkdir -p /app/logs && taskiq worker --ack-type when_executed --workers 1 --max-async-tasks 2 --max-prefetch 2 --shutdown-timeout 60 app.workers.broker:critical_broker app.workers.tasks"
+      sh -c "mkdir -p /app/logs && taskiq worker --ack-type when_executed --workers 1 --max-async-tasks 2 --max-prefetch 2 --shutdown-timeout 60 app.workers.core.broker:critical_broker app.workers.core.tasks"
     depends_on:
       postgres:
         condition: service_healthy
