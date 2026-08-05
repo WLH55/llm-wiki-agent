@@ -1,54 +1,41 @@
-"""Taskiq Redis Streams Broker 与调度队列定义。"""
+"""Dramatiq RedisBroker 与队列定义。
 
-from taskiq_redis import RedisStreamBroker
+队列拓扑简化为 critical + default（删 multimodal/low）。
+broker 在模块 import 时初始化，dramatiq.set_broker 注册为全局 broker，
+之后 @dramatiq.actor 装饰器会使用这个 broker。
+"""
+
+import dramatiq
+from dramatiq.brokers.redis import RedisBroker
+from dramatiq.middleware import AsyncIO
 
 from app.config import settings
+from app.models.database import async_session_factory
+from app.workers.core.middleware import ReaperMiddleware, RunFailureMiddleware
 
-QUEUE_PREFIX = "llmwiki:tasks"
-CRITICAL_QUEUE = f"{QUEUE_PREFIX}:critical"
-DEFAULT_QUEUE = f"{QUEUE_PREFIX}:default"
-MULTIMODAL_QUEUE = f"{QUEUE_PREFIX}:multimodal"
-LOW_QUEUE = f"{QUEUE_PREFIX}:low"
-WORKER_CONSUMER_GROUP = "llmwiki-workers"
+# 全局 broker 实例（模块 import 时由 create_broker 初始化）
+broker: RedisBroker | None = None
 
 
-def _broker(
-    redis_url: str,
-    *,
-    queue_name: str,
-    additional_streams: dict[str, str] | None = None,
-) -> RedisStreamBroker:
-    """构造具有 ACK、Pending 恢复和首次消息回放能力的 Stream Broker。"""
-    return RedisStreamBroker(
-        url=redis_url,
-        queue_name=queue_name,
-        additional_streams=additional_streams,
-        consumer_group_name=WORKER_CONSUMER_GROUP,
-        consumer_id="0-0",
-        idle_timeout=settings.TASK_STREAM_IDLE_TIMEOUT_MS,
-        unacknowledged_lock_timeout=5,
-        xread_count=settings.TASK_WORKER_CONCURRENCY,
-        maxlen=None,
+def create_broker(redis_url: str) -> RedisBroker:
+    """构造 Dramatiq RedisBroker，注册 AsyncIO + RunFailure + Reaper 中间件。"""
+    b = RedisBroker(url=redis_url)
+    # AsyncIO middleware：让 async actor 能在 worker 线程中运行
+    b.add_middleware(AsyncIO())
+    # RunFailure middleware：消息失败时标 Run failed（executor 兜底）
+    b.add_middleware(RunFailureMiddleware(session_factory=async_session_factory))
+    # Reaper middleware：after_process_boot 启 Reaper 线程
+    b.add_middleware(
+        ReaperMiddleware(
+            session_factory=async_session_factory,
+            interval_seconds=settings.TASK_REAPER_INTERVAL_SECONDS,
+            span_stale_seconds=settings.TASK_SPAN_STALE_SECONDS,
+            pending_stale_seconds=settings.TASK_PENDING_STALE_SECONDS,
+        )
     )
+    return b
 
 
-def create_shared_broker(redis_url: str) -> RedisStreamBroker:
-    """共享 lane：消费普通任务，也可吸收 critical 的突发流量。"""
-    return _broker(
-        redis_url,
-        queue_name=DEFAULT_QUEUE,
-        additional_streams={
-            CRITICAL_QUEUE: ">",
-            MULTIMODAL_QUEUE: ">",
-            LOW_QUEUE: ">",
-        },
-    )
-
-
-def create_critical_broker(redis_url: str) -> RedisStreamBroker:
-    """保留 lane：只消费激活链路和恢复等 critical 任务。"""
-    return _broker(redis_url, queue_name=CRITICAL_QUEUE)
-
-
-shared_broker = create_shared_broker(settings.REDIS_URL)
-critical_broker = create_critical_broker(settings.REDIS_URL)
+# 模块 import 时初始化全局 broker 并注册到 dramatiq
+broker = create_broker(settings.REDIS_URL)
+dramatiq.set_broker(broker)

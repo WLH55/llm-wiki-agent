@@ -16,10 +16,3 @@ class TransientTaskError(TaskExecutionError):
 
 class TerminalTaskError(TaskExecutionError):
     """重试不会自行恢复的业务终态错误。"""
-
-
-class LeaseLostError(TaskExecutionError):
-    """当前 Worker 已不再拥有 Run 的提交权。"""
-
-    def __init__(self, message: str = "execution lease lost"):
-        super().__init__("lease_lost", message)

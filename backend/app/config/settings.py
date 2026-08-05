@@ -87,19 +87,21 @@ class Settings(BaseSettings):
     # Docker 内: redis://redis:6379/0；宿主机连容器: redis://localhost:6380/0
     REDIS_URL: str = "redis://localhost:6380/0"
 
-    # ========== Taskiq Worker ==========
+    # ========== Task Worker ==========
     TASK_WORKER_CONCURRENCY: int = 16
-    TASK_CRITICAL_RESERVED_CONCURRENCY: int = 2
     TASK_PARSER_PROCESSES: int = 2
-    TASK_LEASE_SECONDS: int = 900
-    TASK_HEARTBEAT_SECONDS: int = 15
-    TASK_STREAM_IDLE_TIMEOUT_MS: int = 1_800_000
-    TASK_OUTBOX_BATCH_SIZE: int = 100
-    TASK_OUTBOX_LOCK_SECONDS: int = 30
-    TASK_OUTBOX_POLL_SECONDS: float = 0.5
     TASK_MAX_AUTO_RETRIES: int = 3
     TASK_RETRY_BASE_SECONDS: int = 5
     TASK_RETRY_MAX_SECONDS: int = 300
+    # Reaper 扫描间隔（秒）--嵌入 worker 进程的独立线程
+    TASK_REAPER_INTERVAL_SECONDS: int = 300
+    # Span 心跳超时阈值（秒）--running Run 的 MAX(spans.updated_at) 超此阈值视为卡死
+    # 70min：embedding 5K chunks 可能跑 15min，15min << 70min，粗粒度 span 安全（对齐 WeKnora）
+    TASK_SPAN_STALE_SECONDS: int = 4200
+    # Pending Run 过旧阈值（秒）--pending Run 的 created_at 超此阈值视为入队失败
+    TASK_PENDING_STALE_SECONDS: int = 300
+    # Dramatiq actor 单消息最大执行时长（毫秒）--统一 1h
+    TASK_TIME_LIMIT_MS: int = 3_600_000
 
     # ========== MinIO ==========
     MINIO_ENDPOINT: str = "localhost:9000"

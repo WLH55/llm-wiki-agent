@@ -1,41 +1,26 @@
-"""Taskiq 任务注册、Run Handler 注册表与 Outbox 发送适配器。"""
+"""Dramatiq actor 注册、Run Handler 注册表与入队适配器。
+
+同函数多 actor 注册（方案 C）：process_run_default + process_run_critical
+两个 actor 共享同一份执行逻辑，仅 queue_name 不同，实现 critical/default 队列路由。
+"""
 
 import importlib
-import os
-import socket
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
+import dramatiq
+
 from app.config import settings
 from app.models.database import async_session_factory
-from app.workers.core.broker import (
-    CRITICAL_QUEUE,
-    DEFAULT_QUEUE,
-    LOW_QUEUE,
-    MULTIMODAL_QUEUE,
-    critical_broker,
-    shared_broker,
-)
+from app.workers.core.constants import CRITICAL_QUEUE, CRITICAL_RUN_TYPES, DEFAULT_QUEUE
+from app.workers.core.errors import TerminalTaskError
 from app.workers.core.executor import execute_run_message
 
 if TYPE_CHECKING:
     from app.workers.core.executor import RunHandler
 
 
-QUEUE_ALIASES = {
-    "critical": CRITICAL_QUEUE,
-    "default": DEFAULT_QUEUE,
-    "multimodal": MULTIMODAL_QUEUE,
-    "low": LOW_QUEUE,
-    CRITICAL_QUEUE: CRITICAL_QUEUE,
-    DEFAULT_QUEUE: DEFAULT_QUEUE,
-    MULTIMODAL_QUEUE: MULTIMODAL_QUEUE,
-    LOW_QUEUE: LOW_QUEUE,
-}
-
-
 RUN_HANDLERS: dict[str, "RunHandler"] = {}
-
 
 # 显式 handler 模块清单（新增 handler 时加一行路径）
 HANDLER_MODULES = [
@@ -46,9 +31,11 @@ HANDLER_MODULES = [
 
 def register_run_handler(run_type: str):
     """业务 handler 注册装饰器，由各领域 service 模块使用。"""
+
     def decorator(handler: "RunHandler") -> "RunHandler":
         RUN_HANDLERS[run_type] = handler
         return handler
+
     return decorator
 
 
@@ -58,53 +45,55 @@ def register_run_handlers(handlers: Mapping[str, "RunHandler"]) -> None:
 
 
 def _load_handlers() -> None:
-    """启动时加载显式清单中的 handler 模块，触发装饰器注册。"""
+    """加载显式清单中的 handler 模块（幂等，importlib 已缓存）。"""
     for module_path in HANDLER_MODULES:
         importlib.import_module(module_path)
 
 
-def worker_identity(lane: str) -> str:
-    """生成日志和租约中可定位到容器、进程及 lane 的 Worker ID。"""
-    host = os.getenv("HOSTNAME") or socket.gethostname()
-    return f"{host}:{os.getpid()}:{lane}"
-
-
-async def _dispatch_run(run_id: int, *, lane: str) -> str:
+# 同函数多 actor 注册（方案 C）：critical / default 两个队列入口
+@dramatiq.actor(
+    queue_name=DEFAULT_QUEUE,
+    max_retries=3,
+    min_backoff=5000,
+    max_backoff=300000,
+    time_limit=settings.TASK_TIME_LIMIT_MS,
+    throws=(TerminalTaskError,),
+)
+async def process_run_default(run_id: int) -> str:
+    """default 队列入口：处理 document_process / wiki_generate 等。"""
+    _load_handlers()
     outcome = await execute_run_message(
         run_id,
-        worker_id=worker_identity(lane),
+        worker_id="default",
         handlers=RUN_HANDLERS,
         session_factory=async_session_factory,
-        lease_seconds=settings.TASK_LEASE_SECONDS,
-        heartbeat_seconds=settings.TASK_HEARTBEAT_SECONDS,
-        max_auto_retries=settings.TASK_MAX_AUTO_RETRIES,
-        retry_base_seconds=settings.TASK_RETRY_BASE_SECONDS,
-        retry_max_seconds=settings.TASK_RETRY_MAX_SECONDS,
     )
     return outcome.value
 
 
-@shared_broker.task(task_name="process_run")
-async def process_run_shared(run_id: int) -> str:
-    """共享容量入口：处理 default 及其可吸收的其他 Stream。"""
-    return await _dispatch_run(run_id, lane="shared")
-
-
-@critical_broker.task(task_name="process_run")
+@dramatiq.actor(
+    queue_name=CRITICAL_QUEUE,
+    max_retries=3,
+    min_backoff=5000,
+    max_backoff=300000,
+    time_limit=settings.TASK_TIME_LIMIT_MS,
+    throws=(TerminalTaskError,),
+)
 async def process_run_critical(run_id: int) -> str:
-    """保留容量入口：只处理 critical Stream。"""
-    return await _dispatch_run(run_id, lane="critical")
-
-
-async def send_task_message(task_name: str, run_id: int, queue_name: str) -> None:
-    """Outbox sender：消息只传 Run ID，队列通过 Taskiq label 路由。"""
-    if task_name != "process_run":
-        raise ValueError(f"unknown task name: {task_name}")
-    stream_name = QUEUE_ALIASES.get(queue_name)
-    if stream_name is None:
-        raise ValueError(f"unknown task queue: {queue_name}")
-    await (
-        process_run_shared.kicker()
-        .with_labels(queue_name=stream_name)
-        .kiq(run_id)
+    """critical 队列入口：处理 rag_index / source_sync 等。"""
+    _load_handlers()
+    outcome = await execute_run_message(
+        run_id,
+        worker_id="critical",
+        handlers=RUN_HANDLERS,
+        session_factory=async_session_factory,
     )
+    return outcome.value
+
+
+def enqueue_run(run_type: str, run_id: int) -> None:
+    """按 run_type 选 actor 入队。critical -> process_run_critical；其余 -> process_run_default。"""
+    if run_type in CRITICAL_RUN_TYPES:
+        process_run_critical.send(run_id)
+    else:
+        process_run_default.send(run_id)

@@ -6,7 +6,7 @@
 #        或临时：ENVIRONMENT=prod docker compose --profile app up -d
 #   4) 改 backend/.env.* 或根 .env 后重启生效：
 #        docker compose --profile app up -d
-#        # 或 docker compose --profile app restart backend outbox-publisher task-worker-shared task-worker-critical
+#        # 或 docker compose --profile app restart backend task-worker
 #   5) 日志：./storage/logs/backend/app.log
 #   6) Redis 宿主机端口 6380（避免与本机 Redis5 的 6379 冲突）
 
@@ -107,43 +107,12 @@ services:
     networks:
       - llm-wiki-net
 
-  outbox-publisher:
+  task-worker:
     profiles: ["app"]
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: llm-wiki-outbox-publisher
-    environment:
-      ENVIRONMENT: ${ENVIRONMENT:-dev}
-    env_file:
-      - ./backend/.env.${ENVIRONMENT:-dev}
-    volumes:
-      - ./backend/app:/app/app
-      - ./backend/alembic:/app/alembic
-      - ./backend/alembic.ini:/app/alembic.ini
-      - ./backend/.env.dev:/app/.env.dev:ro
-      - ./backend/.env.prod:/app/.env.prod:ro
-      - ./backend/.env.test:/app/.env.test:ro
-      - ./storage/logs/outbox-publisher:/app/logs
-    command: >
-      sh -c "mkdir -p /app/logs &&
-             python -m app.workers.outbox.outbox_worker"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    networks:
-      - llm-wiki-net
-
-  task-worker-shared:
-    profiles: ["app"]
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: llm-wiki-task-worker-shared
+    container_name: llm-wiki-task-worker
     environment:
       ENVIRONMENT: ${ENVIRONMENT:-dev}
     env_file:
@@ -153,37 +122,9 @@ services:
       - ./backend/.env.dev:/app/.env.dev:ro
       - ./backend/.env.prod:/app/.env.prod:ro
       - ./backend/.env.test:/app/.env.test:ro
-      - ./storage/logs/task-worker-shared:/app/logs
+      - ./storage/logs/task-worker:/app/logs
     command: >
-      sh -c "mkdir -p /app/logs && taskiq worker --ack-type when_executed --workers 1 --max-async-tasks 14 --max-prefetch 14 --shutdown-timeout 60 app.workers.core.broker:shared_broker app.workers.core.tasks"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    networks:
-      - llm-wiki-net
-
-  task-worker-critical:
-    profiles: ["app"]
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: llm-wiki-task-worker-critical
-    environment:
-      ENVIRONMENT: ${ENVIRONMENT:-dev}
-    env_file:
-      - ./backend/.env.${ENVIRONMENT:-dev}
-    volumes:
-      - ./backend/app:/app/app
-      - ./backend/.env.dev:/app/.env.dev:ro
-      - ./backend/.env.prod:/app/.env.prod:ro
-      - ./backend/.env.test:/app/.env.test:ro
-      - ./storage/logs/task-worker-critical:/app/logs
-    command: >
-      sh -c "mkdir -p /app/logs && taskiq worker --ack-type when_executed --workers 1 --max-async-tasks 2 --max-prefetch 2 --shutdown-timeout 60 app.workers.core.broker:critical_broker app.workers.core.tasks"
+      sh -c "mkdir -p /app/logs && dramatiq app.workers.core.tasks --queues critical default --threads 16"
     depends_on:
       postgres:
         condition: service_healthy

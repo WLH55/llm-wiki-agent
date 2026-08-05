@@ -29,7 +29,7 @@ from app.parsers.api.schemas import (
 from app.parsers.core.registry import BUILTIN_ENGINE
 from app.parsers.core.registry import registry as parser_registry
 from app.parsers.core.schemas import ParseErrorCode
-from app.workers import DEFAULT_QUEUE, create_run_with_outbox
+from app.workers import RunStatus, RunType, ScopeType, TriggerType, create_run, enqueue_run
 
 logger = logging.getLogger(__name__)
 
@@ -154,15 +154,14 @@ async def create_document_process_run(
     )
     db.add(revision)
     await db.flush()
-    run = await create_run_with_outbox(
+    run = await create_run(
         db,
         tenant_id=tenant_id,
         kb_id=kb_id,
-        run_type="document_process",
-        scope_type="revision",
+        run_type=RunType.DOCUMENT_PROCESS,
+        scope_type=ScopeType.REVISION,
         scope_id=revision.id,
-        trigger_type="manual",
-        queue_name=DEFAULT_QUEUE,
+        trigger_type=TriggerType.MANUAL,
         options_snapshot={"parser_engine": parser_engine},
         requested_by_user_id=requested_by_user_id,
     )
@@ -273,6 +272,8 @@ async def upload_document(
         except Exception:
             logger.warning("上传事务失败后的 MinIO 对象清理失败: key=%s", minio_key, exc_info=True)
         raise
+    # DB 事务提交后入队；入队失败时 Run 卡 pending，Reaper 兜底标 failed
+    enqueue_run("document_process", created.run_id)
     doc_id = created.doc_id
     logger.info(f"文档已上传: doc_id={doc_id} kb_id={kb.id} filename={filename}")
     return DocumentUploadResponse(
@@ -333,16 +334,16 @@ async def get_document_status(
     error_message = doc.error_message
     error_code = doc.parse_error_code
     if latest_run is not None:
-        if latest_run.status == "failed":
+        if latest_run.status == RunStatus.FAILED:
             status = "failed"
             error_message = latest_run.error_message
             error_code = latest_run.error_code
-        elif latest_run.status == "running":
+        elif latest_run.status == RunStatus.RUNNING:
             status = "processing"
-        elif latest_run.status == "pending":
+        elif latest_run.status == RunStatus.PENDING:
             status = "pending"
         elif (
-            latest_run.status == "succeeded"
+            latest_run.status == RunStatus.SUCCEEDED
             and latest_revision is not None
             and doc.active_revision_id == latest_revision.id
         ):

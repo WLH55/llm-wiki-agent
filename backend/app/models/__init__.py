@@ -19,7 +19,7 @@ from app.models.reserved import (
 )
 from app.models.search_log import SearchLog
 from app.models.source import Source
-from app.models.task_runtime import ProcessingRun, ProcessingSpan, TaskOutbox
+from app.models.task_runtime import ProcessingRun, ProcessingSpan
 from app.models.user import Tenant, User
 from app.models.wiki import (
     WikiFolder,
@@ -59,7 +59,6 @@ __all__ = [
     # 运行支撑
     "ProcessingRun",
     "ProcessingSpan",
-    "TaskOutbox",
     # 检索日志
     "SearchLog",
 ]

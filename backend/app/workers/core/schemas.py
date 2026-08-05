@@ -8,5 +8,4 @@ class ExecutionOutcome(StrEnum):
 
     IGNORED = "ignored"
     SUCCEEDED = "succeeded"
-    RETRY_SCHEDULED = "retry_scheduled"
     FAILED = "failed"
