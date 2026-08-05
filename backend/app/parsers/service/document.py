@@ -29,7 +29,15 @@ from app.parsers.api.schemas import (
 from app.parsers.core.registry import BUILTIN_ENGINE
 from app.parsers.core.registry import registry as parser_registry
 from app.parsers.core.schemas import ParseErrorCode
-from app.workers import RunStatus, RunType, ScopeType, TriggerType, create_run, enqueue_run
+from app.workers import (
+    RunStatus,
+    RunType,
+    ScopeType,
+    TriggerType,
+    create_run,
+    enqueue_run,
+    mark_run_enqueue_failed,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -272,10 +280,21 @@ async def upload_document(
         except Exception:
             logger.warning("上传事务失败后的 MinIO 对象清理失败: key=%s", minio_key, exc_info=True)
         raise
-    # DB 事务提交后入队；入队失败时 Run 卡 pending，Reaper 兜底标 failed
-    enqueue_run("document_process", created.run_id)
+    # DB 事务提交后入队；入队失败时立即标 Run failed（不等 Reaper 兜底）
+    try:
+        enqueue_run(RunType.DOCUMENT_PROCESS, created.run_id)
+    except Exception:
+        logger.exception("enqueue document_process run failed: run_id=%s", created.run_id)
+        from app.models.database import async_session_factory
+        async with async_session_factory() as enqueue_db:
+            async with enqueue_db.begin():
+                await mark_run_enqueue_failed(
+                    enqueue_db,
+                    created.run_id,
+                    error_message="enqueue document_process run failed",
+                )
     doc_id = created.doc_id
-    logger.info(f"文档已上传: doc_id={doc_id} kb_id={kb.id} filename={filename}")
+    logger.info("文档已上传: doc_id=%s kb_id=%s filename=%s", doc_id, kb.id, filename)
     return DocumentUploadResponse(
         doc_id=created.doc_id,
         status="pending",

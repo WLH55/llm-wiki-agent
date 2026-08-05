@@ -8,6 +8,7 @@ import asyncio
 import logging
 import threading
 
+from dramatiq.asyncio import get_event_loop_thread
 from dramatiq.middleware import Middleware
 
 from app.workers.core.constants import ErrorCode
@@ -15,6 +16,19 @@ from app.workers.core.reaper import run_reaper_loop
 from app.workers.core.runtime import fail_run
 
 logger = logging.getLogger(__name__)
+
+
+def _run_coroutine_safely(coro):
+    """在 EventLoopThread 的 loop 上执行协程；loop 不可用时退回 asyncio.run。
+
+    worker 进程中 AsyncIO middleware 的 before_worker_boot 已启动 EventLoopThread，
+    复用它可保证 asyncpg 连接池与 actor 共用同一个 loop，避免跨 loop 报错。
+    非 worker 上下文（如测试）EventLoopThread 为 None，退回 asyncio.run 兜底。
+    """
+    loop_thread = get_event_loop_thread()
+    if loop_thread is not None:
+        return loop_thread.run_coroutine(coro)
+    return asyncio.run(coro)
 
 
 class RunFailureMiddleware(Middleware):
@@ -36,7 +50,7 @@ class RunFailureMiddleware(Middleware):
         if run_id is None:
             return
         try:
-            asyncio.run(self._mark_failed(run_id, str(exception)))
+            _run_coroutine_safely(self._mark_failed(run_id, str(exception)))
         except Exception:
             logger.exception(
                 "RunFailureMiddleware failed to mark run failed: run_id=%s", run_id

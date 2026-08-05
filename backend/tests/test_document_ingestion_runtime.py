@@ -1,4 +1,8 @@
-"""Revision 化上传与可靠任务投递的数据库契约测试。"""
+"""Revision 化上传与任务投递的数据库契约测试。
+
+覆盖 document.py 的上传链路与 rag_ingestion.py 的 handler 执行链路。
+Dramatiq 模式下不再有 Outbox，create_run + enqueue_run 替代 create_run_with_outbox。
+"""
 
 from collections.abc import AsyncIterator
 from hashlib import sha256
@@ -12,7 +16,7 @@ from app.models.database import async_engine, async_session_factory
 from app.models.document import Document, DocumentRevision
 from app.models.kb import KnowledgeBase
 from app.models.source import Source
-from app.models.task_runtime import ProcessingRun, TaskOutbox
+from app.models.task_runtime import ProcessingRun, ProcessingSpan
 from app.models.user import Tenant, User
 
 TEST_TENANT_ID = 98_003
@@ -20,14 +24,14 @@ TEST_KB_ID = 98_204
 
 
 async def _delete_ingestion_rows() -> None:
-    """删除本模块创建的关联记录，避免影响全局 Outbox 领取用例。"""
+    """删除本模块创建的关联记录，避免影响全局测试。"""
     async with async_session_factory() as db:
         document_ids = select(Document.id).where(Document.tenant_id == TEST_TENANT_ID)
         revision_ids = select(DocumentRevision.id).where(
             DocumentRevision.document_id.in_(document_ids)
         )
         run_ids = select(ProcessingRun.id).where(ProcessingRun.tenant_id == TEST_TENANT_ID)
-        await db.execute(delete(TaskOutbox).where(TaskOutbox.run_id.in_(run_ids)))
+        await db.execute(delete(ProcessingSpan).where(ProcessingSpan.run_id.in_(run_ids)))
         await db.execute(delete(ProcessingRun).where(ProcessingRun.tenant_id == TEST_TENANT_ID))
         await db.execute(delete(ContentChunk).where(ContentChunk.tenant_id == TEST_TENANT_ID))
         await db.execute(delete(DocumentRevision).where(DocumentRevision.id.in_(revision_ids)))
@@ -55,7 +59,8 @@ async def clean_ingestion_rows() -> AsyncIterator[None]:
 
 
 @pytest.mark.asyncio
-async def test_upload_runtime_creates_revision_run_and_outbox_in_one_commit():
+async def test_upload_runtime_creates_revision_and_run_in_one_commit():
+    """上传事务原子创建 Document + Revision + pending Run。"""
     from app.parsers.service.document import create_document_process_run
 
     content = b"# Reliable RAG upload\n"
@@ -98,9 +103,6 @@ async def test_upload_runtime_creates_revision_run_and_outbox_in_one_commit():
         document = await db.get(Document, created.document_id)
         revision = await db.get(DocumentRevision, created.revision_id)
         run = await db.get(ProcessingRun, created.run_id)
-        outbox = (
-            await db.execute(select(TaskOutbox).where(TaskOutbox.run_id == created.run_id))
-        ).scalar_one()
 
     assert document is not None
     assert document.source_id == source.id
@@ -115,17 +117,16 @@ async def test_upload_runtime_creates_revision_run_and_outbox_in_one_commit():
     assert run.scope_type == "revision"
     assert run.scope_id == revision.id
     assert run.status == "pending"
-    assert outbox.task_name == "process_run"
-    assert outbox.queue_name == "llmwiki:tasks:default"
-    assert outbox.published_at is None
 
 
 @pytest.mark.asyncio
-async def test_upload_service_creates_reliable_run_instead_of_direct_rq_enqueue(monkeypatch):
+async def test_upload_service_creates_run_instead_of_direct_enqueue(monkeypatch):
+    """upload_document 创建 Run 并在事务提交后调 enqueue_run 入队。"""
     from app.parsers.service import document as document_service
 
     content = b"# Upload service runtime\n"
     monkeypatch.setattr(document_service, "upload_bytes", lambda *args: None)
+    monkeypatch.setattr(document_service, "enqueue_run", lambda *args: None)
     async with async_session_factory() as db:
         async with db.begin():
             tenant = Tenant(id=TEST_TENANT_ID, name="ingestion-upload-test")
@@ -171,15 +172,12 @@ async def test_upload_service_creates_reliable_run_instead_of_direct_rq_enqueue(
                 )
             )
         ).scalar_one()
-        outbox = (
-            await db.execute(select(TaskOutbox).where(TaskOutbox.run_id == run.id))
-        ).scalar_one()
 
     assert result.status == "pending"
     assert document.source_id is not None
     assert revision.content_sha256 == sha256(content).hexdigest()
     assert run.run_type == "document_process"
-    assert outbox.task_name == "process_run"
+    assert run.status == "pending"
 
 
 @pytest.mark.asyncio
@@ -260,11 +258,12 @@ async def test_database_enforces_one_active_manual_source_per_knowledge_base():
 
 @pytest.mark.asyncio
 async def test_document_process_handler_writes_candidate_chunks_and_index_run(monkeypatch):
+    """document_process handler 解析文档、写候选 chunks 并创建子 rag_index Run。"""
+    from app.knowledge_bases.service.rag_ingestion import document_process_handler
     from app.parsers.core.schemas import ParseResult
     from app.parsers.service.document import create_document_process_run
-    from app.workers.core.executor import execute_run_message
     from app.workers import ExecutionOutcome
-    from app.knowledge_bases.service.rag_ingestion import document_process_handler
+    from app.workers.core.executor import execute_run_message
 
     content = b"# Candidate chunks\n"
     async with async_session_factory() as db:
@@ -323,6 +322,7 @@ async def test_document_process_handler_writes_candidate_chunks_and_index_run(mo
         ),
         raising=False,
     )
+    monkeypatch.setattr(rag_ingestion, "enqueue_run", lambda *args: None)
     outcome = await execute_run_message(
         created.run_id,
         worker_id="test-worker",
@@ -348,9 +348,6 @@ async def test_document_process_handler_writes_candidate_chunks_and_index_run(mo
                 )
             )
         ).scalar_one()
-        child_outbox = (
-            await db.execute(select(TaskOutbox).where(TaskOutbox.run_id == child_run.id))
-        ).scalar_one()
 
     assert outcome == ExecutionOutcome.SUCCEEDED
     assert document is not None and document.active_revision_id is None
@@ -359,17 +356,17 @@ async def test_document_process_handler_writes_candidate_chunks_and_index_run(mo
     assert [chunk.chunk_index for chunk in chunks] == list(range(len(chunks)))
     assert all(chunk.embedding_run_id is None for chunk in chunks)
     assert child_run.scope_id == created.revision_id
-    assert child_outbox.queue_name == "llmwiki:tasks:critical"
+    assert child_run.status == "pending"
 
 
 @pytest.mark.asyncio
 async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkeypatch):
     """索引成功后才写 embedding 并原子激活候选 Revision。"""
+    from app.knowledge_bases.service import rag_ingestion
     from app.parsers.core.schemas import ParseResult
     from app.parsers.service.document import create_document_process_run
-    from app.knowledge_bases.service import rag_ingestion
-    from app.workers.core.executor import execute_run_message
     from app.workers import ExecutionOutcome
+    from app.workers.core.executor import execute_run_message
     from app.workers.core.tasks import RUN_HANDLERS
 
     content = b"# Activation candidate\n"
@@ -420,6 +417,7 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
         lambda texts: [[0.1, 0.2, 0.3] for _ in texts],
         raising=False,
     )
+    monkeypatch.setattr(rag_ingestion, "enqueue_run", lambda *args: None)
 
     document_outcome = await execute_run_message(
         created.run_id,
@@ -464,9 +462,9 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
 
 @pytest.mark.asyncio
 async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch):
-    """embedding 失败只能重试，不能暴露尚未索引的新版本。"""
+    """embedding 失败时 Run 标 failed，不激活候选 Revision，保持旧 active。"""
     from app.knowledge_bases.service import rag_ingestion
-    from app.workers import CRITICAL_QUEUE, ExecutionOutcome, create_run_with_outbox
+    from app.workers import ExecutionOutcome, create_run
     from app.workers.core.executor import execute_run_message
     from app.workers.core.tasks import RUN_HANDLERS
 
@@ -530,7 +528,7 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
             db.add_all([active_revision, candidate_revision])
             await db.flush()
             document.active_revision_id = active_revision.id
-            index_run = await create_run_with_outbox(
+            index_run = await create_run(
                 db,
                 tenant_id=TEST_TENANT_ID,
                 kb_id=TEST_KB_ID,
@@ -538,7 +536,6 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
                 scope_type="revision",
                 scope_id=candidate_revision.id,
                 trigger_type="system",
-                queue_name=CRITICAL_QUEUE,
             )
             db.add(
                 ContentChunk(
@@ -567,7 +564,6 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
         worker_id="test-worker",
         handlers=RUN_HANDLERS,
         session_factory=async_session_factory,
-        retry_jitter=lambda _: 0,
     )
 
     async with async_session_factory() as db:
@@ -582,20 +578,20 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
 
         status = await get_document_status(db, TEST_KB_ID, user, document.doc_id)
 
-    assert outcome == ExecutionOutcome.RETRY_SCHEDULED
+    assert outcome == ExecutionOutcome.FAILED
     assert persisted_document is not None
     assert persisted_document.active_revision_id == active_revision.id
     assert persisted_document.status == "processed"
     assert candidate_chunk.embedding_run_id is None
-    assert persisted_run is not None and persisted_run.status == "pending"
-    assert status.status == "pending"
+    assert persisted_run is not None and persisted_run.status == "failed"
+    assert status.status == "failed"
 
 
 @pytest.mark.asyncio
 async def test_search_excludes_candidate_revision_chunks():
     """候选 Revision 的 chunks 在激活前不得进入在线检索。"""
     from app.search.service.search import bm25_search
-    from app.workers import DEFAULT_QUEUE, create_run_with_outbox
+    from app.workers import create_run
 
     async with async_session_factory() as db:
         async with db.begin():
@@ -654,7 +650,7 @@ async def test_search_excludes_candidate_revision_chunks():
             db.add_all([active_revision, candidate_revision])
             await db.flush()
             document.active_revision_id = active_revision.id
-            processing_run = await create_run_with_outbox(
+            processing_run = await create_run(
                 db,
                 tenant_id=TEST_TENANT_ID,
                 kb_id=TEST_KB_ID,
@@ -662,7 +658,6 @@ async def test_search_excludes_candidate_revision_chunks():
                 scope_type="revision",
                 scope_id=candidate_revision.id,
                 trigger_type="system",
-                queue_name=DEFAULT_QUEUE,
             )
             db.add(
                 ContentChunk(

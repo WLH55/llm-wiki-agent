@@ -44,10 +44,22 @@ def register_run_handlers(handlers: Mapping[str, "RunHandler"]) -> None:
     RUN_HANDLERS.update(handlers)
 
 
+_handlers_loaded: bool = False
+
+
 def _load_handlers() -> None:
-    """加载显式清单中的 handler 模块（幂等，importlib 已缓存）。"""
+    """加载显式清单中的 handler 模块（首次调用后置标志，避免重复遍历）。
+
+    不在 __init__.py 模块 import 时调用，避免循环导入
+   （rag_ingestion 会 from app.workers import ... 导致 partially initialized module）。
+    由 actor 首次执行时惰性触发，或测试显式调用。
+    """
+    global _handlers_loaded
+    if _handlers_loaded:
+        return
     for module_path in HANDLER_MODULES:
         importlib.import_module(module_path)
+    _handlers_loaded = True
 
 
 # 同函数多 actor 注册（方案 C）：critical / default 两个队列入口

@@ -27,7 +27,7 @@ from app.workers.core.errors import (
     TransientTaskError,
 )
 from app.workers.core.executor import RunExecutionContext, RunIdentity
-from app.workers.core.runtime import create_run
+from app.workers.core.runtime import create_run, mark_run_enqueue_failed
 from app.workers.core.schemas import ExecutionOutcome
 from app.workers.core.span_tracker import begin_span, end_span, fail_span, skip_span
 from app.workers.core.tasks import (
@@ -41,6 +41,7 @@ __all__ = [
     "CRITICAL_QUEUE",
     "create_run",
     "enqueue_run",
+    "mark_run_enqueue_failed",
     "register_run_handler",
     "RUN_HANDLERS",
     "load_handlers",
@@ -66,11 +67,10 @@ __all__ = [
 
 
 def load_handlers() -> None:
-    """显式触发 handler 模块加载；测试与进程启动时调用。"""
+    """显式触发 handler 模块加载；测试与进程启动时调用。
+
+    不在模块 import 时自动调用，避免循环导入（rag_ingestion 会 import app.workers）。
+    由 tasks.py 的 actor 首次执行时惰性触发，或测试显式调用。
+    """
     from app.workers.core.tasks import _load_handlers
     _load_handlers()
-
-
-# 模块加载完成后触发 handler 注册；此时 app.workers 公开符号已就绪，
-# 领域 service 的 `from app.workers import ...` 可正常解析，避免循环导入。
-load_handlers()

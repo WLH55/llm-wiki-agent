@@ -13,9 +13,11 @@ Create Date: 2026-08-05
    - heartbeat_at（Run 行心跳改用 span 心跳）
 3. 删除相关 CHECK 约束（ck_processing_runs_epoch / ck_processing_runs_lease_shape）
    与索引（ix_processing_runs_status_heartbeat / ix_processing_runs_status_lease）
+4. 清理 processing_spans 历史重复行（保留每组 run_id+span_name 最新一行），为 attempt_no 唯一键去重
+5. 给 processing_spans 加 attempt_no 字段 + 唯一索引（run_id, attempt_no, span_name）
 
 回滚（downgrade）为 best-effort 恢复，字段约束与索引按 001_initial 重建；
-task_outbox 数据回滚后为空。
+task_outbox 数据回滚后为空；已删除的重复 span 行不可恢复。
 """
 from collections.abc import Sequence
 
@@ -50,7 +52,21 @@ def upgrade() -> None:
     # ----- 3. 删 task_outbox 表（Outbox 投递层整体移除） -----
     op.execute("DROP TABLE IF EXISTS task_outbox CASCADE")
 
-    # ----- 4. 给 processing_spans 加 attempt_no 字段（span 唯一键） -----
+    # ----- 4. 清理历史重复 span 行（加 attempt_no 唯一键前必须去重） -----
+    # 旧表无 attempt_no，重试产生的同 (run_id, span_name) 多行会违反新唯一索引。
+    # 保留每组 (run_id, span_name) 最新一行（id 最大），删除更早的重复行。
+    op.execute(
+        """
+        DELETE FROM processing_spans ps
+        WHERE ps.id NOT IN (
+            SELECT MAX(id)
+            FROM processing_spans
+            GROUP BY run_id, span_name
+        )
+        """
+    )
+
+    # ----- 5. 给 processing_spans 加 attempt_no 字段（span 唯一键） -----
     op.execute(
         "ALTER TABLE processing_spans ADD COLUMN attempt_no INTEGER NOT NULL DEFAULT 1"
     )

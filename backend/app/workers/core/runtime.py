@@ -181,7 +181,12 @@ async def start_worker_attempt(
     worker_id: str,
     now: datetime | None = None,
 ) -> ProcessingSpan:
-    """为每次消息执行新增 Span，自动重试不会覆盖上一轮诊断记录。"""
+    """为每次消息执行新增 Span，自动重试不会覆盖上一轮诊断记录。
+
+    并发安全假设：本函数在 claim_run(CAS pending->running) 成功后被调用，
+    claim_run 的 CAS 保证同一 Run 只有一个消息能进入 running 状态，
+    因此此处的 SELECT COUNT + 1 不会因并发重投产生重复 attempt_no。
+    """
     started_at = now or _utc_now()
     attempt = (
         await db.execute(

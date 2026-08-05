@@ -1,6 +1,7 @@
 """Revision 化 RAG 摄入的业务 Handler。"""
 
 import asyncio
+import logging
 from datetime import datetime, timezone
 from hashlib import sha256
 
@@ -30,8 +31,11 @@ from app.workers import (
     end_span,
     enqueue_run,
     fail_span,
+    mark_run_enqueue_failed,
     register_run_handler,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_metadata(result) -> dict:
@@ -145,7 +149,7 @@ async def document_process_handler(context: RunExecutionContext) -> None:
         await fail_span(
             context,
             SpanName.PARSE,
-            error_code=type(exc).__name__,
+            error_code=getattr(exc, "error_code", ErrorCode.UNEXPECTED_EXCEPTION),
             error_message=str(exc),
         )
         raise
@@ -218,14 +222,24 @@ async def document_process_handler(context: RunExecutionContext) -> None:
         await fail_span(
             context,
             SpanName.PERSIST,
-            error_code=type(exc).__name__,
+            error_code=getattr(exc, "error_code", ErrorCode.UNEXPECTED_EXCEPTION),
             error_message=str(exc),
         )
         raise
 
-    # DB 事务已提交，入队子 Run；入队失败时子 Run 卡 pending，Reaper 兜底
+    # DB 事务已提交，入队子 Run；入队失败时立即标子 Run failed（不等 Reaper 兜底）
     if child_run_id is not None:
-        enqueue_run(RunType.RAG_INDEX, child_run_id)
+        try:
+            enqueue_run(RunType.RAG_INDEX, child_run_id)
+        except Exception:
+            logger.exception("enqueue child rag_index run failed: run_id=%s", child_run_id)
+            async with context.session_factory() as db:
+                async with db.begin():
+                    await mark_run_enqueue_failed(
+                        db,
+                        child_run_id,
+                        error_message="enqueue rag_index run failed",
+                    )
 
 
 @register_run_handler(RunType.RAG_INDEX)
@@ -295,7 +309,7 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
         await fail_span(
             context,
             SpanName.EMBED,
-            error_code=type(exc).__name__,
+            error_code=getattr(exc, "error_code", ErrorCode.UNEXPECTED_EXCEPTION),
             error_message=str(exc),
         )
         raise
@@ -370,7 +384,7 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
         await fail_span(
             context,
             SpanName.ACTIVATE,
-            error_code=type(exc).__name__,
+            error_code=getattr(exc, "error_code", ErrorCode.UNEXPECTED_EXCEPTION),
             error_message=str(exc),
         )
         raise
