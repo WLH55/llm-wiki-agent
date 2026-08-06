@@ -1,4 +1,4 @@
-# Dramatiq 迁移调研决策记录
+﻿# Dramatiq 迁移调研决策记录
 
 > 整理日期：2026-08-04
 >
@@ -13,6 +13,7 @@
 > - `ProcessingRun.worker_id` 已删，`worker_id` 现仅写入 `worker_attempt` span 的 metrics 作诊断。
 >
 > 当前实现以 `mydocs/task-queue-design.md` 为准。
+> 规范记录位置：ADR `mydocs/adr/2026-08-05_dramatiq-migration.md`（2026-08-06 标注）。
 
 ---
 
