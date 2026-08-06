@@ -8,4 +8,3 @@ class ExecutionOutcome(StrEnum):
 
     IGNORED = "ignored"
     SUCCEEDED = "succeeded"
-    FAILED = "failed"

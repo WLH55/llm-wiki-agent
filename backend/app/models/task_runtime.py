@@ -1,4 +1,4 @@
-"""任务运行账本、阶段记录与可靠投递 Outbox 模型。"""
+"""任务运行账本与阶段记录模型。"""
 
 from datetime import datetime
 from uuid import UUID, uuid4

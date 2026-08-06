@@ -44,8 +44,8 @@ WeKnora 的 span 追踪器（`knowledge_span_tracker.go`），在 handler 各阶
 
 ### Reaper（清扫器）
 本项目简化版的"housekeeping"，嵌入 worker 进程，5min 扫一次。扫描两类卡死 Run：
-1. running 且最近 span updated_at 超 5min 没动（worker 崩溃）
-2. pending 且 created_at 过旧（入队失败/崩溃丢消息）
+1. running 且最近 span updated_at 超 70min 没动（worker 崩溃/卡死）
+2. pending 且 updated_at 过旧（入队失败/崩溃丢消息）
 
 动作：标 Run failed，不自动重投（对齐 WeKnora）。
 

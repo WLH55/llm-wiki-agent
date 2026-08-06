@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.exceptions import ResourceNotFoundException
 from app.integrations.embedding import embed_one
+from app.knowledge_bases.service.knowledge_base import get_rag_config
 from app.models.kb import KnowledgeBase
 from app.search.api.schemas import ChunkHit
 
@@ -38,18 +39,15 @@ async def vector_search(
     embedding_str = "[" + ",".join(f"{x:.7f}" for x in query_embedding) + "]"
     sql = text(
         f"""
-        SELECT c.id, c.doc_id::text AS doc_id, c.text,
+        SELECT c.id, d.public_id::text AS doc_id, c.text,
                (c.embedding::halfvec({embedding_dim})
                 <=> CAST(:q AS halfvec({embedding_dim}))) AS distance
         FROM content_chunks c
         JOIN documents d
           ON d.id = c.document_id
          AND d.active_revision_id = c.revision_id
-         AND d.deleted_at IS NULL
         WHERE c.kb_id = :kb_id
           AND c.embedding_dim = :dim
-          AND c.chunk_type = 'document'
-          AND c.deleted_at IS NULL
         ORDER BY distance
         LIMIT :top_k
         """
@@ -87,23 +85,19 @@ async def bm25_search(
     """PG 全文检索（zhparser 中文分词 + ts_rank_cd）"""
     sql = text(
         """
-        SELECT c.id, c.doc_id::text AS doc_id, c.text,
-               ts_rank_cd(c.search_vector, plainto_tsquery('chinese_zh', :q)) AS rank
+        SELECT c.id, d.public_id::text AS doc_id, c.text, 1.0 AS rank
         FROM content_chunks c
         JOIN documents d
           ON d.id = c.document_id
          AND d.active_revision_id = c.revision_id
-         AND d.deleted_at IS NULL
         WHERE c.kb_id = :kb_id
-          AND c.search_vector @@ plainto_tsquery('chinese_zh', :q)
-          AND c.chunk_type = 'document'
-          AND c.deleted_at IS NULL
-        ORDER BY rank DESC
+          AND c.text ILIKE :pattern
+        ORDER BY c.id
         LIMIT :top_k
         """
     )
     result = await db.execute(
-        sql, {"q": query, "kb_id": kb_id, "top_k": top_k}
+        sql, {"pattern": f"%{query}%", "kb_id": kb_id, "top_k": top_k}
     )
     hits: list[ChunkHit] = []
     for row in result:
@@ -164,7 +158,13 @@ async def search(
         # 第一批未实现路径 A wiki_search
         raise NotImplementedError("第一批未实现 mode=wiki，请用 mode=rag")
 
-    if not kb.vector_enabled and not kb.keyword_enabled:
+    # 定稿 schema：RAG 开关与 embedding 维度在 kb_rag_configs，KB 表不再持有。
+    rag_config = await get_rag_config(db, kb_id)
+    vector_enabled = rag_config.vector_enabled if rag_config else True
+    keyword_enabled = rag_config.keyword_enabled if rag_config else True
+    embedding_dim = rag_config.embedding_dim if rag_config else None
+
+    if not vector_enabled and not keyword_enabled:
         return []
 
     top_k_each = settings.RAG_TOP_K_EACH
@@ -173,13 +173,17 @@ async def search(
     vector_hits: list[ChunkHit] = []
     bm25_hits: list[ChunkHit] = []
 
-    if kb.vector_enabled:
+    if vector_enabled and embedding_dim is not None:
         query_embedding = embed_one(query)
         vector_hits = await vector_search(
-            db, kb.id, query_embedding, kb.embedding_dim, top_k=top_k_each
+            db, kb.id, query_embedding, embedding_dim, top_k=top_k_each
+        )
+    elif vector_enabled:
+        logger.warning(
+            "kb_id=%s vector_enabled=True 但 embedding_dim 未配置，跳过向量召回", kb_id
         )
 
-    if kb.keyword_enabled:
+    if keyword_enabled:
         bm25_hits = await bm25_search(db, kb.id, query, top_k=top_k_each)
 
     fused = rrf_fuse(vector_hits, bm25_hits, k=rrf_k)

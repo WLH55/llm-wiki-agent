@@ -5,7 +5,6 @@
 """
 
 import importlib
-from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import dramatiq
@@ -37,11 +36,6 @@ def register_run_handler(run_type: str):
         return handler
 
     return decorator
-
-
-def register_run_handlers(handlers: Mapping[str, "RunHandler"]) -> None:
-    """批量注册应用 Run 类型；重复名称由后加载实现显式覆盖。"""
-    RUN_HANDLERS.update(handlers)
 
 
 _handlers_loaded: bool = False

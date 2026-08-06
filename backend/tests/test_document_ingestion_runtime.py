@@ -15,6 +15,7 @@ from app.models.chunk import ContentChunk
 from app.models.database import async_engine, async_session_factory
 from app.models.document import Document, DocumentRevision
 from app.models.kb import KnowledgeBase
+from app.models.rag_config import KnowledgeBaseRagConfig
 from app.models.source import Source
 from app.models.task_runtime import ProcessingRun, ProcessingSpan
 from app.models.user import Tenant, User
@@ -43,6 +44,9 @@ async def _delete_ingestion_rows() -> None:
                 KnowledgeBase.tenant_id == TEST_TENANT_ID,
             )
         )
+        await db.execute(
+            delete(KnowledgeBaseRagConfig).where(KnowledgeBaseRagConfig.kb_id == TEST_KB_ID)
+        )
         await db.execute(delete(User).where(User.tenant_id == TEST_TENANT_ID))
         await db.execute(delete(Tenant).where(Tenant.id == TEST_TENANT_ID))
         await db.commit()
@@ -66,15 +70,13 @@ async def test_upload_runtime_creates_revision_and_run_in_one_commit():
     content = b"# Reliable RAG upload\n"
     async with async_session_factory() as db:
         async with db.begin():
-            db.add(Tenant(id=TEST_TENANT_ID, name="ingestion-runtime-test"))
+            db.add(Tenant(id=TEST_TENANT_ID, name="ingestion-runtime-test", owner_id=TEST_TENANT_ID))
             await db.flush()
             db.add(
                 KnowledgeBase(
                     id=TEST_KB_ID,
                     tenant_id=TEST_TENANT_ID,
                     name="ingestion-runtime-test",
-                    embedding_model="test-embedding",
-                    embedding_dim=3,
                 )
             )
             await db.flush()
@@ -129,15 +131,13 @@ async def test_upload_service_creates_run_instead_of_direct_enqueue(monkeypatch)
     monkeypatch.setattr(document_service, "enqueue_run", lambda *args: None)
     async with async_session_factory() as db:
         async with db.begin():
-            tenant = Tenant(id=TEST_TENANT_ID, name="ingestion-upload-test")
+            tenant = Tenant(id=TEST_TENANT_ID, name="ingestion-upload-test", owner_id=TEST_TENANT_ID)
             db.add(tenant)
             await db.flush()
             kb = KnowledgeBase(
                 id=TEST_KB_ID,
                 tenant_id=tenant.id,
                 name="ingestion-upload-test",
-                embedding_model="test-embedding",
-                embedding_dim=3,
             )
             user = User(
                 tenant_id=tenant.id,
@@ -157,7 +157,7 @@ async def test_upload_service_creates_run_instead_of_direct_enqueue(monkeypatch)
 
     async with async_session_factory() as db:
         document = (
-            await db.execute(select(Document).where(Document.doc_id == result.doc_id))
+            await db.execute(select(Document).where(Document.public_id == result.doc_id))
         ).scalar_one()
         revision = (
             await db.execute(
@@ -201,15 +201,13 @@ async def test_upload_service_deletes_object_when_database_commit_fails(monkeypa
 
     async with async_session_factory() as db:
         async with db.begin():
-            tenant = Tenant(id=TEST_TENANT_ID, name="upload-compensation-test")
+            tenant = Tenant(id=TEST_TENANT_ID, name="upload-compensation-test", owner_id=TEST_TENANT_ID)
             db.add(tenant)
             await db.flush()
             kb = KnowledgeBase(
                 id=TEST_KB_ID,
                 tenant_id=TEST_TENANT_ID,
                 name="upload-compensation-test",
-                embedding_model="test-embedding",
-                embedding_dim=3,
             )
             user = User(
                 tenant_id=TEST_TENANT_ID,
@@ -268,15 +266,13 @@ async def test_document_process_handler_writes_candidate_chunks_and_index_run(mo
     content = b"# Candidate chunks\n"
     async with async_session_factory() as db:
         async with db.begin():
-            db.add(Tenant(id=TEST_TENANT_ID, name="ingestion-handler-test"))
+            db.add(Tenant(id=TEST_TENANT_ID, name="ingestion-handler-test", owner_id=TEST_TENANT_ID))
             await db.flush()
             db.add(
                 KnowledgeBase(
                     id=TEST_KB_ID,
                     tenant_id=TEST_TENANT_ID,
                     name="ingestion-handler-test",
-                    embedding_model="test-embedding",
-                    embedding_dim=3,
                 )
             )
             await db.flush()
@@ -372,14 +368,20 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
     content = b"# Activation candidate\n"
     async with async_session_factory() as db:
         async with db.begin():
-            db.add(Tenant(id=TEST_TENANT_ID, name="rag-index-handler-test"))
+            db.add(Tenant(id=TEST_TENANT_ID, name="rag-index-handler-test", owner_id=TEST_TENANT_ID))
             await db.flush()
             db.add(
                 KnowledgeBase(
                     id=TEST_KB_ID,
                     tenant_id=TEST_TENANT_ID,
                     name="rag-index-handler-test",
-                    embedding_model="test-embedding",
+                )
+            )
+            await db.flush()
+            db.add(
+                KnowledgeBaseRagConfig(
+                    kb_id=TEST_KB_ID,
+                    embedding_model_key="test-embedding",
                     embedding_dim=3,
                 )
             )
@@ -454,7 +456,6 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
     assert document_outcome == ExecutionOutcome.SUCCEEDED
     assert index_outcome == ExecutionOutcome.SUCCEEDED
     assert document is not None and document.active_revision_id == created.revision_id
-    assert document.status == "processed"
     assert revision is not None and revision.status == "ready"
     assert all(chunk.embedding_run_id == index_run.id for chunk in chunks)
     assert all(chunk.embedding_dim == 3 for chunk in chunks)
@@ -462,22 +463,21 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
 
 @pytest.mark.asyncio
 async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch):
-    """embedding 失败时 Run 标 failed，不激活候选 Revision，保持旧 active。"""
+    """embedding 瞬态失败：Run 回 pending 等待重试，不激活候选 Revision，保持旧 active。"""
     from app.knowledge_bases.service import rag_ingestion
-    from app.workers import ExecutionOutcome, create_run
+    from app.workers import create_run
+    from app.workers.core.errors import TransientTaskError
     from app.workers.core.executor import execute_run_message
     from app.workers.core.tasks import RUN_HANDLERS
 
     async with async_session_factory() as db:
         async with db.begin():
-            db.add(Tenant(id=TEST_TENANT_ID, name="rag-index-failure-test"))
+            db.add(Tenant(id=TEST_TENANT_ID, name="rag-index-failure-test", owner_id=TEST_TENANT_ID))
             await db.flush()
             kb = KnowledgeBase(
                 id=TEST_KB_ID,
                 tenant_id=TEST_TENANT_ID,
                 name="rag-index-failure-test",
-                embedding_model="test-embedding",
-                embedding_dim=3,
             )
             source = Source(
                 tenant_id=TEST_TENANT_ID,
@@ -498,10 +498,6 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
                 source_id=source.id,
                 source_document_key="rag-index-failure",
                 title="failure.md",
-                original_filename="failure.md",
-                minio_key="203/rag-index-failure/old.md",
-                status="processed",
-                parser_engine="builtin",
             )
             db.add(document)
             await db.flush()
@@ -541,13 +537,11 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
                 ContentChunk(
                     tenant_id=TEST_TENANT_ID,
                     kb_id=TEST_KB_ID,
-                    doc_id=document.doc_id,
                     source_id=source.id,
                     document_id=document.id,
                     revision_id=candidate_revision.id,
                     processing_run_id=index_run.id,
                     chunk_index=0,
-                    chunk_type="document",
                     text="candidate text",
                     token_count=2,
                     text_sha256=sha256(b"candidate text").hexdigest(),
@@ -559,12 +553,13 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
         raise ConnectionError("embedding unavailable")
 
     monkeypatch.setattr(rag_ingestion, "embed_texts", raise_embedding_error)
-    outcome = await execute_run_message(
-        index_run.id,
-        worker_id="test-worker",
-        handlers=RUN_HANDLERS,
-        session_factory=async_session_factory,
-    )
+    with pytest.raises(TransientTaskError):
+        await execute_run_message(
+            index_run.id,
+            worker_id="test-worker",
+            handlers=RUN_HANDLERS,
+            session_factory=async_session_factory,
+        )
 
     async with async_session_factory() as db:
         persisted_document = await db.get(Document, document.id)
@@ -576,15 +571,14 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
         persisted_run = await db.get(ProcessingRun, index_run.id)
         from app.parsers.service.document import get_document_status
 
-        status = await get_document_status(db, TEST_KB_ID, user, document.doc_id)
+        status = await get_document_status(db, TEST_KB_ID, user, document.public_id)
 
-    assert outcome == ExecutionOutcome.FAILED
     assert persisted_document is not None
     assert persisted_document.active_revision_id == active_revision.id
-    assert persisted_document.status == "processed"
+    assert active_revision.status == "ready"
     assert candidate_chunk.embedding_run_id is None
-    assert persisted_run is not None and persisted_run.status == "failed"
-    assert status.status == "failed"
+    assert persisted_run is not None and persisted_run.status == "pending"
+    assert status.status == "pending"
 
 
 @pytest.mark.asyncio
@@ -595,15 +589,13 @@ async def test_search_excludes_candidate_revision_chunks():
 
     async with async_session_factory() as db:
         async with db.begin():
-            db.add(Tenant(id=TEST_TENANT_ID, name="active-revision-search-test"))
+            db.add(Tenant(id=TEST_TENANT_ID, name="active-revision-search-test", owner_id=TEST_TENANT_ID))
             await db.flush()
             db.add(
                 KnowledgeBase(
                     id=TEST_KB_ID,
                     tenant_id=TEST_TENANT_ID,
                     name="active-revision-search-test",
-                    embedding_model="test-embedding",
-                    embedding_dim=3,
                 )
             )
             source = Source(
@@ -620,10 +612,6 @@ async def test_search_excludes_candidate_revision_chunks():
                 source_id=source.id,
                 source_document_key="active-revision-search",
                 title="search.md",
-                original_filename="search.md",
-                minio_key="203/active-revision-search/old.md",
-                status="processed",
-                parser_engine="builtin",
             )
             db.add(document)
             await db.flush()
@@ -663,13 +651,11 @@ async def test_search_excludes_candidate_revision_chunks():
                 ContentChunk(
                     tenant_id=TEST_TENANT_ID,
                     kb_id=TEST_KB_ID,
-                    doc_id=document.doc_id,
                     source_id=source.id,
                     document_id=document.id,
                     revision_id=candidate_revision.id,
                     processing_run_id=processing_run.id,
                     chunk_index=0,
-                    chunk_type="document",
                     text="candidateleak",
                     token_count=2,
                     text_sha256=sha256(b"candidateleak").hexdigest(),

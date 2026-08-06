@@ -113,6 +113,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: llm-wiki-task-worker
+    restart: unless-stopped
     environment:
       ENVIRONMENT: ${ENVIRONMENT:-dev}
     env_file:

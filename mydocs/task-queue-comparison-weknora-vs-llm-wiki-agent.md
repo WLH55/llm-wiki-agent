@@ -9,6 +9,8 @@
 > 参考文档：
 > - `D:/AI/llm-wiki-agent/mydocs/任务运行时三表设计与消息队列原理详解.md`
 > - `D:/AI/llm-wiki-agent/mydocs/taskiq-outbox-mechanism.md`
+>
+> **状态说明（2026-08-06）**：本文是 2026-08-04 迁移前调研快照，§3/§4 描述的 Taskiq + Outbox 旧设计已被 Dramatiq 迁移取代（2026-08-05 执行）。当前实现见 `mydocs/task-queue-design.md` 与 `mydocs/specs/2026-08-05_00-00_Dramatiq任务队列迁移.md`；§8 文件索引已同步为当前代码。
 
 ---
 
@@ -287,11 +289,13 @@ Redis 里只放一个 KB 级 debounce 触发器（30 秒）。触发器丢失没
 
 | 文件 | 职责 |
 |---|---|
-| `backend/app/models/task_runtime.py` | 三张表数据模型 |
-| `backend/app/workers/core/runtime.py` | `create_run_with_outbox` / `claim_run` / `complete_run` / `fail_run` / `retry_run` / `renew_lease` / span 操作 |
-| `backend/app/workers/core/executor.py` | `execute_run_message` / `_handle_failure` / `_heartbeat_loop` |
-| `backend/app/workers/core/tasks.py` | `RUN_HANDLERS` 注册表 / `worker_identity` / `queue_name_for_run` |
-| `backend/app/workers/core/broker.py` | 四条 Redis Stream 定义 |
-| `backend/app/workers/outbox/outbox.py` / `outbox_service.py` / `outbox_worker.py` / `publisher.py` / `reaper.py` | Outbox Publisher 与 Reaper |
-| `backend/app/knowledge_bases/service/rag_ingestion.py` | `document_process` / `rag_index` handler |
-| `backend/app/parsers/service/document.py` | `create_run_with_outbox` 调用点 |
+| `backend/app/models/task_runtime.py` | `ProcessingRun` / `ProcessingSpan` 两张表模型（`TaskOutbox` 已删）|
+| `backend/app/workers/core/runtime.py` | `create_run` / `claim_run` / `complete_run` / `fail_run` / `release_run` / `mark_run_enqueue_failed` / `start_worker_attempt` 等（`retry_run` / `renew_lease` / `create_run_with_outbox` 已删）|
+| `backend/app/workers/core/executor.py` | `execute_run_message`：claim → worker_attempt → handler → commit_success；异常冒泡（`_handle_failure` / `_heartbeat_loop` 已删）|
+| `backend/app/workers/core/tasks.py` | `RUN_HANDLERS` 注册表 / `_load_handlers` / 同函数多 actor（`process_run_default` / `process_run_critical`）/ `enqueue_run`（`worker_identity` / `queue_name_for_run` 已删）|
+| `backend/app/workers/core/broker.py` | Dramatiq `RedisBroker` + `AsyncIO` / `RunFailureMiddleware`（`before=Retries`）/ `ReaperMiddleware`（critical + default 两队列）|
+| `backend/app/workers/core/middleware.py` | `RunFailureMiddleware`（消息最终死亡标 Run failed）+ `ReaperMiddleware`（启停 Reaper 线程）|
+| `backend/app/workers/core/reaper.py` | `recover_stalled_runs` / `run_reaper_loop`（span 心跳超 70min / pending 过 5min 标 failed）|
+| `backend/app/workers/core/span_tracker.py` | `begin_span` / `end_span` / `fail_span` / `skip_span`（span 心跳 API）|
+| `backend/app/knowledge_bases/service/rag_ingestion.py` | `document_process` / `rag_index` handler（含 span 心跳调用）|
+| `backend/app/parsers/service/document.py` | `create_run` + `enqueue_run` 调用点（Outbox 已删）|

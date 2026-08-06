@@ -11,9 +11,9 @@ Pytest 全局 fixtures
 - client: ASGI test client（httpx）
 - auth_token: 登录拿到的 JWT
 """
-import asyncio
 import os
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
+from pathlib import Path
 
 # 在导入 app 模块前提供可解析的默认 DSN，避免 collection 阶段 URL 解析失败。
 # 真实集成测试仍应通过环境变量/compose 指向可用 Postgres。
@@ -25,18 +25,11 @@ os.environ.setdefault("JWT_SECRET", "test-secret")
 os.environ.setdefault("AUTH_ENABLED", "true")
 os.environ.setdefault("BOOTSTRAP_OWNER_EMAIL", "owner@local")
 os.environ.setdefault("BOOTSTRAP_OWNER_PASSWORD", "change-me")
+# .env.* 里 LOGS_DIR=/app/logs 是 Docker 路径，Windows 测试需覆盖到 backend/logs。
+os.environ.setdefault("LOGS_DIR", str(Path(__file__).resolve().parent.parent / "logs"))
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """session 级 event loop"""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest_asyncio.fixture

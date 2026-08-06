@@ -136,14 +136,9 @@ async def create_document_process_run(
         tenant_id=tenant_id,
         kb_id=kb_id,
         source_id=source_id,
-        doc_id=doc_id,
+        public_id=doc_id,
         source_document_key=str(doc_id),
         title=filename,
-        original_filename=filename,
-        minio_key=storage_key,
-        status="pending",
-        parser_engine=parser_engine,
-        parse_metadata={},
     )
     db.add(document)
     await db.flush()
@@ -177,7 +172,7 @@ async def create_document_process_run(
         document_id=document.id,
         revision_id=revision.id,
         run_id=run.id,
-        doc_id=document.doc_id,
+        doc_id=document.public_id,
     )
 
 
@@ -248,7 +243,7 @@ async def upload_document(
     content_type: str,
     parser_engine: str = BUILTIN_ENGINE,
 ) -> DocumentUploadResponse:
-    """上传对象后，原子创建 Revision、Run 与待发布 Outbox。"""
+    """上传对象后，原子创建 Revision 与 Run。"""
     kb = await get_kb(db, kb_id, user)
     _, selected_engine = validate_parser_request(filename, content, parser_engine)
     upload_id = uuid.uuid4()
@@ -315,7 +310,7 @@ async def get_document_status(
     result = await db.execute(
         select(Document)
         .where(
-            Document.doc_id == doc_id,
+            Document.public_id == doc_id,
             Document.kb_id == kb.id,
             Document.tenant_id == user.tenant_id,
         )
@@ -349,9 +344,9 @@ async def get_document_status(
             )
         ).scalar_one_or_none()
 
-    status = doc.status
-    error_message = doc.error_message
-    error_code = doc.parse_error_code
+    status = "pending"
+    error_message: str | None = None
+    error_code: str | None = None
     if latest_run is not None:
         if latest_run.status == RunStatus.FAILED:
             status = "failed"
@@ -367,18 +362,26 @@ async def get_document_status(
             and doc.active_revision_id == latest_revision.id
         ):
             status = "processed"
+    elif latest_revision is not None and latest_revision.status == "ready":
+        status = "processed"
 
-    parse_metadata = (
-        latest_revision.parse_metadata if latest_revision is not None else doc.parse_metadata
-    )
+    parse_metadata = latest_revision.parse_metadata if latest_revision is not None else {}
     return DocumentStatusResponse(
-        doc_id=doc.doc_id,
+        doc_id=doc.public_id,
         status=status,
-        original_filename=doc.original_filename,
-        error_message=error_message,
+        original_filename=(
+            latest_revision.original_filename if latest_revision is not None else ""
+        ),
+        error_message=error_message or "",
         error_code=error_code,
-        parser_engine=doc.parser_engine,
+        parser_engine=(
+            latest_revision.parser_engine if latest_revision is not None else "builtin"
+        ),
         parse_metadata=parse_metadata,
         warnings=list((parse_metadata or {}).get("warnings", [])),
-        processed_at=doc.processed_at,
+        processed_at=(
+            latest_revision.updated_at
+            if status == "processed" and latest_revision is not None
+            else None
+        ),
     )

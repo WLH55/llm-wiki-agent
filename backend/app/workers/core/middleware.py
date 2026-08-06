@@ -1,6 +1,7 @@
 """Dramatiq middleware：RunFailureMiddleware + ReaperMiddleware。
 
-- RunFailureMiddleware：消息处理失败时标 Run failed（executor _handle_failure 的兜底）
+- RunFailureMiddleware：消息最终死亡时标 Run failed（异常冒泡后由 Retries 判定，
+-   message.failed=True 才标记；必须注册在 Retries 之前，逆序链中位于其后）
 - ReaperMiddleware：after_process_boot 启 Reaper 线程，before_worker_shutdown 停止
 """
 
@@ -11,7 +12,7 @@ import threading
 from dramatiq.asyncio import get_event_loop_thread
 from dramatiq.middleware import Middleware
 
-from app.workers.core.constants import ErrorCode
+from app.workers.core.constants import ErrorCode, RunStatus
 from app.workers.core.reaper import run_reaper_loop
 from app.workers.core.runtime import fail_run
 
@@ -32,11 +33,13 @@ def _run_coroutine_safely(coro):
 
 
 class RunFailureMiddleware(Middleware):
-    """after_process_message 钩子：消息失败时标 Run failed。
+    """after_process_message 钩子：消息最终死亡时标 Run failed。
 
-    作为 executor._handle_failure 的兜底：处理 executor 自身抛异常的情况
-    （如 claim_run / start_worker_attempt / commit_success 的 DB 错误）。
-    executor 内部已标 Run failed 的，fail_run 的 CAS running->failed 返回 False，幂等。
+    executor 现在让异常冒泡给 Dramatiq，本 middleware 是失败回调：
+    只有 Retries 判定"放弃"（throws 终态错误 / 重试耗尽，message.failed=True）
+    才标 Run failed；Retries 安排了下次重试时不标，等重投消息再次 claim。
+    必须通过 add_middleware(..., before=Retries) 注册，保证逆序链中本钩子
+    在 Retries 之后执行，才能读到 message.failed 的最终判定。
     """
 
     def __init__(self, session_factory) -> None:
@@ -44,7 +47,10 @@ class RunFailureMiddleware(Middleware):
         self.session_factory = session_factory
 
     def after_process_message(self, broker, message, *, result=None, exception=None) -> None:
-        if exception is None:
+        # message.failed 由 Retries middleware 判定：
+        #   True  = throws 终态错误 或 重试耗尽（即将进 DLQ）-> 标 Run failed
+        #   False = Retries 已安排下一次重试 -> 不标，等重投消息再 claim
+        if exception is None or not message.failed:
             return
         run_id = message.args[0] if message.args else None
         if run_id is None:
@@ -64,6 +70,7 @@ class RunFailureMiddleware(Middleware):
                     run_id,
                     error_code=ErrorCode.MIDDLEWARE_FAILURE,
                     error_message=error_message[:1000],
+                    statuses=(RunStatus.RUNNING, RunStatus.PENDING),
                 )
 
 

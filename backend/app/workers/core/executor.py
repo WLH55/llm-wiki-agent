@@ -10,22 +10,18 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models.task_runtime import ProcessingRun
 from app.workers.core.constants import (
-    CRITICAL_QUEUE,
-    CRITICAL_RUN_TYPES,
-    DEFAULT_QUEUE,
     ErrorCode,
     SpanStatus,
 )
 from app.workers.core.errors import (
-    TaskExecutionError,
     TerminalTaskError,
     TransientTaskError,
 )
 from app.workers.core.runtime import (
     claim_run,
     complete_run,
-    fail_run,
     finish_worker_attempt,
+    release_run,
     start_worker_attempt,
 )
 from app.workers.core.schemas import ExecutionOutcome
@@ -47,6 +43,7 @@ class RunIdentity:
     scope_type: str
     scope_id: int
     attempt_no: int
+    execution_attempt: int
     options_snapshot: dict[str, Any]
 
 
@@ -82,39 +79,6 @@ class RunExecutionContext:
         self.committed = True
 
 
-def queue_name_for_run(run_type: str) -> str:
-    """把业务 Run 类型映射到稳定队列；优先级不进入消息正文。"""
-    if run_type in CRITICAL_RUN_TYPES:
-        return CRITICAL_QUEUE
-    return DEFAULT_QUEUE
-
-
-async def _handle_failure(
-    *,
-    run_id: int,
-    span_id: int,
-    error: TaskExecutionError,
-    session_factory: async_sessionmaker[AsyncSession],
-) -> ExecutionOutcome:
-    """标记 span 失败 + Run 失败；重试由 Dramatiq Retries middleware 接管。"""
-    async with session_factory() as db:
-        async with db.begin():
-            await finish_worker_attempt(
-                db,
-                span_id,
-                status=SpanStatus.FAILED,
-                error_code=error.error_code,
-                error_message=error.message,
-            )
-            await fail_run(
-                db,
-                run_id,
-                error_code=error.error_code,
-                error_message=error.message,
-            )
-    return ExecutionOutcome.FAILED
-
-
 async def execute_run_message(
     run_id: int,
     *,
@@ -136,7 +100,7 @@ async def execute_run_message(
             if run is None:
                 logger.warning("忽略不存在的 Run 消息: run_id=%s", run_id)
                 return ExecutionOutcome.IGNORED
-            claimed = await claim_run(db, run_id, worker_id=worker_id)
+            claimed = await claim_run(db, run_id)
             if not claimed:
                 return ExecutionOutcome.IGNORED
             attempt_span = await start_worker_attempt(db, run, worker_id=worker_id)
@@ -148,6 +112,7 @@ async def execute_run_message(
                 scope_type=run.scope_type,
                 scope_id=run.scope_id,
                 attempt_no=run.attempt_no,
+                execution_attempt=attempt_span.attempt_no,
                 options_snapshot=dict(run.options_snapshot or {}),
             )
             span_id = attempt_span.id
@@ -174,24 +139,38 @@ async def execute_run_message(
                 await finish_worker_attempt(db, span_id, status=SpanStatus.CANCELLED)
         raise
     except TerminalTaskError as exc:
-        return await _handle_failure(
-            run_id=run_id,
-            span_id=span_id,
-            error=exc,
-            session_factory=session_factory,
-        )
+        # 终态错误：只记 span 失败，不标 Run 终态。
+        # 异常冒泡给 Dramatiq：throws -> message.fail() -> DLQ，
+        # 由 RunFailureMiddleware 标 Run failed。
+        async with session_factory() as db:
+            async with db.begin():
+                await finish_worker_attempt(
+                    db,
+                    span_id,
+                    status=SpanStatus.FAILED,
+                    error_code=exc.error_code,
+                    error_message=exc.message,
+                )
+        raise
     except Exception as exc:
         transient = (
             exc
             if isinstance(exc, TransientTaskError)
             else TransientTaskError(ErrorCode.UNEXPECTED_EXCEPTION, str(exc))
         )
-        return await _handle_failure(
-            run_id=run_id,
-            span_id=span_id,
-            error=transient,
-            session_factory=session_factory,
-        )
+        # 瞬态错误：记 span 失败 + 释放 Run 回 pending（重投消息可再次 claim），
+        # 异常冒泡给 Dramatiq Retries middleware 决定退避重试。
+        async with session_factory() as db:
+            async with db.begin():
+                await finish_worker_attempt(
+                    db,
+                    span_id,
+                    status=SpanStatus.FAILED,
+                    error_code=transient.error_code,
+                    error_message=transient.message,
+                )
+                await release_run(db, run_id)
+        raise transient
 
     async with session_factory() as db:
         async with db.begin():

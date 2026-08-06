@@ -63,12 +63,10 @@ async def claim_run(
     db: AsyncSession,
     run_id: int,
     *,
-    worker_id: str,
     now: datetime | None = None,
 ) -> bool:
     """原子 CAS：pending -> running。返回是否领取成功。
 
-    fencing 移除后 worker_id 不再持久化到 Run 行，参数保留以维持调用方契约。
     重复投递被吸收：若 Run 已是 running 或终态，返回 False。
     """
     claim_time = now or _utc_now()
@@ -82,6 +80,30 @@ async def claim_run(
             status=RunStatus.RUNNING,
             started_at=func.coalesce(ProcessingRun.started_at, claim_time),
             updated_at=claim_time,
+        )
+        .execution_options(synchronize_session="fetch")
+        .returning(ProcessingRun.id)
+    )
+    return (await db.execute(statement)).scalar_one_or_none() is not None
+
+
+async def release_run(
+    db: AsyncSession,
+    run_id: int,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    """原子 CAS：running -> pending。瞬态失败后释放领取，让重试消息能再次 claim。"""
+    released_at = now or _utc_now()
+    statement = (
+        update(ProcessingRun)
+        .where(
+            ProcessingRun.id == run_id,
+            ProcessingRun.status == RunStatus.RUNNING,
+        )
+        .values(
+            status=RunStatus.PENDING,
+            updated_at=released_at,
         )
         .execution_options(synchronize_session="fetch")
         .returning(ProcessingRun.id)
@@ -121,14 +143,19 @@ async def fail_run(
     error_code: str,
     error_message: str,
     now: datetime | None = None,
+    statuses: tuple[RunStatus, ...] = (RunStatus.RUNNING,),
 ) -> bool:
-    """原子 CAS：running -> failed。返回是否成功。"""
+    """原子 CAS：statuses 中的状态 -> failed。返回是否成功。
+
+    默认仅 running -> failed（普通失败路径）；RunFailureMiddleware 传入
+    (RUNNING, PENDING) 覆盖重试耗尽时 Run 已回 pending 的终态标记。
+    """
     finished_at = now or _utc_now()
     statement = (
         update(ProcessingRun)
         .where(
             ProcessingRun.id == run_id,
-            ProcessingRun.status == RunStatus.RUNNING,
+            ProcessingRun.status.in_(statuses),
         )
         .values(
             status=RunStatus.FAILED,
@@ -201,6 +228,7 @@ async def start_worker_attempt(
         kb_id=run.kb_id,
         run_id=run.id,
         span_name=SpanName.WORKER_ATTEMPT,
+        attempt_no=attempt,
         status=SpanStatus.RUNNING,
         metrics={"attempt": attempt, "worker_id": worker_id},
         started_at=started_at,

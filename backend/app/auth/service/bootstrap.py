@@ -33,7 +33,9 @@ async def ensure_bootstrap_owner(db: AsyncSession) -> None:
         )
         return
 
-    tenant = Tenant(name="default")
+    # 定稿 schema：tenants.owner_id NOT NULL。全库不建外键，先占位再回填：
+    # 先以占位 owner_id 建 tenant，拿到 id 后建 owner 再回填。
+    tenant = Tenant(name="default", owner_id=0)
     db.add(tenant)
     await db.flush()  # 拿 tenant.id
 
@@ -45,6 +47,8 @@ async def ensure_bootstrap_owner(db: AsyncSession) -> None:
         is_active=True,
     )
     db.add(owner)
+    await db.flush()
+    tenant.owner_id = owner.id
     await db.commit()
 
     logger.info(

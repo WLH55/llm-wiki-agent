@@ -2,6 +2,8 @@
 
 > 对应提交：`4a707a5 feat:任务队列模块设计`
 > 涉及目录：`backend/app/workers/`、`backend/app/models/task_runtime.py`
+>
+> **⚠ 历史文档（2026-08-06 标注）**：本文对应的 Taskiq + Transactional Outbox 设计已随 2026-08-05 Dramatiq 迁移删除（`task_outbox` 表、`outbox/` 目录、`send_task_message` 等均已移除）。仅作原理学习参考，当前实现见 `mydocs/task-queue-design.md`。
 
 本文档解释本项目任务队列的设计：为什么用 Outbox、三张表如何配合、字段含义、完整投递与执行流程，以及如何新增一种任务。
 

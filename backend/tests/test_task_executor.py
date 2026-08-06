@@ -12,9 +12,9 @@ from sqlalchemy import delete, select
 
 from app.models.database import async_engine, async_session_factory
 from app.models.task_runtime import ProcessingRun, ProcessingSpan
-from app.workers.core.constants import SpanName, SpanStatus
+from app.workers.core.constants import ErrorCode, SpanName, SpanStatus
 from app.workers.core.executor import execute_run_message
-from app.workers.core.runtime import claim_run, create_run
+from app.workers.core.runtime import claim_run, create_run, release_run
 
 TEST_TENANT_ID = 98_001
 
@@ -75,7 +75,7 @@ async def test_duplicate_message_does_not_run_handler():
     async with async_session_factory() as db:
         async with db.begin():
             # 先用外部 claim_run 把 Run 领走（模拟另一 worker 已在处理）
-            await claim_run(db, run_id, worker_id="worker-a")
+            await claim_run(db, run_id)
 
     called = False
 
@@ -117,74 +117,101 @@ async def test_successful_handler_atomically_completes_run():
 
 
 @pytest.mark.asyncio
-async def test_terminal_error_marks_run_failed():
-    """handler 抛 TerminalTaskError 后 Run 标记为 failed，不重试。"""
+async def test_terminal_error_propagates_and_run_stays_running():
+    """handler 抛 TerminalTaskError：span 标 failed、Run 保持 running，异常冒泡。
+
+    终态标记由 RunFailureMiddleware 在消息死亡时完成（throws -> DLQ）。
+    """
     from app.workers.core.errors import TerminalTaskError
-    from app.workers.core.schemas import ExecutionOutcome
 
     run_id = await _create_run(run_type="rag_index")
 
     async def handler(context):
         raise TerminalTaskError("invalid_embedding", "wrong dimension")
 
-    outcome = await execute_run_message(
-        run_id,
-        worker_id="worker-a",
-        handlers={"rag_index": handler},
-        session_factory=async_session_factory,
-    )
-    assert outcome == ExecutionOutcome.FAILED
+    with pytest.raises(TerminalTaskError):
+        await execute_run_message(
+            run_id,
+            worker_id="worker-a",
+            handlers={"rag_index": handler},
+            session_factory=async_session_factory,
+        )
     run = await _load_run(run_id)
-    assert run.status == "failed"
-    assert run.error_code == "invalid_embedding"
-    assert run.error_message == "wrong dimension"
+    assert run.status == "running"
+    assert run.error_code is None
+    async with async_session_factory() as db:
+        attempt = (
+            await db.execute(
+                select(ProcessingSpan)
+                .where(
+                    ProcessingSpan.run_id == run_id,
+                    ProcessingSpan.span_name == SpanName.WORKER_ATTEMPT,
+                )
+                .order_by(ProcessingSpan.id.desc())
+                .limit(1)
+            )
+        ).scalar_one()
+    assert attempt.status == SpanStatus.FAILED
+    assert attempt.error_code == "invalid_embedding"
 
 
 @pytest.mark.asyncio
-async def test_transient_error_marks_run_failed():
-    """handler 抛非 Terminal 异常时包装为 TransientTaskError，Run 标 failed。
-
-    注意：当前重试语义为已知限制，Run 直接进 failed（Dramatiq 重试会被 claim_run 吸收）。
+async def test_transient_error_releases_run_and_propagates():
+    """handler 抛非 Terminal 异常：包装为 TransientTaskError、span 标 failed、
+    Run 回 pending（重投消息可再次 claim），异常冒泡给 Retries 退避重试。
     """
-    from app.workers.core.schemas import ExecutionOutcome
+    from app.workers.core.errors import TransientTaskError
 
     run_id = await _create_run()
 
     async def handler(context):
         raise ConnectionError("embedding unavailable")
 
-    outcome = await execute_run_message(
-        run_id,
-        worker_id="worker-a",
-        handlers={"document_process": handler},
-        session_factory=async_session_factory,
-    )
-    assert outcome == ExecutionOutcome.FAILED
+    with pytest.raises(TransientTaskError):
+        await execute_run_message(
+            run_id,
+            worker_id="worker-a",
+            handlers={"document_process": handler},
+            session_factory=async_session_factory,
+        )
     run = await _load_run(run_id)
-    assert run.status == "failed"
-    assert run.error_code == "unexpected_exception"
+    assert run.status == "pending"
+    assert run.error_code is None
+    async with async_session_factory() as db:
+        attempt = (
+            await db.execute(
+                select(ProcessingSpan)
+                .where(
+                    ProcessingSpan.run_id == run_id,
+                    ProcessingSpan.span_name == SpanName.WORKER_ATTEMPT,
+                )
+                .order_by(ProcessingSpan.id.desc())
+                .limit(1)
+            )
+        ).scalar_one()
+    assert attempt.status == SpanStatus.FAILED
+    assert attempt.error_code == "unexpected_exception"
 
 
 @pytest.mark.asyncio
 async def test_handler_without_commit_raises_terminal_error():
-    """handler 返回但未调 commit_success 时标记为契约违反。"""
-    from app.workers.core.schemas import ExecutionOutcome
+    """handler 返回但未调 commit_success 时标记为契约违反（Terminal，异常冒泡）。"""
+    from app.workers.core.errors import TerminalTaskError
 
     run_id = await _create_run()
 
     async def handler(context):
         pass  # 忘记调 commit_success
 
-    outcome = await execute_run_message(
-        run_id,
-        worker_id="worker-a",
-        handlers={"document_process": handler},
-        session_factory=async_session_factory,
-    )
-    assert outcome == ExecutionOutcome.FAILED
+    with pytest.raises(TerminalTaskError):
+        await execute_run_message(
+            run_id,
+            worker_id="worker-a",
+            handlers={"document_process": handler},
+            session_factory=async_session_factory,
+        )
     run = await _load_run(run_id)
-    assert run.status == "failed"
-    assert run.error_code == "handler_contract_violation"
+    assert run.status == "running"
 
 
 @pytest.mark.asyncio
@@ -204,7 +231,7 @@ async def test_cancelled_handler_marks_span_cancelled():
             handlers={"document_process": handler},
             session_factory=async_session_factory,
         )
-    # Run 仍是 running（_handle_failure 未调用），Reaper 后续兜底
+    # Run 保持 running（executor 不标终态），Reaper 后续兜底
     run = await _load_run(run_id)
     assert run.status == "running"
     async with async_session_factory() as db:
@@ -224,24 +251,23 @@ async def test_cancelled_handler_marks_span_cancelled():
 
 @pytest.mark.asyncio
 async def test_unknown_run_type_raises_terminal_error():
-    """未注册的 run_type 标记为 unknown_run_type。"""
-    from app.workers.core.schemas import ExecutionOutcome
+    """未注册的 run_type 标记为 unknown_run_type（Terminal，异常冒泡）。"""
+    from app.workers.core.errors import TerminalTaskError
 
     run_id = await _create_run(run_type="unknown_type")
 
     async def handler(context):
         await context.commit_success()
 
-    outcome = await execute_run_message(
-        run_id,
-        worker_id="worker-a",
-        handlers={"document_process": handler},
-        session_factory=async_session_factory,
-    )
-    assert outcome == ExecutionOutcome.FAILED
+    with pytest.raises(TerminalTaskError):
+        await execute_run_message(
+            run_id,
+            worker_id="worker-a",
+            handlers={"document_process": handler},
+            session_factory=async_session_factory,
+        )
     run = await _load_run(run_id)
-    assert run.status == "failed"
-    assert run.error_code == "unknown_run_type"
+    assert run.status == "running"
 
 
 @pytest.mark.asyncio
@@ -256,3 +282,72 @@ async def test_nonexistent_run_returns_ignored():
         session_factory=async_session_factory,
     )
     assert outcome == ExecutionOutcome.IGNORED
+
+@pytest.mark.asyncio
+async def test_run_failure_middleware_skips_when_retry_scheduled(monkeypatch):
+    """message.failed=False（Retries 已安排重试）时 RunFailureMiddleware 不标 failed。"""
+    from types import SimpleNamespace
+
+    from app.workers.core import middleware as middleware_module
+    from app.workers.core.middleware import RunFailureMiddleware
+
+    run_id = await _create_run()
+    mw = RunFailureMiddleware(session_factory=async_session_factory)
+    calls = []
+    monkeypatch.setattr(
+        middleware_module, "_run_coroutine_safely", lambda coro: calls.append(coro)
+    )
+    mw.after_process_message(
+        None, SimpleNamespace(args=[run_id], failed=False), exception=ValueError("boom")
+    )
+    assert calls == []
+    run = await _load_run(run_id)
+    assert run.status == "pending"
+
+
+@pytest.mark.asyncio
+async def test_run_failure_middleware_marks_failed_when_message_dead(monkeypatch):
+    """message.failed=True（throws / 重试耗尽）时 RunFailureMiddleware 标 Run failed。"""
+    from types import SimpleNamespace
+
+    from app.workers.core import middleware as middleware_module
+    from app.workers.core.middleware import RunFailureMiddleware
+
+    run_id = await _create_run()
+    async with async_session_factory() as db:
+        async with db.begin():
+            await claim_run(db, run_id)
+            await release_run(db, run_id)  # 模拟瞬态失败已释放 -> pending
+
+    mw = RunFailureMiddleware(session_factory=async_session_factory)
+    calls = []
+    monkeypatch.setattr(
+        middleware_module, "_run_coroutine_safely", lambda coro: (calls.append(coro), coro.close())
+    )
+    mw.after_process_message(
+        None, SimpleNamespace(args=[run_id], failed=True), exception=ValueError("boom")
+    )
+    assert len(calls) == 1
+    # 直接执行标记逻辑验证 DB 效果（pending -> failed）
+    await mw._mark_failed(run_id, "boom")
+    run = await _load_run(run_id)
+    assert run.status == "failed"
+    assert run.error_code == ErrorCode.MIDDLEWARE_FAILURE
+    assert run.error_message == "boom"
+
+
+@pytest.mark.asyncio
+async def test_run_failure_middleware_mark_failed_covers_running_state():
+    """终态标记覆盖 running 状态（throws 终态错误路径：executor 不 release）。"""
+    from app.workers.core.middleware import RunFailureMiddleware
+
+    run_id = await _create_run(run_type="rag_index")
+    async with async_session_factory() as db:
+        async with db.begin():
+            await claim_run(db, run_id)
+
+    mw = RunFailureMiddleware(session_factory=async_session_factory)
+    await mw._mark_failed(run_id, "terminal boom")
+    run = await _load_run(run_id)
+    assert run.status == "failed"
+    assert run.error_code == ErrorCode.MIDDLEWARE_FAILURE

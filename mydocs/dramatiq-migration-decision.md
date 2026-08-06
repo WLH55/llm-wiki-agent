@@ -5,6 +5,14 @@
 > 背景：在 WeKnora 对比分析（见 `task-queue-comparison-weknora-vs-llm-wiki-agent.md`）后，调研是否将当前 Taskiq + Outbox 自建投递层迁移到 Dramatiq 框架。
 >
 > 约束：借鉴 WeKnora 设计哲学（成熟框架兜底投递复杂度），不想提前过度设计。
+>
+> **执行后注记（2026-08-06）**：本记录是 2026-08-04/05 的决策时点快照，落地实现与个别决策有差异：
+> - span 心跳阈值最终定为 **70min**（`TASK_SPAN_STALE_SECONDS=4200`，非 5min），长阶段无需内部刷新；
+> - `_handle_failure` 最终整体删除（2026-08-06 重试/死信落地），Run 终态标记移交 `RunFailureMiddleware`；
+> - `queue_name_for_run` 与 `TASK_WORKER_CONCURRENCY` / `TASK_MAX_AUTO_RETRIES` / `TASK_RETRY_BASE_SECONDS` / `TASK_RETRY_MAX_SECONDS` 已作为死代码/死参数删除（2026-08-06 清理）；
+> - `ProcessingRun.worker_id` 已删，`worker_id` 现仅写入 `worker_attempt` span 的 metrics 作诊断。
+>
+> 当前实现以 `mydocs/task-queue-design.md` 为准。
 
 ---
 
@@ -20,13 +28,13 @@
 | Worker 容器拓扑 | **单容器订阅 critical + default** | 先启动一个进程，`dramatiq --queues critical default --threads 16`；Reaper 嵌入此进程 |
 | 多队列路由 | **方案 C：同函数多 actor 注册** | Dramatiq 的 queue_name 在 actor 定义时固定死，不能 per-message 动态覆盖（源码验证）|
 | 弹性借用 | **放弃** | Dramatiq 多队列订阅是平级消费，不是"default 空闲时借 critical"；low 和 default 共享 worker |
-| multimodal 队列 | **删除** | 当前 `queue_name_for_run` 未映射 multimodal，实际未使用 |
+| multimodal 队列 | **删除** | 当前按 `run_type` 选 actor 的 `enqueue_run` 未映射 multimodal，实际未使用（原 `queue_name_for_run` 已删）|
 | low 队列 | **删除** | 当前只给 `wiki_generate` 用，非高频任务，不值得单独隔离；wiki_generate 改到 default |
 | 消息内容 | **只传 run_id** | worker 回 DB 读 Run 快照；和 WeKnora 传 payload 不同，因为要回 DB 做幂等检查 |
 | 重试队列路由 | **Dramatiq 自动回原队列** | Retries middleware 用原 message enqueue，queue_name 是 frozen 字段，重试回原队列（源码验证）|
 | lease 时长 | **删除 lease 字段** | 改用 span 心跳判卡死，不再需要 lease |
 | Reaper 触发方式 | **嵌入 worker 进程，5min 扫一次** | WeKnora housekeeping 也是嵌入主进程的 cron，5 分钟扫一次；SKIP LOCKED 防多 worker 重复 |
-| Reaper 判定依据 | **span 心跳**（running 且最近 span updated_at 超 5min 没动）| 对齐 WeKnora；span 心跳是事件驱动（阶段切换时刷新），不是定时心跳 |
+| Reaper 判定依据 | **span 心跳**（running 且最近 span updated_at 超 70min 没动）| 对齐 WeKnora；span 心跳是事件驱动（阶段切换时刷新），不是定时心跳。落地注：70min 阈值（`TASK_SPAN_STALE_SECONDS=4200`）保证长阶段不被误杀 |
 | Reaper 动作 | **标 Run failed，不自动重投** | 对齐 WeKnora；lease 过期通常意味着异常崩溃，自动重做有再次崩溃风险且浪费 API 调用；用户手动重试 |
 | 失败回调 | **自定义 Middleware（方案 A）** | 对齐 WeKnora 的 asynq 死信中间件 + 回调；在 `after_process_message` 钩子标 Run failed |
 | Actor 模式 | **路径 C：actor 是薄包装，保留 executor** | `execute_run_message` 保留 claim/handler 派发/commit；删退避/心跳/retry_run（交给 Dramatiq）|
@@ -188,6 +196,7 @@ async def process_run(run_id: int): ...
 **迁移结论**：`reaper.py` 的 Outbox 补投逻辑**可删**。但有边界场景需要保留简化版 Reaper：
 - worker 取了消息、claim_run 成功、开始执行，然后崩溃 -> Dramatiq 会重投消息 -> 新 worker 调 `claim_run` 发现 Run 是 `running` 且 lease 未过期，返回 None，消息被忽略 -> **任务卡住直到 lease 过期**
 - **解法**：保留简化版 Reaper，只扫"running 且 lease 过期"的 Run，重新 `actor.send(run_id)`。比当前 Reaper 简单（不用查 Outbox，直接 send）。
+  - **落地注（2026-08-06）**：最终实现改为扫「span 心跳超 70min / pending 过 5min」两类卡死 Run，动作是标 failed 不重投（见 §5 保留清单与 `mydocs/task-queue-design.md` §2.7）。
 
 ### 3.4 延迟
 
@@ -259,7 +268,7 @@ process_run.send_with_options(args=(run_id,), delay=5000)  # 5 秒后投递
 | Handler 注册 | `tasks.py` 的 `RUN_HANDLERS` / `register_run_handler` | 业务派发机制不变 |
 | 简化版状态机 CAS | `runtime.py` 的 `claim_run` / `complete_run` / `fail_run`（简化版，只靠 status）| Run 状态准确性保障，不依赖 token/epoch |
 | Span 心跳 | handler 内部各阶段调 `begin_span` / `end_span` | 事件驱动刷新 span updated_at，Reaper 据此判卡死；对齐 WeKnora 的 SpanTracker |
-| 简化版 Reaper | 嵌入 worker 进程（`after_process_boot` 启独立线程），5min 扫一次，标 Run failed | 扫"running 且 span 心跳超 5min 没动" + "pending 且 created_at 过旧" |
+| 简化版 Reaper | 嵌入 worker 进程（`after_process_boot` 启独立线程），5min 扫一次，标 Run failed | 扫"running 且 span 心跳超 70min 没动" + "pending 且 updated_at 过旧" |
 | 失败回调 Middleware | 自定义 `RunFailureMiddleware`，复用 EventLoopThread 调 async | Dramatiq 重试耗尽 / 终态错误时标 Run failed |
 | Executor 主体 | `executor.py` 的 `execute_run_message` | 保留 claim/handler 派发/commit；删退避/心跳/retry_run |
 
@@ -274,8 +283,8 @@ process_run.send_with_options(args=(run_id,), delay=5000)  # 5 秒后投递
 | lease 字段 | `ProcessingRun.lease_expires_at` | 删 lease，改用 span 心跳判卡死 |
 | execution_token / execution_epoch | `ProcessingRun` 的两个字段 | fencing CAS 删除后不再需要 |
 | heartbeat_at 字段 | `ProcessingRun.heartbeat_at` | 删续租后不再需要 |
-| worker_id 字段 | `ProcessingRun.worker_id` | fencing 删除后不再需要（或保留仅作日志诊断）|
-| 退避计算 | `executor.py` 的 `_retry_delay` / `_handle_failure` 的退避和重试调度部分 | Dramatiq Retries middleware 接管；但 `_handle_failure` 里调 `fail_run` 标终态失败的逻辑保留 |
+| worker_id 字段 | `ProcessingRun.worker_id` | 已删（2026-08-05）；`worker_id` 现仅作为 `start_worker_attempt` 参数写入 `worker_attempt` span 的 `metrics` 作诊断 |
+| 退避计算 | `executor.py` 的 `_retry_delay` / `_handle_failure` 的退避和重试调度部分 | Dramatiq Retries middleware 接管；`_handle_failure` 后整体删除（2026-08-06），标终态职责移交 `RunFailureMiddleware` |
 | retry_run | `runtime.py` 的 `retry_run` | Dramatiq 内置重试 |
 | Outbox 双写 | `runtime.py` 的 `create_run_with_outbox` | 改为直接 `actor.send()` |
 | Taskiq broker | `broker.py` 的 `RedisStreamBroker` 配置 | 换 Dramatiq `RedisBroker` |
@@ -303,7 +312,9 @@ process_run.send_with_options(args=(run_id,), delay=5000)  # 5 秒后投递
 | Reaper 扫描间隔 | 30s（Outbox 内）| **改为 5min**（嵌入 worker，对齐 WeKnora）|
 | Dramatiq 心跳超时 | - | 默认 60s（worker 进程崩溃后 60s 重投未 ack 消息）|
 | Dramatiq time_limit | - | 需配置，覆盖最长任务（如 3600000ms=1h）|
-| Span 心跳阈值 | - | 5min（running 且最近 span updated_at 超 5min 没动 -> 标 failed）|
+| Span 心跳阈值 | - | 70min（`TASK_SPAN_STALE_SECONDS=4200`；running 且最近 span updated_at 超 70min 没动 -> 标 failed）|
+
+注（2026-08-06）：`TASK_WORKER_CONCURRENCY` / `TASK_MAX_AUTO_RETRIES` / `TASK_RETRY_BASE_SECONDS` / `TASK_RETRY_MAX_SECONDS` 已作为死参数从 settings 删除；重试参数现硬编码于 `tasks.py` actor 装饰器，worker 并发由 `dramatiq --threads 16` 命令行控制。`TASK_LEASE_SECONDS` / `TASK_HEARTBEAT_SECONDS` 亦已删除。
 
 ---
 
@@ -316,6 +327,6 @@ process_run.send_with_options(args=(run_id,), delay=5000)  # 5 秒后投递
 3. ~~**Run 状态机简化**~~：已决策--删除 token/epoch/lease/heartbeat 字段，保留简化版 CAS（只靠 status）。
 4. **handler 幂等策略调整**：当前 handler 的幂等检查是抛 `TerminalTaskError` 拒绝重做，用户重试会被挡。后续重写 handler 时需调整为允许重做已完成的步骤。
 5. **commit_success 失败的已知限制**：DB 临时故障导致 `commit_success` 失败时，业务可能已部分写入，但 Run 最终被 Reaper 标 failed。当前接受这个不完美。
-6. **Span 心跳的 API 设计**：需要设计 `begin_span(run_id, span_name)` / `end_span(span_id)` 的接口，handler 重写时调用。对齐 WeKnora 的 SpanTracker 但用 Python async 实现。
+6. ~~**Span 心跳的 API 设计**~~：已实现（2026-08-05）——by-name shim + ctx pattern（`begin_span(ctx, name)` / `end_span(ctx, name)` / `fail_span` / `skip_span`），对齐 WeKnora SpanTracker 4 事件。
 7. ~~**Dramatiq time_limit 配置**~~：已决策--所有 actor 统一 `time_limit=3600000`（1 小时），span 心跳 + Reaper 是主要卡死检测机制，time_limit 是 Dramatiq 的补充。
-8. **Span 心跳阈值与 Reaper 间隔的协调**：Reaper 5min 扫一次，span 心跳阈值 5min。如果 handler 某个阶段执行超过 5min（如 embedding 5K chunks），span 不刷新，Reaper 会误杀。需要 handler 在长阶段内部定期刷新 span（如每 2min 更新一次 span 的 metrics 或 updated_at）。
+8. ~~**Span 心跳阈值与 Reaper 间隔的协调**~~：已解决（2026-08-05）——阈值定为 70min（`TASK_SPAN_STALE_SECONDS=4200`）> 最长单阶段，长阶段内部不刷新；Reaper 5min 扫描间隔不变。

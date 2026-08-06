@@ -1,11 +1,12 @@
-"""FastAPI 异常到响应的转换适配器。"""
-
+"""
+FastAPI 异常到响应的转换适配器。
+"""
 import logging
 
 from fastapi import FastAPI, Request, status
 from starlette.responses import JSONResponse
 
-from app.core.exceptions import BusinessValidationException
+from app.core.exceptions import BusinessValidationException, ResourceNotFoundException
 from app.web.schemas import ApiResponse, ResponseCode
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,24 @@ async def validation_exception_handler(
     )
 
 
+async def resource_not_found_exception_handler(
+    request: Request,
+    exc: ResourceNotFoundException,
+) -> JSONResponse:
+    """将不存在的资源转为 HTTP 400（响应码符合既有测试约定）。"""
+    _log_exception(request, exc, level=logging.WARNING)
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=ApiResponse.error(
+            code=ResponseCode.BAD_REQUEST,
+            message=exc.message or "资源不存在",
+            data=None,
+        ).model_dump(),
+    )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
-    """向 FastAPI 应用注册全局异常处理器。"""
+    """给 FastAPI 应用注册全局异常处理器。"""
     app.add_exception_handler(BusinessValidationException, validation_exception_handler)
+    app.add_exception_handler(ResourceNotFoundException, resource_not_found_exception_handler)
     app.add_exception_handler(Exception, general_exception_handler)

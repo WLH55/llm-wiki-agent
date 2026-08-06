@@ -1,8 +1,7 @@
-"""Revision 化 RAG 摄入的业务 Handler。"""
+﻿"""Revision 化 RAG 摄入的业务 Handler。"""
 
 import asyncio
 import logging
-from datetime import datetime, timezone
 from hashlib import sha256
 
 from sqlalchemy import select, text
@@ -15,6 +14,7 @@ from app.knowledge_bases.service.chunker import chunk_text
 from app.models.chunk import ContentChunk
 from app.models.document import Document, DocumentRevision
 from app.models.kb import KnowledgeBase
+from app.models.rag_config import KnowledgeBaseRagConfig
 from app.parsers.core.errors import ParserAssetError
 from app.parsers.service.asset import persist_parser_images
 from app.parsers.service.dispatch import parse_document
@@ -62,7 +62,6 @@ async def _load_document_revision(
     document = await db.get(Document, revision.document_id)
     if (
         document is None
-        or document.deleted_at is not None
         or document.tenant_id != context.identity.tenant_id
         or document.kb_id != context.identity.kb_id
     ):
@@ -120,7 +119,7 @@ async def document_process_handler(context: RunExecutionContext) -> None:
                 parsed_content, persisted_images = await asyncio.to_thread(
                     persist_parser_images,
                     document.kb_id,
-                    document.doc_id,
+                    document.public_id,
                     parsed_content,
                     result.images,
                     settings.PARSER_MAX_TOTAL_IMAGE_BYTES,
@@ -164,7 +163,6 @@ async def document_process_handler(context: RunExecutionContext) -> None:
             select(ContentChunk.id)
             .where(
                 ContentChunk.revision_id == live_revision.id,
-                ContentChunk.deleted_at.is_(None),
             )
             .limit(1)
         )
@@ -178,13 +176,11 @@ async def document_process_handler(context: RunExecutionContext) -> None:
                 ContentChunk(
                     tenant_id=context.identity.tenant_id,
                     kb_id=context.identity.kb_id,
-                    doc_id=live_document.doc_id,
                     source_id=live_document.source_id,
                     document_id=live_document.id,
                     revision_id=live_revision.id,
                     processing_run_id=context.run_id,
                     chunk_index=index,
-                    chunk_type="document",
                     text=chunk,
                     token_count=max(1, len(chunk) // 4),
                     text_sha256=sha256(chunk.encode("utf-8")).hexdigest(),
@@ -195,8 +191,6 @@ async def document_process_handler(context: RunExecutionContext) -> None:
         )
         live_revision.status = "ready"
         live_revision.parse_metadata = metadata
-        live_document.status = "processing"
-        live_document.parse_metadata = metadata
         child_run = await create_run(
             db,
             tenant_id=context.identity.tenant_id,
@@ -252,12 +246,14 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
             raise TerminalTaskError(
                 ErrorCode.KB_NOT_FOUND, "revision knowledge base is unavailable"
             )
+        rag_config = await db.get(KnowledgeBaseRagConfig, context.identity.kb_id)
+        vector_enabled = rag_config.vector_enabled if rag_config is not None else True
+        embedding_dim = rag_config.embedding_dim if rag_config is not None else None
         candidates = (
             await db.execute(
                 select(ContentChunk)
                 .where(
                     ContentChunk.revision_id == revision.id,
-                    ContentChunk.deleted_at.is_(None),
                 )
                 .order_by(ContentChunk.chunk_index)
             )
@@ -279,12 +275,12 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
         SpanName.EMBED,
         input_summary={
             "chunk_count": len(candidates),
-            "vector_enabled": kb.vector_enabled,
+            "vector_enabled": vector_enabled,
         },
     )
     try:
         embeddings: list[list[float]] | None = None
-        if kb.vector_enabled:
+        if vector_enabled:
             embeddings = await asyncio.to_thread(
                 embed_texts, [chunk.text for chunk in candidates]
             )
@@ -293,7 +289,7 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
                     ErrorCode.EMBEDDING_COUNT_MISMATCH,
                     "embedding response count does not match candidate chunks",
                 )
-            if any(len(embedding) != kb.embedding_dim for embedding in embeddings):
+            if embedding_dim is not None and any(len(embedding) != embedding_dim for embedding in embeddings):
                 raise TerminalTaskError(
                     ErrorCode.EMBEDDING_DIMENSION_MISMATCH,
                     "embedding response dimension does not match knowledge base",
@@ -324,8 +320,7 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
             await db.execute(
                 select(ContentChunk)
                 .where(
-                    ContentChunk.revision_id == live_revision.id,
-                    ContentChunk.deleted_at.is_(None),
+                    ContentChunk.revision_id == revision.id,
                 )
                 .order_by(ContentChunk.chunk_index)
             )
@@ -358,7 +353,7 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
                     ),
                     {
                         "embedding": embedding_value,
-                        "embedding_dim": kb.embedding_dim,
+                        "embedding_dim": embedding_dim,
                         "embedding_run_id": context.run_id,
                         "chunk_id": chunk.id,
                         "revision_id": live_revision.id,
@@ -367,10 +362,6 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
 
         live_revision.status = "ready"
         live_document.active_revision_id = live_revision.id
-        live_document.status = "processed"
-        live_document.error_message = ""
-        live_document.parse_error_code = None
-        live_document.processed_at = datetime.now(timezone.utc)
 
     await begin_span(
         context,

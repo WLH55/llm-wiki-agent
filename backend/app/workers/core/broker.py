@@ -7,7 +7,7 @@ broker 在模块 import 时初始化，dramatiq.set_broker 注册为全局 broke
 
 import dramatiq
 from dramatiq.brokers.redis import RedisBroker
-from dramatiq.middleware import AsyncIO
+from dramatiq.middleware import AsyncIO, Retries
 
 from app.config import settings
 from app.models.database import async_session_factory
@@ -22,8 +22,13 @@ def create_broker(redis_url: str) -> RedisBroker:
     b = RedisBroker(url=redis_url)
     # AsyncIO middleware：让 async actor 能在 worker 线程中运行
     b.add_middleware(AsyncIO())
-    # RunFailure middleware：消息失败时标 Run failed（executor 兜底）
-    b.add_middleware(RunFailureMiddleware(session_factory=async_session_factory))
+    # RunFailure middleware：消息最终死亡时标 Run failed（失败回调）
+    # 注册在 Retries 之前：emit_after 按逆序执行，保证本钩子在 Retries 之后运行，
+    # 才能读到 message.failed 的最终判定（throws / 重试耗尽）。
+    b.add_middleware(
+        RunFailureMiddleware(session_factory=async_session_factory),
+        before=Retries,
+    )
     # Reaper middleware：after_process_boot 启 Reaper 线程
     b.add_middleware(
         ReaperMiddleware(

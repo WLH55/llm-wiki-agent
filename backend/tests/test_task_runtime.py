@@ -1,6 +1,6 @@
 """Dramatiq 任务运行账本与状态机的 PostgreSQL 契约测试。
 
-覆盖 runtime.py 的 create_run / claim_run / complete_run / fail_run /
+覆盖 runtime.py 的 create_run / claim_run / complete_run / fail_run / release_run /
 mark_run_enqueue_failed / start_worker_attempt / finish_worker_attempt，
 以及 reaper.py 的 recover_stalled_runs。
 """
@@ -21,6 +21,7 @@ from app.workers.core.runtime import (
     fail_run,
     finish_worker_attempt,
     mark_run_enqueue_failed,
+    release_run,
     start_worker_attempt,
 )
 
@@ -72,12 +73,81 @@ async def test_claim_run_transitions_pending_to_running(runtime_session: AsyncSe
         trigger_type="manual",
     )
     await runtime_session.flush()
-    first = await claim_run(runtime_session, run.id, worker_id="worker-a")
-    second = await claim_run(runtime_session, run.id, worker_id="worker-b")
+    first = await claim_run(runtime_session, run.id)
+    second = await claim_run(runtime_session, run.id)
     assert first is True
     assert second is False
     await runtime_session.refresh(run)
     assert run.status == RunStatus.RUNNING
+
+
+@pytest.mark.asyncio
+async def test_release_run_returns_running_run_to_pending(runtime_session: AsyncSession):
+   """release_run 通过 CAS running->pending 释放领取，让重试消息能再次 claim。"""
+   run = await create_run(
+       runtime_session,
+       tenant_id=101,
+       kb_id=202,
+       run_type="document_process",
+       scope_type="revision",
+       scope_id=306,
+       trigger_type="manual",
+   )
+   await runtime_session.flush()
+   await claim_run(runtime_session, run.id)
+   assert await release_run(runtime_session, run.id) is True
+   await runtime_session.refresh(run)
+   assert run.status == RunStatus.PENDING
+   # 释放后可再次领取（模拟重试消息）
+   assert await claim_run(runtime_session, run.id) is True
+
+
+@pytest.mark.asyncio
+async def test_release_run_fails_on_non_running(runtime_session: AsyncSession):
+   """release_run 对非 running 状态返回 False（CAS 保护）。"""
+   run = await create_run(
+       runtime_session,
+       tenant_id=101,
+       kb_id=202,
+       run_type="document_process",
+       scope_type="revision",
+       scope_id=307,
+       trigger_type="manual",
+   )
+   await runtime_session.flush()
+   # pending 状态不可释放
+   assert await release_run(runtime_session, run.id) is False
+   # 终态（succeeded）不可释放
+   await claim_run(runtime_session, run.id)
+   await complete_run(runtime_session, run.id)
+   assert await release_run(runtime_session, run.id) is False
+
+
+@pytest.mark.asyncio
+async def test_fail_run_statuses_covers_pending(runtime_session: AsyncSession):
+   """fail_run 的 statuses 参数可覆盖 pending（重试耗尽时的终态标记路径）。"""
+   run = await create_run(
+       runtime_session,
+       tenant_id=101,
+       kb_id=202,
+       run_type="document_process",
+       scope_type="revision",
+       scope_id=308,
+       trigger_type="manual",
+   )
+   await runtime_session.flush()
+   # 默认 statuses=(RUNNING,) 不匹配 pending
+   assert await fail_run(runtime_session, run.id, error_code="x", error_message="y") is False
+   # 显式覆盖 pending
+   assert await fail_run(
+       runtime_session,
+       run.id,
+       error_code="x",
+       error_message="y",
+       statuses=(RunStatus.PENDING,),
+   ) is True
+   await runtime_session.refresh(run)
+   assert run.status == RunStatus.FAILED
 
 
 @pytest.mark.asyncio
@@ -93,7 +163,7 @@ async def test_complete_run_transitions_running_to_succeeded(runtime_session: As
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     assert await complete_run(runtime_session, run.id) is True
     assert await complete_run(runtime_session, run.id) is False
     await runtime_session.refresh(run)
@@ -113,7 +183,7 @@ async def test_fail_run_transitions_running_to_failed(runtime_session: AsyncSess
         trigger_type="on_ingest",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     assert await fail_run(
         runtime_session,
         run.id,
@@ -188,7 +258,7 @@ async def test_start_worker_attempt_creates_running_span(runtime_session: AsyncS
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     span = await start_worker_attempt(runtime_session, run, worker_id="worker-a")
     assert span.span_name == SpanName.WORKER_ATTEMPT
     assert span.status == SpanStatus.RUNNING
@@ -209,7 +279,7 @@ async def test_finish_worker_attempt_transitions_to_failed(runtime_session: Asyn
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     span = await start_worker_attempt(runtime_session, run, worker_id="worker-a")
     assert await finish_worker_attempt(
         runtime_session,
@@ -236,7 +306,7 @@ async def test_finish_worker_attempt_rejects_invalid_status(runtime_session: Asy
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     span = await start_worker_attempt(runtime_session, run, worker_id="worker-a")
     with pytest.raises(ValueError, match="invalid worker attempt status"):
         await finish_worker_attempt(runtime_session, span.id, status="running")
@@ -257,7 +327,7 @@ async def test_second_attempt_creates_new_span_with_incremented_attempt(
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     first = await start_worker_attempt(runtime_session, run, worker_id="worker-a")
     await finish_worker_attempt(runtime_session, first.id, status=SpanStatus.FAILED)
     second = await start_worker_attempt(runtime_session, run, worker_id="worker-b")
@@ -289,7 +359,7 @@ async def test_reaper_recovers_running_run_with_stale_span(runtime_session: Asyn
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     span = await start_worker_attempt(runtime_session, run, worker_id="worker-a")
     # 模拟 span 心跳超时：把 started_at 和 updated_at 回拨到很久以前
     from datetime import datetime, timedelta, timezone
@@ -326,8 +396,8 @@ async def test_reaper_recovers_stale_pending_run(runtime_session: AsyncSession):
         trigger_type="manual",
     )
     await runtime_session.flush()
-    # 模拟 pending 过旧：把 created_at 回拨到很久以前
-    run.created_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    # 模拟 pending 过旧：把 updated_at 回拨到很久以前
+    run.updated_at = datetime.now(timezone.utc) - timedelta(hours=1)
     await runtime_session.flush()
 
     recovered = await recover_stalled_runs(
@@ -339,6 +409,33 @@ async def test_reaper_recovers_stale_pending_run(runtime_session: AsyncSession):
     await runtime_session.refresh(run)
     assert run.status == RunStatus.FAILED
     assert run.error_code == ErrorCode.REAPER_RECOVERED
+
+
+@pytest.mark.asyncio
+async def test_reaper_skips_recently_released_pending_run(runtime_session: AsyncSession):
+    """recover_stalled_runs 不误杀刚 release 回 pending 的 Run（重试等待期）。"""
+    run = await create_run(
+        runtime_session,
+        tenant_id=101,
+        kb_id=202,
+        run_type="document_process",
+        scope_type="revision",
+        scope_id=317,
+        trigger_type="manual",
+    )
+    await runtime_session.flush()
+    await claim_run(runtime_session, run.id)
+    await release_run(runtime_session, run.id)
+    await runtime_session.flush()
+
+    recovered = await recover_stalled_runs(
+        runtime_session,
+        span_stale_seconds=4200,
+        pending_stale_seconds=300,
+    )
+    assert recovered == []
+    await runtime_session.refresh(run)
+    assert run.status == RunStatus.PENDING
 
 
 @pytest.mark.asyncio
@@ -354,7 +451,7 @@ async def test_reaper_skips_fresh_running_run(runtime_session: AsyncSession):
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     await start_worker_attempt(runtime_session, run, worker_id="worker-a")
     await runtime_session.flush()
 
@@ -383,7 +480,7 @@ async def test_reaper_skips_succeeded_run(runtime_session: AsyncSession):
         trigger_type="manual",
     )
     await runtime_session.flush()
-    await claim_run(runtime_session, run.id, worker_id="worker-a")
+    await claim_run(runtime_session, run.id)
     await complete_run(runtime_session, run.id)
     # 即使时间回拨，CAS 也不会命中 succeeded Run
     run.started_at = datetime.now(timezone.utc) - timedelta(hours=2)

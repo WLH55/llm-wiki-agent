@@ -3,7 +3,7 @@
 公开 API：
 - 队列常量：`DEFAULT_QUEUE` / `CRITICAL_QUEUE`
 - Run 创建与入队：`create_run` / `enqueue_run`
-- Handler 注册：`register_run_handler` / `RUN_HANDLERS` / `load_handlers`
+- Handler 注册：`register_run_handler` / `RUN_HANDLERS`
 - 执行上下文（业务 handler 需要）：`RunExecutionContext` / `RunIdentity`
 - 错误类型（业务 handler 需要）：`ExecutionOutcome` / `TaskExecutionError` / `TransientTaskError` / `TerminalTaskError`
 - Span 心跳（业务 handler 需要）：`begin_span` / `end_span` / `fail_span` / `skip_span`
@@ -44,7 +44,6 @@ __all__ = [
     "mark_run_enqueue_failed",
     "register_run_handler",
     "RUN_HANDLERS",
-    "load_handlers",
     "RunExecutionContext",
     "RunIdentity",
     "ExecutionOutcome",
@@ -64,13 +63,3 @@ __all__ = [
     "ErrorCode",
     "SpanName",
 ]
-
-
-def load_handlers() -> None:
-    """显式触发 handler 模块加载；测试与进程启动时调用。
-
-    不在模块 import 时自动调用，避免循环导入（rag_ingestion 会 import app.workers）。
-    由 tasks.py 的 actor 首次执行时惰性触发，或测试显式调用。
-    """
-    from app.workers.core.tasks import _load_handlers
-    _load_handlers()

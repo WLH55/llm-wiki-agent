@@ -1,4 +1,4 @@
-"""Span 心跳 API（by-name shim + ctx pattern）：对齐 WeKnora SpanTracker 4 事件。
+﻿"""Span 心跳 API（by-name shim + ctx pattern）：对齐 WeKnora SpanTracker 4 事件。
 
 best-effort：所有 DB 操作的错误都 log + swallow，不阻断业务流水线。
 processing_runs.status 是真相源，spans 只是观测层。
@@ -32,7 +32,7 @@ def _span_predicate(ctx: RunExecutionContext, span_name: str) -> tuple:
     """按 (run_id, attempt_no, span_name) 定位 span 行。"""
     return (
         ProcessingSpan.run_id == ctx.identity.run_id,
-        ProcessingSpan.attempt_no == ctx.identity.attempt_no,
+        ProcessingSpan.attempt_no == ctx.identity.execution_attempt,
         ProcessingSpan.span_name == span_name,
     )
 
@@ -53,7 +53,7 @@ async def begin_span(
         kb_id=ctx.identity.kb_id,
         run_id=ctx.identity.run_id,
         span_name=span_name,
-        attempt_no=ctx.identity.attempt_no,
+        attempt_no=ctx.identity.execution_attempt,
         status=SpanStatus.RUNNING,
         metrics=input_summary or {},
         started_at=started_at,
@@ -67,7 +67,7 @@ async def begin_span(
         logger.exception(
             "span_tracker.begin_span failed: run_id=%s attempt=%s name=%s",
             ctx.identity.run_id,
-            ctx.identity.attempt_no,
+            ctx.identity.execution_attempt,
             span_name,
         )
 
@@ -101,7 +101,7 @@ async def end_span(
         logger.exception(
             "span_tracker.end_span failed: run_id=%s attempt=%s name=%s",
             ctx.identity.run_id,
-            ctx.identity.attempt_no,
+            ctx.identity.execution_attempt,
             span_name,
         )
 
@@ -137,7 +137,7 @@ async def fail_span(
         logger.exception(
             "span_tracker.fail_span failed: run_id=%s attempt=%s name=%s",
             ctx.identity.run_id,
-            ctx.identity.attempt_no,
+            ctx.identity.execution_attempt,
             span_name,
         )
 
@@ -171,6 +171,6 @@ async def skip_span(
         logger.exception(
             "span_tracker.skip_span failed: run_id=%s attempt=%s name=%s",
             ctx.identity.run_id,
-            ctx.identity.attempt_no,
+            ctx.identity.execution_attempt,
             span_name,
         )

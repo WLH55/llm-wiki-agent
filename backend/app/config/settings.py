@@ -65,7 +65,6 @@ class Settings(BaseSettings):
     # ========== 服务器与 HTTP 配置 ==========
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    HTTP_TIMEOUT: int = 30
 
     # ========== CORS 配置 ==========
     ALLOW_ORIGINS: list[str] = ["*"]
@@ -88,17 +87,12 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6380/0"
 
     # ========== Task Worker ==========
-    TASK_WORKER_CONCURRENCY: int = 16
-    TASK_PARSER_PROCESSES: int = 2
-    TASK_MAX_AUTO_RETRIES: int = 3
-    TASK_RETRY_BASE_SECONDS: int = 5
-    TASK_RETRY_MAX_SECONDS: int = 300
     # Reaper 扫描间隔（秒）--嵌入 worker 进程的独立线程
     TASK_REAPER_INTERVAL_SECONDS: int = 300
     # Span 心跳超时阈值（秒）--running Run 的 MAX(spans.updated_at) 超此阈值视为卡死
     # 70min：embedding 5K chunks 可能跑 15min，15min << 70min，粗粒度 span 安全（对齐 WeKnora）
     TASK_SPAN_STALE_SECONDS: int = 4200
-    # Pending Run 过旧阈值（秒）--pending Run 的 created_at 超此阈值视为入队失败
+    # Pending Run 过旧阈值（秒）--pending Run 的 updated_at 超此阈值视为卡死（入队失败/丢失）
     TASK_PENDING_STALE_SECONDS: int = 300
     # Dramatiq actor 单消息最大执行时长（毫秒）--统一 1h
     TASK_TIME_LIMIT_MS: int = 3_600_000
