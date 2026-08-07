@@ -1,15 +1,32 @@
-__pycache__
+﻿# =============================================================================
+# backend 构建 context 排除（参考 WeKnora .dockerignore）
+# =============================================================================
+
+# Python 虚拟环境 / 缓存
+.venv
+venv
+**/__pycache__
 *.py[cod]
 .pytest_cache
 .mypy_cache
 .ruff_cache
-.venv
-venv
+.benchmarks
 *.egg-info
 .eggs
+
+# 本地数据 / 日志（生产镜像内由 /app/logs、/app/storage 承载）
 storage
 logs
+*.log
+
+# 敏感文件：.env.* 全部排除，仅保留示例
 .env
 .env.*
 !.env.example
+
+# 测试与辅助
 tests
+.tmp
+
+# Playwright 本地浏览器缓存（镜像内重新下载，避免把 Windows 二进制打进去）
+**/ms-playwright/

@@ -1,0 +1,96 @@
+# =============================================================================
+# LLM Wiki Agent - 开发环境配置（仅基础设施）
+# 设计规范参考 WeKnora docker-compose.dev.yml / scripts/dev.sh：
+#   * 只启动基础设施服务（postgres / redis / minio），backend 与 frontend 在本机运行
+#   * 容器名/网络/卷带 -dev 后缀，与生产 compose 隔离，可两套并存
+#   * 基础设施带 healthcheck，供本地后端直连
+#
+# 用法：
+#   1) cp .env.example .env；cp backend/.env.example backend/.env.dev
+#   2) 启动基础设施：docker compose -f docker-compose.dev.yml up -d
+#   3) 本机启动后端：cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload
+#   4) 本机启动前端：cd frontend && npm run dev（vite 代理 /api -> localhost:8008）
+#
+# 本机连接地址（backend/.env.dev 已对齐）：
+#   - Postgres : localhost:5432
+#   - Redis    : localhost:6380（避免与宿主机 Redis 6379 冲突）
+#   - MinIO    : localhost:9000 / 控制台 localhost:9001
+# =============================================================================
+
+services:
+  postgres:
+    # 开发默认用预编译 pgvector 镜像（免编译）；中文分词 zhparser 需要时
+    # 改回 build: ./postgres 并挂载 init-extensions.sql
+    image: pgvector/pgvector:pg16
+    container_name: llm-wiki-postgres-dev
+    restart: unless-stopped
+    stop_grace_period: 1m
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-llmwiki}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmwiki}
+      POSTGRES_DB: ${POSTGRES_DB:-llmwiki}
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      # 预编译镜像无 zhparser，故只用 vector 初始化脚本
+      - ./postgres/init-pgvector-only.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmwiki} -d ${POSTGRES_DB:-llmwiki}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - llm-wiki-net-dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: llm-wiki-redis-dev
+    restart: unless-stopped
+    # 与 backend/.env.dev 的 REDIS_URL（redis://:llmwiki@localhost:6380/0）保持一致
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-llmwiki}"]
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis_data_dev:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a '${REDIS_PASSWORD:-llmwiki}' ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - llm-wiki-net-dev
+
+  minio:
+    image: minio/minio:latest
+    container_name: llm-wiki-minio-dev
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-llmwiki}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-llmwiki123}
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data_dev:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - llm-wiki-net-dev
+
+networks:
+  llm-wiki-net-dev:
+    driver: bridge
+
+volumes:
+  postgres_data_dev:
+  redis_data_dev:
+  minio_data_dev:

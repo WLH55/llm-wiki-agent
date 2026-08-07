@@ -2,6 +2,7 @@
 
 import ipaddress
 import logging
+import os
 import socket
 from dataclasses import dataclass
 from urllib.parse import urlsplit
@@ -15,6 +16,17 @@ _NETWORK_IDLE_TIMEOUT_MS = 10_000
 _CONTENT_WAIT_TIMEOUT_MS = 15_000
 _MIN_RENDERED_TEXT_LENGTH = 80
 _MAX_HTML_CHARACTERS = 10_000_000
+
+
+def _chromium_launch_args() -> list[str]:
+    """容器内非 root 用户运行 Chromium 需要禁用 SUID sandbox。
+
+    由环境变量 PLAYWRIGHT_NO_SANDBOX 控制（Docker 镜像内默认开启），
+    本地开发保持默认关闭，行为不变。
+    """
+    if os.getenv("PLAYWRIGHT_NO_SANDBOX", "").strip().lower() in ("1", "true", "yes"):
+        return ["--no-sandbox"]
+    return []
 
 
 @dataclass(frozen=True)
@@ -143,7 +155,7 @@ def scrape_url(url: str) -> ScrapeResult:
     validate_public_url(source_url)
 
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        browser = playwright.chromium.launch(headless=True, args=_chromium_launch_args())
         try:
             page = browser.new_page()
             page.route("**/*", _guard_request)

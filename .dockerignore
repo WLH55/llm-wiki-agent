@@ -1,0 +1,66 @@
+﻿# =============================================================================
+# 根 .dockerignore（参考 WeKnora .dockerignore）
+# 说明：各子项目构建 context 分别使用 backend/.dockerignore、frontend/.dockerignore，
+# 本文件用于根 context 构建/镜像仓库扫描时的全局排除。
+# =============================================================================
+
+# VCS / CI
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# IDE / 编辑器本地配置
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Python 虚拟环境 / 缓存
+**/.venv/
+venv/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
+.benchmarks/
+
+# Node / 前端
+**/node_modules/
+frontend/dist/
+dist/
+build/
+
+# 日志 / 临时文件
+logs/
+storage/
+.tmp/
+*.log
+*.pid
+
+# 本地数据 / 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+.lancedb/
+
+# 敏感文件
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*_key
+*_secret
+
+# 本地辅助目录（不进镜像）
+.reasonix/
+.understand-anything/
+diagram/
+prototype/
+mydocs/
+tools/

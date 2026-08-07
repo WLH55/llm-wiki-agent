@@ -1,102 +1,130 @@
+# =============================================================================
+# LLM Wiki Agent - 生产/标准部署配置
+# 设计规范参考 WeKnora docker-compose.yml：
+#   * 所有服务由 Dockerfile 构建，镜像内无源码 bind-mount
+#   * 每个服务带 healthcheck，depends_on 使用 condition: service_healthy
+#   * restart: unless-stopped + 命名卷持久化 + stop_grace_period
+#   * 环境变量全部带默认值（${VAR:-default}），敏感配置经 env_file 注入
+#
 # 用法：
-#   1) 仅基础组件：docker compose up -d
-#   2) 基础 + 前后端（本地代码/日志/env 挂载）：
-#        docker compose --profile app up -d --build
-#   3) 环境切换：改项目根 .env 的 ENVIRONMENT=dev|prod|test
-#        或临时：ENVIRONMENT=prod docker compose --profile app up -d
-#   4) 改 backend/.env.* 或根 .env 后重启生效：
-#        docker compose --profile app up -d
-#        # 或 docker compose --profile app restart backend task-worker
-#   5) 日志：./storage/logs/backend/app.log
-#   6) Redis 宿主机端口 6380（避免与本机 Redis5 的 6379 冲突）
+#   1) 准备环境：cp .env.example .env；cp backend/.env.example backend/.env.prod
+#      并替换 backend/.env.prod 中所有 CHANGE_ME 占位符
+#   2) 启动：docker compose up -d --build
+#   3) 访问：http://localhost:80（前端），API 直连 http://localhost:8008/health
+#
+# 开发环境请使用 docker-compose.dev.yml（仅基础设施，backend/frontend 本机运行）。
+# =============================================================================
 
 services:
+  # ---------------- 基础设施 ----------------
+
   postgres:
-    # 默认用预构建 pgvector 镜像，避免本地编译时受 Debian 源网络抖动影响。
-    # 如需 zhparser，可改回 build: ./postgres
-    image: pgvector/pgvector:pg16
+    # 默认构建自定义镜像：pgvector + zhparser（BM25 中文分词依赖 zhparser）。
+    # 如不想本地编译，可换预编译镜像并改用仅含 vector 的初始化脚本：
+    #   image: pgvector/pgvector:pg16
+    #   volumes:
+    #     - ./postgres/init-pgvector-only.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
+    build:
+      context: ./postgres
+    image: llm-wiki-postgres:${POSTGRES_TAG:-pg16-zhparser}
     container_name: llm-wiki-postgres
+    restart: unless-stopped
+    stop_grace_period: 1m
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-llmwiki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmwiki}
       POSTGRES_DB: ${POSTGRES_DB:-llmwiki}
+      TZ: ${TZ:-Asia/Shanghai}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmwiki}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmwiki} -d ${POSTGRES_DB:-llmwiki}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - llm-wiki-net
 
   redis:
     image: redis:7-alpine
     container_name: llm-wiki-redis
+    restart: unless-stopped
+    # 生产必须改 REDIS_PASSWORD（.env），并同步 backend/.env.prod 的 REDIS_URL
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-llmwiki}"]
     ports:
-      # 宿主机 6380 -> 容器 6379，避免与本机 Redis5(6379) 冲突
-      - "6380:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      test: ["CMD-SHELL", "redis-cli -a '${REDIS_PASSWORD:-llmwiki}' ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - llm-wiki-net
 
   minio:
     image: minio/minio:latest
     container_name: llm-wiki-minio
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-llmwiki}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-llmwiki123}
+      TZ: ${TZ:-Asia/Shanghai}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio_data:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - llm-wiki-net
 
+  # ---------------- 应用 ----------------
+
   backend:
-    profiles: ["app"]
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        APT_MIRROR_ARG: ${APT_MIRROR_ARG:-}
+        PIP_INDEX_ARG: ${PIP_INDEX_ARG:-}
+        PLAYWRIGHT_DOWNLOAD_HOST_ARG: ${PLAYWRIGHT_DOWNLOAD_HOST:-https://npmmirror.com/mirrors/playwright}
+        VERSION_ARG: ${LLM_WIKI_VERSION:-latest}
+        COMMIT_ID_ARG: ${COMMIT_ID:-unknown}
+        BUILD_TIME_ARG: ${BUILD_TIME:-unknown}
+    image: llm-wiki-backend:${LLM_WIKI_VERSION:-latest}
     container_name: llm-wiki-backend
-    environment:
-      # 决定 settings 读取哪个 backend/.env.*（dev/prod/test）
-      ENVIRONMENT: ${ENVIRONMENT:-dev}
+    restart: unless-stopped
     env_file:
-      - ./backend/.env.${ENVIRONMENT:-dev}
+      - ./backend/.env.prod
+    environment:
+      ENVIRONMENT: prod
+      TZ: ${TZ:-Asia/Shanghai}
+      # 非 root 容器内 Chromium 需禁用 SUID sandbox（见 web_fetcher.py）
+      PLAYWRIGHT_NO_SANDBOX: "true"
     ports:
-      - "8008:8008"
+      - "${BACKEND_PORT:-8008}:8008"
     volumes:
-      # 本地代码热更新
-      - ./backend/app:/app/app
-      - ./backend/alembic:/app/alembic
-      - ./backend/alembic.ini:/app/alembic.ini
-      # 多环境 env 挂载；改文件后 restart 即按 ENVIRONMENT 重新加载
-      - ./backend/.env.dev:/app/.env.dev:ro
-      - ./backend/.env.prod:/app/.env.prod:ro
-      - ./backend/.env.test:/app/.env.test:ro
-      # 日志落到宿主机 ./storage/logs/backend
+      # 日志/存储落到宿主机 ./storage，容器内以 appuser 写入（entrypoint 修复属主）
       - ./storage/logs/backend:/app/logs
-    command: >
-      sh -c "mkdir -p /app/logs &&
-             alembic upgrade head &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8008 --reload"
+      - ./storage/backend:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy
@@ -108,24 +136,30 @@ services:
       - llm-wiki-net
 
   task-worker:
-    profiles: ["app"]
+    # 与 backend 同一镜像，仅入口命令不同
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        APT_MIRROR_ARG: ${APT_MIRROR_ARG:-}
+        PIP_INDEX_ARG: ${PIP_INDEX_ARG:-}
+        PLAYWRIGHT_DOWNLOAD_HOST_ARG: ${PLAYWRIGHT_DOWNLOAD_HOST:-https://npmmirror.com/mirrors/playwright}
+        VERSION_ARG: ${LLM_WIKI_VERSION:-latest}
+        COMMIT_ID_ARG: ${COMMIT_ID:-unknown}
+        BUILD_TIME_ARG: ${BUILD_TIME:-unknown}
+    image: llm-wiki-backend:${LLM_WIKI_VERSION:-latest}
     container_name: llm-wiki-task-worker
     restart: unless-stopped
-    environment:
-      ENVIRONMENT: ${ENVIRONMENT:-dev}
     env_file:
-      - ./backend/.env.${ENVIRONMENT:-dev}
+      - ./backend/.env.prod
+    environment:
+      ENVIRONMENT: prod
+      TZ: ${TZ:-Asia/Shanghai}
+      PLAYWRIGHT_NO_SANDBOX: "true"
     volumes:
-      - ./backend/app:/app/app
-      - ./backend/.env.dev:/app/.env.dev:ro
-      - ./backend/.env.prod:/app/.env.prod:ro
-      - ./backend/.env.test:/app/.env.test:ro
       - ./storage/logs/task-worker:/app/logs
-    command: >
-      sh -c "mkdir -p /app/logs && dramatiq app.workers.core.tasks --queues critical default --threads 16"
+      - ./storage/backend:/app/storage
+    command: ["dramatiq", "app.workers.core.tasks", "--queues", "critical", "default", "--threads", "16"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -137,36 +171,31 @@ services:
       - llm-wiki-net
 
   frontend:
-    profiles: ["app"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: llm-wiki-frontend:${LLM_WIKI_VERSION:-latest}
     container_name: llm-wiki-frontend
-    working_dir: /app
+    restart: unless-stopped
     environment:
-      VITE_BACKEND_URL: http://backend:8008
+      # nginx 反代后端地址（容器网络内用服务名；远程部署可覆盖为公网地址）
+      APP_HOST: ${APP_HOST:-backend}
+      APP_PORT: ${APP_BACKEND_PORT:-8008}
+      APP_SCHEME: ${APP_SCHEME:-http}
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-50}
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      # 使用容器内 node_modules，避免宿主机/容器平台二进制不一致
-      - frontend_node_modules:/app/node_modules
-      - ./storage/logs/frontend:/app/logs
-    command: >
-      sh -c "npm install &&
-             mkdir -p /app/logs &&
-             npm run dev -- --host 0.0.0.0 --port 5173"
+      - "${FRONTEND_PORT:-80}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - llm-wiki-net
+
+networks:
+  llm-wiki-net:
+    driver: bridge
 
 volumes:
   postgres_data:
   redis_data:
   minio_data:
-  frontend_node_modules:
-
-networks:
-  llm-wiki-net:
-    driver: bridge
