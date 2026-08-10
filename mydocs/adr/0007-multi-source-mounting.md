@@ -1,6 +1,6 @@
 # 多源挂载（统一 Source 抽象 + 无优先级）
 
-> 状态：Source Adapter 与无优先级决策保留；`sources` 表字段和生命周期已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 取代，不再保存 `sync_status`，运行状态归属 `processing_runs`。
+> 状态：Source Adapter 与无优先级决策保留；`sources` 表字段和生命周期已由 [ADR-0012](0012-approved-rag-wiki-database-boundaries.md) 取代，不再保存 `sync_status`，运行状态归属 `processing_runs`。
 
 llm_wiki3.0 的多源挂载采用 **统一 `sources` 表 + adapter 模式**：
 

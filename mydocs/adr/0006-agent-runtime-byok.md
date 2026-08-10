@@ -1,12 +1,12 @@
 # Agent Runtime + BYOK + 双 AI 通道
 
-> 状态：Agent/BYOK 方向保留；文中基于 `chunk_refs` 的 Wiki 写入参数属于旧 schema，已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 的文档引用与原文证据模型取代。
+> 状态：Agent/BYOK 方向保留；文中基于 `chunk_refs` 的 Wiki 写入参数属于旧 schema，已由 [ADR-0012](0012-approved-rag-wiki-database-boundaries.md) 的文档引用与原文证据模型取代。
 
 llm_wiki3.0 的 AI 子系统由 **两条通路 + 一个抽象层** 构成：
 
 - **双 AI 通道**（两个入口）：
   - **内置 Agent Runtime**：用户在 Web UI 内直接对话，由系统自带工具集（搜索、图谱遍历、文档检索）支撑。
-  - **外部 MCP 通道**：外部 AI 应用（Claude Desktop / Cursor / 其他 Web 应用）通过 HTTP MCP `/mcp` 端点的 `chat` 工具调用（见 [ADR-0004](./0004-http-mcp-server.md)）。
+  - **外部 MCP 通道**：外部 AI 应用（Claude Desktop / Cursor / 其他 Web 应用）通过 HTTP MCP `/mcp` 端点的 `chat` 工具调用（见 [ADR-0004](0004-http-mcp-server.md)）。
 - **统一 LLM Client 抽象**（一个底层）：两条通路最终都走同一个 `LLMClient`，屏蔽 OpenAI 协议兼容（OpenAI / Azure / DeepSeek / Qwen / GLM / Kimi 一家抽象）+ Anthropic + Google 三类适配器。
 - **BYOK（Bring Your Own Key）**：每个用户在个人设置里填自己的 LLM API Key，加密存储。两条通路的 LLM 调用**都用 BYOK**——外部 MCP 通过 API Key 绑定的 user 找到他的 BYOK。
 
@@ -52,7 +52,7 @@ PRD v4.2 行 234 P2 提到"双 AI 通道；AI 对话"但没展开。CONTEXT.md �
 
 ### 嵌入模型 vs LLM 模型分离
 
-KB 创建时绑定**嵌入模型**（参 [ADR-0001](./0001-halfvec-multi-dim.md)），与 LLM 模型是两套独立配置：
+KB 创建时绑定**嵌入模型**（参 [ADR-0001](0001-halfvec-multi-dim.md)），与 LLM 模型是两套独立配置：
 
 | 调用场景 | 用谁的 key | 用什么模型 |
 |---------|----------|-----------|
@@ -79,7 +79,7 @@ KB 创建时绑定**嵌入模型**（参 [ADR-0001](./0001-halfvec-multi-dim.md)
 2. `traverse_graph(kb_id, page_slug, depth)` — 图谱 BFS 邻域
 3. `read_page(kb_id, page_slug)` — 读 wiki 页面
 4. `read_chunks(kb_id, chunk_ids[])` — 读原始 chunk
-5. `write_wiki_page(kb_id, slug, body, chunk_refs)` — 写/更新 wiki 页面（强制 chunk_refs，参 [ADR-0003](./0003-three-edge-model.md) + [ADR-0004](./0004-http-mcp-server.md) Open Question C）
+5. `write_wiki_page(kb_id, slug, body, chunk_refs)` — 写/更新 wiki 页面（强制 chunk_refs，参 [ADR-0003](0003-three-edge-model.md) + [ADR-0004](0004-http-mcp-server.md) Open Question C）
 
 **不能调用 MCP 工具**——避免循环（MCP chat → 内置 Agent → 调 MCP 工具 → ...）。MCP 工具是给**外部** AI 应用的，内置 Agent 用自己的系统工具。
 
@@ -89,7 +89,7 @@ KB 创建时绑定**嵌入模型**（参 [ADR-0001](./0001-halfvec-multi-dim.md)
 
 **弃用原因**：grilling 过程中用户决策改为「KB 级别 IndexingStrategy 决定检索能力 + 用户/Agent 显式选检索工具」，不再需要系统根据 query 关键词自动路由。KB 类型由 `knowledge_bases` 表的 4 个布尔开关（`vector_enabled` / `keyword_enabled` / `wiki_enabled` / `graph_enabled`）推断，决定该 KB 能用 `knowledge_search`（路径 B）还是 `wiki_search`（路径 A）还是两者都可。
 
-**替代方案**：详见 [ADR-0009](./0009-retrieval-architecture.md) §「KB 类型推断（替代意图分类）」。
+**替代方案**：详见 [ADR-0009](0009-retrieval-architecture.md) §「KB 类型推断（替代意图分类）」。
 
 ## Considered Options
 

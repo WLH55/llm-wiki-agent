@@ -1,7 +1,7 @@
 # 检索架构（双路径 + IndexingStrategy + wiki chunk boost）
 
 > 状态：Superseded（2026-07-27）<br>
-> 本文保留为历史决策记录。其中“Wiki 页面写入 `content_chunks`、参与 RAG 召回并固定加权 1.3”的决策已由 [ADR-0010](./0010-mvp-wiki-rag-separation.md) 取代。MVP 实际采用 Wiki/RAG 两条独立下游路径，`content_chunks` 不预留 Wiki 页面字段；最终 schema 见 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md)，共享原文分块底座见 [ADR-0013](./0013-shared-content-chunk-substrate.md)。
+> 本文保留为历史决策记录。其中“Wiki 页面写入 `content_chunks`、参与 RAG 召回并固定加权 1.3”的决策已由 [ADR-0010](0010-mvp-wiki-rag-separation.md) 取代。MVP 实际采用 Wiki/RAG 两条独立下游路径，`content_chunks` 不预留 Wiki 页面字段；最终 schema 见 [ADR-0012](0012-approved-rag-wiki-database-boundaries.md)，共享原文分块底座见 [ADR-0013](0013-shared-content-chunk-substrate.md)。
 
 llm_wiki3.0 的检索架构由 **KB 级配置开关 + 两条独立检索路径** 构成：
 
@@ -9,7 +9,7 @@ llm_wiki3.0 的检索架构由 **KB 级配置开关 + 两条独立检索路径**
 - **路径 A：wiki_search**——PostgreSQL POSIX 正则 `~*` + 字段权重排序（title=4 / slug=3 / summary=2 / content=1），完全不用向量/embedding/BM25。
 - **路径 B：普通 RAG 流水线 + wiki chunk boost**——wiki 页面除了写 `wiki_pages` 表，**还会切块、向量化、写入 `content_chunks` 表**（`chunk_type='wiki_page'`）；普通 RAG 检索（向量 + BM25 + RRF）时这些 wiki chunk 也参与召回，且在 CHUNK_RERANK 阶段被 × 1.3 加权。
 - **不做 query 级别模式切换**：用户不在搜索框前选 RAG/Wiki；KB 配置决定能力，检索工具按 KB 类型分发。
-- **不做意图分类**：原 [ADR-0006](./0006-agent-runtime-byok.md) §「意图分类（零 LLM）」已弃用——KB 类型由 IndexingStrategy 推断，不需要根据 query 关键词自动路由。
+- **不做意图分类**：原 [ADR-0006](0006-agent-runtime-byok.md) §「意图分类（零 LLM）」已弃用——KB 类型由 IndexingStrategy 推断，不需要根据 query 关键词自动路由。
 
 ## Context
 
@@ -52,7 +52,7 @@ ALTER TABLE knowledge_bases ADD COLUMN graph_enabled   BOOLEAN NOT NULL DEFAULT 
 
 ### 路径 A：wiki_search（POSIX 正则 + 字段权重）
 
-入口：FastAPI 端点 `GET /api/v1/kb/{kb_id}/wiki/search?q=...&limit=10` + Agent 内部工具 `wiki_search`（[ADR-0006](./0006-agent-runtime-byok.md) Agent Runtime 工具集，MVP 后补充）。
+入口：FastAPI 端点 `GET /api/v1/kb/{kb_id}/wiki/search?q=...&limit=10` + Agent 内部工具 `wiki_search`（[ADR-0006](0006-agent-runtime-byok.md) Agent Runtime 工具集，MVP 后补充）。
 
 核心 SQL：
 
@@ -145,7 +145,7 @@ wiki chunk 与普通文档 chunk **同表共存**，参与同一套向量检索�
 | 纯 wiki（`wiki=true, vector=false`） | 只能 `wiki_search`（路径 A）；`knowledge_search` 显式拒绝此 KB（无向量库可查，返回 400 + 提示） |
 | 混合（`vector=true, wiki=true`） | 两者都可，由 Agent prompt 决定调哪个 |
 
-**替代意图分类**：[ADR-0006](./0006-agent-runtime-byok.md) 原本的"意图分类（零 LLM，5 类路由）"已弃用——用户不再需要系统根据 query 关键词自动路由；KB 类型由 IndexingStrategy 决定，Agent 调工具时显式选 `knowledge_search` 或 `wiki_search`。
+**替代意图分类**：[ADR-0006](0006-agent-runtime-byok.md) 原本的"意图分类（零 LLM，5 类路由）"已弃用——用户不再需要系统根据 query 关键词自动路由；KB 类型由 IndexingStrategy 决定，Agent 调工具时显式选 `knowledge_search` 或 `wiki_search`。
 
 ### wiki chunk 生命周期
 
@@ -176,7 +176,7 @@ wiki chunk 与普通文档 chunk **同表共存**，参与同一套向量检索�
 - **检索 API 加 KB 类型校验**：纯 wiki KB 调 `knowledge_search` 时返回 400 + 提示"此 KB 未启用向量检索，请用 wiki_search"；纯 RAG KB 调 `wiki_search` 时返回 400 + 提示"此 KB 未启用 wiki 摄入"。
 - **失去的能力**：
   - 跨模式联合排序（用户不能在一个 list 里同时看到 RAG 和 Wiki 结果）
-  - 意图分类自动路由（参 [ADR-0006](./0006-agent-runtime-byok.md) 弃用章节）
+  - 意图分类自动路由（参 [ADR-0006](0006-agent-runtime-byok.md) 弃用章节）
   - 用户 query 级别切模式（被 KB 级别配置替代）
 
 ## Open Questions（留给未来 grilling）

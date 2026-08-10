@@ -271,7 +271,7 @@ markdown
 
 Wiki 页面由原始 chunk 经 LLM 综合生成。若二者直接进入同一召回池，同一事实会以原文和 Wiki 转述两种形式重复占用 top-k；固定的 Wiki boost 还可能让二手转述排在一手原文之前，拉长溯源链路。
 
-因此 llm_wiki3.0 的 MVP 不照搬这段未闭环设计：Wiki/RAG 先独立运行，保留 `chunk_type`、`wiki_page_id` 和 Wiki 到原文的 `chunk_refs` 血缘字段。未来只有在独立评测完成、实现血缘去重且保证一手证据优先后，才讨论融合。详见 [ADR-0010](./context/docs/adr/0010-mvp-wiki-rag-separation.md)。
+因此 llm_wiki3.0 的 MVP 不照搬这段未闭环设计：Wiki/RAG 先独立运行，保留 `chunk_type`、`wiki_page_id` 和 Wiki 到原文的 `chunk_refs` 血缘字段。未来只有在独立评测完成、实现血缘去重且保证一手证据优先后，才讨论融合。详见 [ADR-0010](adr/0010-mvp-wiki-rag-separation.md)。
 
 ---
 

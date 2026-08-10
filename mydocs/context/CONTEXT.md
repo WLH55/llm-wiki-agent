@@ -161,17 +161,17 @@ _Avoid_: OAuth 2.1（MCP spec 推荐但 v4.2 不做，留作企业版升级路�
 _Avoid_: 用户自定义 provider（admin 维护，避免脏数据）、硬编码 provider 列表（不可扩展）
 
 **BYOK（Bring Your Own Key）**:
-LLM API Key 的所有权模型。每个用户在个人设置里填自己的 key（Fernet 对称加密，密钥派生自 env var `LLM_KEY_ENCRYPTION_KEY`），可填多个 provider 的 key。共享 KB 查询时由查询者的 key 计费——产品不介入 token 采购/分配/报销，只提供「接入大模型」的能力层。详见 [ADR-0006](./docs/adr/0006-agent-runtime-byok.md)。
+LLM API Key 的所有权模型。每个用户在个人设置里填自己的 key（Fernet 对称加密，密钥派生自 env var `LLM_KEY_ENCRYPTION_KEY`），可填多个 provider 的 key。共享 KB 查询时由查询者的 key 计费——产品不介入 token 采购/分配/报销，只提供「接入大模型」的能力层。详见 [ADR-0006](../adr/0006-agent-runtime-byok.md)。
 **嵌入模型 vs LLM 模型分离**：KB 创建时绑定嵌入模型（导入者 key 计费）；用户对话/抽取时用 LLM 模型（查询者 key 计费）；query embedding 用查询者 key。
 **没 key 兜底**：用户没填任何 BYOK key → 向量检索降级为 BM25 关键词检索；chat / 抽取 / 综述功能禁用。
 _Avoid_: 团队 key、空间 key、全局 key、统一采购、系统兜底 key（v4.2 不做，留作企业版升级路径）
 
 **意图分类（Intent Classification，零 LLM）** [v4.2 已弃用]:
-原方案是对话入口的关键词/规则路由（5 类：`chat` / `search_only` / `summarize` / `compare` / `extract_entities`）。v4.2 grilling 确认弃用——改为 IndexingStrategy KB 级配置 + Agent 显式选检索工具。详见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)。
+原方案是对话入口的关键词/规则路由（5 类：`chat` / `search_only` / `summarize` / `compare` / `extract_entities`）。v4.2 grilling 确认弃用——改为 IndexingStrategy KB 级配置 + Agent 显式选检索工具。详见 [ADR-0010](../adr/0010-mvp-wiki-rag-separation.md)。
 _Avoid_:（条目已弃用，新增产品不要使用此概念）
 
 **双路径检索（Dual-Path Retrieval）**:
-两条独立检索路径，**MVP 不写入、不混合召回、不做联合排序**。路径 A `wiki_search`：在 `wiki_pages` 的标题、slug、别名、预览和正文中检索并按字段重要性排序，不走向量/BM25。路径 B `knowledge_search`：原始 `content_chunks` + 向量（pgvector）+ BM25 + RRF 融合，不包含 Wiki 页面。详见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)。
+两条独立检索路径，**MVP 不写入、不混合召回、不做联合排序**。路径 A `wiki_search`：在 `wiki_pages` 的标题、slug、别名、预览和正文中检索并按字段重要性排序，不走向量/BM25。路径 B `knowledge_search`：原始 `content_chunks` + 向量（pgvector）+ BM25 + RRF 融合，不包含 Wiki 页面。详见 [ADR-0010](../adr/0010-mvp-wiki-rag-separation.md)。
 _Avoid_: 双路径间 RRF 联合（rejected，跨路径排序语义模糊）、query 级别用户手动选模式（被 IndexingStrategy 替代）
 
 **wiki_search（POSIX 正则 + 字段权重）**:
@@ -196,7 +196,7 @@ Python 后端。承担业务逻辑、Agent Runtime、文档解析、向量检索
 _Avoid_: Node 后端（v4.2 已放弃）、Next.js API Routes 业务化
 
 **Redis + 任务队列**:
-异步任务（PDF 解析、嵌入生成、Wiki 生成、向量索引）的投递通道。API 是生产者，独立 Python Worker 是消费者；二者可以复用同一个镜像和 Python 包，但由不同入口进程执行。代码位于 `app/parsers` 不代表由 API 进程执行，正式解析由 Worker 导入共享 Parser 实现。Redis 还允许保存可丢失的同 KB Wiki 租约锁和删除墓碑；任务权威状态、进度、Map/Reduce 结果和最终业务数据均不放在 Redis。详见 [ADR-0017](./docs/adr/0017-redis-ephemeral-wiki-coordination.md)。
+异步任务（PDF 解析、嵌入生成、Wiki 生成、向量索引）的投递通道。API 是生产者，独立 Python Worker 是消费者；二者可以复用同一个镜像和 Python 包，但由不同入口进程执行。代码位于 `app/parsers` 不代表由 API 进程执行，正式解析由 Worker 导入共享 Parser 实现。Redis 还允许保存可丢失的同 KB Wiki 租约锁和删除墓碑；任务权威状态、进度、Map/Reduce 结果和最终业务数据均不放在 Redis。详见 [ADR-0017](../adr/0017-redis-ephemeral-wiki-coordination.md)。
 
 当前实现使用 RQ：业务上是异步投递，但标准 RQ Worker 一次只执行一个 Job；`asyncio.run` 只让单个 Job 能调用协程，不提供多 Job 协程并发。目标 Worker 运行时仍在评估，尚未批准保留 RQ 或切换到 `arq` 等 async-native 队列，也未批准具体并发数和队列容量。
 _Avoid_: 桌面端 setInterval（v4.2 已不可行）、把 Redis checkpoint 当成任务进度事实、无 owner token 的租约锁、把消息异步等同于协程并发、因代码目录位置误判实际执行进程
@@ -204,11 +204,11 @@ _Avoid_: 桌面端 setInterval（v4.2 已不可行）、把 Redis checkpoint 当
 ### 隔离与认证
 
 **自注册账户（Self-Signup Account）**:
-任何人访问产品 URL 注册账户（邮箱+密码）。注册成功后**自动创建一个自家 tenant**（owner=自己，独占，不可邀请人）。账户不依赖公司 SSO，产品自带完整账户体系。详见 [ADR-0005](./docs/adr/0005-self-signup-and-invitation.md)。
+任何人访问产品 URL 注册账户（邮箱+密码）。注册成功后**自动创建一个自家 tenant**（owner=自己，独占，不可邀请人）。账户不依赖公司 SSO，产品自带完整账户体系。详见 [ADR-0005](../adr/0005-self-signup-and-invitation.md)。
 _Avoid_: 公司 SSO、LDAP、SAML、OIDC（v4.2 不做，除非未来有具体企业客户需求）
 
 **邀请制加入空间（Invitation-Based Org Membership）**:
-organization 的 owner/admin 生成邀请链接（带 `invite_token` UUID），受邀者打开链接 → 已登录则直接加入该 org（默认 viewer 角色，admin 可改），未登录则先跳注册再加入。**邀请 token 7 天有效、一次性使用、可主动撤回**。无邀请则不能加入。详见 [ADR-0005](./docs/adr/0005-self-signup-and-invitation.md)。
+organization 的 owner/admin 生成邀请链接（带 `invite_token` UUID），受邀者打开链接 → 已登录则直接加入该 org（默认 viewer 角色，admin 可改），未登录则先跳注册再加入。**邀请 token 7 天有效、一次性使用、可主动撤回**。无邀请则不能加入。详见 [ADR-0005](../adr/0005-self-signup-and-invitation.md)。
 _Avoid_: admin 集中开账户、IT 运维介入、永久有效的邀请 link（安全风险）
 
 **Workspace Context 切换**:
@@ -216,7 +216,7 @@ _Avoid_: admin 集中开账户、IT 运维介入、永久有效的邀请 link（
 _Avoid_: 隐式默认 context（用户不知道自己在哪个空间会出大问题）、跨 workspace 自由搜索（违反强制工作空间隔离）
 
 **JWT Session + Refresh Token**:
-v4.2 的鉴权机制。JWT（HS256，24h 有效期）放 `Authorization: Bearer <jwt>` header；refresh token（7d 有效期）放 `HttpOnly + Secure + SameSite=Strict` cookie。MCP API Key（[ADR-0004](./docs/adr/0004-http-mcp-server.md)）是独立鉴权链路，不复用 JWT。密码哈希用 argon2id。
+v4.2 的鉴权机制。JWT（HS256，24h 有效期）放 `Authorization: Bearer <jwt>` header；refresh token（7d 有效期）放 `HttpOnly + Secure + SameSite=Strict` cookie。MCP API Key（[ADR-0004](../adr/0004-http-mcp-server.md)）是独立鉴权链路，不复用 JWT。密码哈希用 argon2id。
 _Avoid_: 跨域 cookie（CORS 麻烦）、Session 表（无状态 JWT 已够）、明文密码（绝对禁止）
 
 ### 权限模型
@@ -236,7 +236,7 @@ organization 内的角色层级：`admin` / `editor` / `viewer`。`admin` 是 or
 _Avoid_: "所有者也是 viewer 时取 min"（反模式）
 
 **Fall-Through 三步短路合并（Fall-Through Resolution）**:
-跨 KB 操作的权限解析算法。依次短路：① 自有 KB → Admin；② 共享 KB → `effective = min(share_perm, my_org_role)`，再过 `applyTenantRoleCap` 硬封顶；③ 通过 agent 间接可见 → Viewer；④ 否则 403。具体伪代码与决策见 [ADR-0002](./docs/adr/0002-tenant-org-rbac.md)。
+跨 KB 操作的权限解析算法。依次短路：① 自有 KB → Admin；② 共享 KB → `effective = min(share_perm, my_org_role)`，再过 `applyTenantRoleCap` 硬封顶；③ 通过 agent 间接可见 → Viewer；④ 否则 403。具体伪代码与决策见 [ADR-0002](../adr/0002-tenant-org-rbac.md)。
 _Avoid_: 三档 min()（已弃用，会让 owner 被自家角色压制）、单档 workspace 默认权限（粒度不够）
 
 **ApplyTenantRoleCap**:
@@ -254,12 +254,12 @@ _注_: v4.2 暂不做 Postgres RLS——RLS 是企业级兜底，自注册+邀�
 | 桌面客户端（Tauri） | 弃用 | 全面 Web 化 |
 | 本地 PGLite 引擎 | 弃用 | 数据集中存内网服务器 |
 | Rust sidecar（PDF 解析） | 弃用 | PDF 解析回服务端 Python worker + Redis 队列（pdfium/pdfplumber/unstructured） |
-| stdio MCP server | 弃用 | 不再接入外部 CLI；保留的是 HTTP MCP server（见 [ADR-0004](./docs/adr/0004-http-mcp-server.md)） |
+| stdio MCP server | 弃用 | 不再接入外部 CLI；保留的是 HTTP MCP server（见 [ADR-0004](../adr/0004-http-mcp-server.md)） |
 | 个人模式 / 团队模式（双模式） | 弃用 | 只有"Web 模式"一种 |
 | OKF（Open Knowledge Format） | 弃用 | MD 导出包 + frontmatter 已够；实例迁移用 pg_dump |
-| 三档 RBAC（workspace/kb_grant/membership min()） | 弃用 | 改为 tenant + organization 两层 + kb_shares + fall-through 合并（见 [ADR-0002](./docs/adr/0002-tenant-org-rbac.md)） |
-| 8 种语义边 / 类型化 link_type | 弃用 | 改为无类型有向 wikilink 边 + 三套边并存（见 [ADR-0003](./docs/adr/0003-three-edge-model.md)） |
-| halfvec(3072) + 维度 padding | 弃用 | 改为 halfvec 不带 N + embedding_dim 字段 + partial HNSW（见 [ADR-0001](./docs/adr/0001-halfvec-multi-dim.md)） |
-| 意图分类（Intent Classification） | 弃用 | IndexingStrategy KB 级配置 + Agent 显式选工具替代（见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)） |
-| query 级别用户手动选模式（RAG/Wiki 切换） | 弃用 | KB 创建时配置 IndexingStrategy 决定能力（见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)） |
-| Wiki 页面在 MVP 写入 RAG 并固定 boost 1.3 | 弃用 | Wiki/RAG 先独立运行，字段与血缘全预留；通过独立评测和去重设计后再决定是否融合（见 [ADR-0010](./docs/adr/0010-mvp-wiki-rag-separation.md)） |
+| 三档 RBAC（workspace/kb_grant/membership min()） | 弃用 | 改为 tenant + organization 两层 + kb_shares + fall-through 合并（见 [ADR-0002](../adr/0002-tenant-org-rbac.md)） |
+| 8 种语义边 / 类型化 link_type | 弃用 | 改为无类型有向 wikilink 边 + 三套边并存（见 [ADR-0003](../adr/0003-three-edge-model.md)） |
+| halfvec(3072) + 维度 padding | 弃用 | 改为 halfvec 不带 N + embedding_dim 字段 + partial HNSW（见 [ADR-0001](../adr/0001-halfvec-multi-dim.md)） |
+| 意图分类（Intent Classification） | 弃用 | IndexingStrategy KB 级配置 + Agent 显式选工具替代（见 [ADR-0010](../adr/0010-mvp-wiki-rag-separation.md)） |
+| query 级别用户手动选模式（RAG/Wiki 切换） | 弃用 | KB 创建时配置 IndexingStrategy 决定能力（见 [ADR-0010](../adr/0010-mvp-wiki-rag-separation.md)） |
+| Wiki 页面在 MVP 写入 RAG 并固定 boost 1.3 | 弃用 | Wiki/RAG 先独立运行，字段与血缘全预留；通过独立评测和去重设计后再决定是否融合（见 [ADR-0010](../adr/0010-mvp-wiki-rag-separation.md)） |

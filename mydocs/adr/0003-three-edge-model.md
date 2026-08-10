@@ -1,6 +1,6 @@
 # 三套边并存模型（链接图 + 目录树 + 溯源）
 
-> 状态：Schema 细节已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 取代（2026-07-28）。<br>
+> 状态：Schema 细节已由 [ADR-0012](0012-approved-rag-wiki-database-boundaries.md) 取代（2026-07-28）。<br>
 > 本文保留“三类关系必须分离”的历史决策；页面内链接数组、物化目录路径、页面内溯源数组和显式外键均不再采用。
 
 llm_wiki3.0 的 wiki 页面之间不存在"一种统一的关系"，而是**三套边服务三种用途并存**：

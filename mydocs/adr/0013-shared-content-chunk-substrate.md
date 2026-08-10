@@ -16,7 +16,7 @@ Document Revision 只执行一次标准解析与分块，并将完整结果持�
 
 - 共享分块配置属于 `knowledge_bases`；`kb_rag_configs` 只保留 RAG 启停、召回方式和 embedding 配置。
 - `processing_run_id` 记录创建 chunk 的共享解析 Run；`embedding_run_id` 记录最后写入 embedding 的 RAG Run。除 embedding 相关字段外，RAG 不得原地修改 chunk 内容。
-- Wiki 按 `chunk_index` 遍历全部 chunks，并将相邻 chunks 确定性组合成 token 预算内的 Map 批次。MVP 的 manifest 与 Map 结果只存在于当前 Worker 内存；Redis 只承担 RQ 队列以及 [ADR-0017](./0017-redis-ephemeral-wiki-coordination.md) 批准的短期租约锁和删除墓碑，不保存业务进度或 Map 结果。
+- Wiki 按 `chunk_index` 遍历全部 chunks，并将相邻 chunks 确定性组合成 token 预算内的 Map 批次。MVP 的 manifest 与 Map 结果只存在于当前 Worker 内存；Redis 只承担 RQ 队列以及 [ADR-0017](0017-redis-ephemeral-wiki-coordination.md) 批准的短期租约锁和删除墓碑，不保存业务进度或 Map 结果。
 - 缺块、重复序号或顺序不一致会使 Wiki 任务显式失败；Wiki Worker 不得自行重解析原文件来掩盖共享摄取故障。
 - 共享解析失败会同时阻塞 RAG 与 Wiki。启用向量检索时，候选 embedding 失败会阻止新 Revision 激活，但旧 Active Revision 继续同时服务 RAG 与 Wiki；激活后的 Wiki 生成失败不回滚新 Active Revision。
 - Wiki-only 的 KB 也会产生 `content_chunks`，因此 chunk 正文仍进入物理 BM25 索引；在线 `knowledge_search` 是否可用继续由 RAG 配置控制。

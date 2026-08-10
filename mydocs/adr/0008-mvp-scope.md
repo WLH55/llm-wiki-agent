@@ -1,6 +1,6 @@
 # MVP 范围与砍点决策
 
-> 状态：MVP 范围方向保留；“schema 预留但不实现”章节中的页面数组、物化路径、`content_chunks.chunk_type` / `wiki_page_id` 等旧字段已由 [ADR-0012](./0012-approved-rag-wiki-database-boundaries.md) 取代；共享分块底座见 [ADR-0013](./0013-shared-content-chunk-substrate.md)。
+> 状态：MVP 范围方向保留；“schema 预留但不实现”章节中的页面数组、物化路径、`content_chunks.chunk_type` / `wiki_page_id` 等旧字段已由 [ADR-0012](0012-approved-rag-wiki-database-boundaries.md) 取代；共享分块底座见 [ADR-0013](0013-shared-content-chunk-substrate.md)。
 
 llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性决策**极简**，把工程精力集中到检索模块质量上。前面 7 个 ADR（0001-0007）描述的是**长期架构方向**——MVP 只实现其中**核心子集**，但 schema 按 ADR 设计以避免未来 migration。
 
@@ -22,12 +22,12 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 
 | # | 模块 | MVP 范围 | 长期 ADR |
 |---|------|---------|---------|
-| 1 | KB 创建 | 默认绑定 bge-m3（1024 维），用户无需选 | [ADR-0001](./0001-halfvec-multi-dim.md) |
-| 2 | 文档上传 + 解析 + 分块 + 嵌入 | manual only；Python worker + Redis；CJK 300 词分块 | [ADR-0007](./0007-multi-source-mounting.md) |
-| 3 | **检索（双路径独立）** | IndexingStrategy 四开关 + 路径 A wiki_search（正则+字段权重）+ 路径 B 原文 chunk 的向量+BM25+RRF；Wiki 不写入 RAG、不 boost；**工程质量核心** | [ADR-0010](./0010-mvp-wiki-rag-separation.md) |
-| 4 | LLM chat | 内置 Agent + 单 provider（env var）+ 引用回链 chunks | [ADR-0006](./0006-agent-runtime-byok.md) |
-| 5 | LLM 抽取实体/概念 → wiki_pages + `[[xxx]]` 链接图边 | 链接图边 MVP 必做；目录树 + 物化路径缓存 P2 | [ADR-0003](./0003-three-edge-model.md) |
-| 6 | wiki 页手动编辑 + last-write-wins | version 字段乐观锁；冲突 409 | [ADR-0003](./0003-three-edge-model.md) |
+| 1 | KB 创建 | 默认绑定 bge-m3（1024 维），用户无需选 | [ADR-0001](0001-halfvec-multi-dim.md) |
+| 2 | 文档上传 + 解析 + 分块 + 嵌入 | manual only；Python worker + Redis；CJK 300 词分块 | [ADR-0007](0007-multi-source-mounting.md) |
+| 3 | **检索（双路径独立）** | IndexingStrategy 四开关 + 路径 A wiki_search（正则+字段权重）+ 路径 B 原文 chunk 的向量+BM25+RRF；Wiki 不写入 RAG、不 boost；**工程质量核心** | [ADR-0010](0010-mvp-wiki-rag-separation.md) |
+| 4 | LLM chat | 内置 Agent + 单 provider（env var）+ 引用回链 chunks | [ADR-0006](0006-agent-runtime-byok.md) |
+| 5 | LLM 抽取实体/概念 → wiki_pages + `[[xxx]]` 链接图边 | 链接图边 MVP 必做；目录树 + 物化路径缓存 P2 | [ADR-0003](0003-three-edge-model.md) |
+| 6 | wiki 页手动编辑 + last-write-wins | version 字段乐观锁；冲突 409 | [ADR-0003](0003-three-edge-model.md) |
 
 ### MVP（P1）的鉴权极简
 
@@ -57,8 +57,8 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 
 ### MVP（P1）完全不做的（无 schema 预留）
 
-- **MCP server**（[ADR-0004](./0004-http-mcp-server.md)）：P3 才加，schema 无预留（直接加 `/mcp` 端点 + MCP API Key 表）。
-- **意图分类**（[ADR-0006](./0006-agent-runtime-byok.md) §意图分类）：P2 才加，纯 Python 关键词规则，无需 schema。
+- **MCP server**（[ADR-0004](0004-http-mcp-server.md)）：P3 才加，schema 无预留（直接加 `/mcp` 端点 + MCP API Key 表）。
+- **意图分类**（[ADR-0006](0006-agent-runtime-byok.md) §意图分类）：P2 才加，纯 Python 关键词规则，无需 schema。
 - **MD 导出包**：P3 才加，无 schema 改动（运行时序列化 wiki_pages 为 markdown zip）。
 - **多模态**（VLM OCR / Caption）：P4 才加。
 - **OKF**：[ADR-0005 弃用决策](../CONTEXT.md#知识资产)，永久不做。
@@ -87,7 +87,7 @@ llm_wiki3.0 的 MVP（P1）**聚焦双路径核心闭环**，鉴权与扩展性�
 ## Open Questions（留给未来 grilling）
 
 - **Open Question A（MVP 的 chat 是否做 streaming）**：✅ **已决策（2026-07-09）**——MVP 就做 streaming（SSE）。用户体验上 streaming 是 chat 的标配，不做会让 MVP 评审减分；工程复杂度（SSE 长连接 + 前端 EventSource + LLM 流式拼接）可接受。
-- **Open Question B（MVP 的检索结果 UI）**：✅ **已修订（2026-07-27）**——不做双路径联合排序 UI。`wiki_search` 独立检索 `wiki_pages`；`knowledge_search` 只检索原文 `content_chunks`。Wiki 页面不写入 RAG、不做 1.3 倍加权；详见 [ADR-0010](./0010-mvp-wiki-rag-separation.md)。
+- **Open Question B（MVP 的检索结果 UI）**：✅ **已修订（2026-07-27）**——不做双路径联合排序 UI。`wiki_search` 独立检索 `wiki_pages`；`knowledge_search` 只检索原文 `content_chunks`。Wiki 页面不写入 RAG、不做 1.3 倍加权；详见 [ADR-0010](0010-mvp-wiki-rag-separation.md)。
 
 ## 参考实现
 

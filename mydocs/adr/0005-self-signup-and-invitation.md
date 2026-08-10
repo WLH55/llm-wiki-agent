@@ -89,7 +89,7 @@ X-Workspace-Context: tenant:{tenant_id}  或  org:{org_id}
 
 - **Session**：JWT（HS256），24h 有效期；payload 含 `{user_id, exp}`；放 `Authorization: Bearer <jwt>` header
 - **Refresh token**：7d 有效期；用 `HttpOnly + Secure + SameSite=Strict` cookie；POST `/api/auth/refresh` 换新 JWT
-- **MCP API Key**：见 [ADR-0004](./0004-http-mcp-server.md)，独立鉴权链路（绑定 user_id + workspace context）
+- **MCP API Key**：见 [ADR-0004](0004-http-mcp-server.md)，独立鉴权链路（绑定 user_id + workspace context）
 - **密码哈希**：argon2id（推荐参数：`m=64MB, t=3, p=4`）
 - **忘记密码**：POST `/api/auth/forgot-password { email }` → 发重置 link（一次性 token，1h 有效）→ POST `/api/auth/reset-password { token, new_password }`
 
