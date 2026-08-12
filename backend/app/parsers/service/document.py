@@ -8,17 +8,20 @@ import uuid
 from dataclasses import dataclass
 from hashlib import sha256
 
-from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.exceptions import BusinessValidationException, ResourceNotFoundException
 from app.integrations.object_storage import delete_object, upload_bytes
+from app.knowledge_bases.repository.document_repo import (
+    DocumentRepository,
+    DocumentRevisionRepository,
+)
 from app.knowledge_bases.service.knowledge_base import get_kb
 from app.models.document import Document, DocumentRevision
+from app.parsers.repository.run_repo import ProcessingRunRepository
+from app.parsers.repository.source_repo import SourceRepository
 from app.models.source import Source
-from app.models.task_runtime import ProcessingRun
 from app.models.user import User
 from app.parsers.api.schemas import (
     DocumentStatusResponse,
@@ -140,8 +143,8 @@ async def create_document_process_run(
         source_document_key=str(doc_id),
         title=filename,
     )
-    db.add(document)
-    await db.flush()
+    doc_repo = DocumentRepository(db)
+    document = await doc_repo.create_document(document)
     revision = DocumentRevision(
         document_id=document.id,
         revision_no=1,
@@ -155,8 +158,8 @@ async def create_document_process_run(
         parse_metadata={},
         created_by_user_id=requested_by_user_id,
     )
-    db.add(revision)
-    await db.flush()
+    rev_repo = DocumentRevisionRepository(db)
+    revision = await rev_repo.create_revision(revision)
     run = await create_run(
         db,
         tenant_id=tenant_id,
@@ -183,37 +186,8 @@ async def get_or_create_manual_source(
     kb_id: int,
 ) -> Source:
     """为手动上传复用同一 Source，并由数据库处理首次并发创建。"""
-    await db.execute(
-        insert(Source)
-        .values(
-            tenant_id=tenant_id,
-            kb_id=kb_id,
-            source_type="manual",
-            name="Manual uploads",
-            config={},
-            sync_cursor="",
-        )
-        .on_conflict_do_nothing(
-            index_elements=["tenant_id", "kb_id", "source_type"],
-            index_where=(Source.source_type == "manual") & Source.deleted_at.is_(None),
-        )
-    )
-    source = (
-        await db.execute(
-            select(Source)
-            .where(
-                Source.tenant_id == tenant_id,
-                Source.kb_id == kb_id,
-                Source.source_type == "manual",
-                Source.deleted_at.is_(None),
-            )
-            .order_by(Source.id)
-            .limit(1)
-        )
-    ).scalar_one_or_none()
-    if source is None:
-        raise RuntimeError("manual source missing after conflict-safe upsert")
-    return source
+    repo = SourceRepository(db)
+    return await repo.upsert_manual_source(tenant_id, kb_id)
 
 
 def list_parser_engines() -> ParserEnginesResponse:
@@ -306,43 +280,17 @@ async def get_document_status(
 ) -> DocumentStatusResponse:
     """查询文档处理状态"""
     kb = await get_kb(db, kb_id, user)
-    from sqlalchemy import select
-    result = await db.execute(
-        select(Document)
-        .where(
-            Document.public_id == doc_id,
-            Document.kb_id == kb.id,
-            Document.tenant_id == user.tenant_id,
-        )
-        .limit(1)
-    )
-    doc = result.scalar_one_or_none()
+    doc_repo = DocumentRepository(db)
+    doc = await doc_repo.get_by_public_id(doc_id, kb.id, user.tenant_id)
     if doc is None:
         raise ResourceNotFoundException(f"文档 {doc_id} 不存在")
-    latest_revision = (
-        await db.execute(
-            select(DocumentRevision)
-            .where(
-                DocumentRevision.document_id == doc.id,
-                DocumentRevision.deleted_at.is_(None),
-            )
-            .order_by(DocumentRevision.revision_no.desc())
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    rev_repo = DocumentRevisionRepository(db)
+    revisions = await rev_repo.list_by_document(doc.id)
+    latest_revision = revisions[0] if revisions else None
     latest_run = None
     if latest_revision is not None:
-        latest_run = (
-            await db.execute(
-                select(ProcessingRun)
-                .where(
-                    ProcessingRun.scope_type == "revision",
-                    ProcessingRun.scope_id == latest_revision.id,
-                )
-                .order_by(ProcessingRun.id.desc())
-                .limit(1)
-            )
-        ).scalar_one_or_none()
+        run_repo = ProcessingRunRepository(db)
+        latest_run = await run_repo.latest_for_revision(latest_revision.id)
 
     status = "pending"
     error_message: str | None = None

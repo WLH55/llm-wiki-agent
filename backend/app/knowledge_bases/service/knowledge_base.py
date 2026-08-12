@@ -1,19 +1,20 @@
 """
 KB service：创建 / 查询 / 列表
 
-按 2026-08-02 定稿 schema：
-- knowledge_bases 只保存身份/归属/共享分块策略；
-- RAG 开关与 embedding 配置写入 kb_rag_configs；
-- Wiki 启停写入 kb_wiki_configs；
-- API 响应保持旧字段名（embedding_model 等），由 service 从配置表组装。
+业务编排层：不直接操作数据库，通过 KnowledgeBaseRepository / RagConfigRepository / WikiConfigRepository 访问数据。
+事务边界（commit/rollback）保留在 service 层。
 """
 import logging
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ResourceNotFoundException
 from app.knowledge_bases.api.schemas import KBCreate, KBResponse
+from app.knowledge_bases.repository.kb_repo import (
+    KnowledgeBaseRepository,
+    RagConfigRepository,
+    WikiConfigRepository,
+)
 from app.models.kb import KnowledgeBase
 from app.models.kb_wiki_config import KnowledgeBaseWikiConfig
 from app.models.rag_config import KnowledgeBaseRagConfig
@@ -32,48 +33,31 @@ async def create_kb(db: AsyncSession, payload: KBCreate, user: User) -> Knowledg
         name=payload.name,
         description=payload.description,
     )
-    db.add(kb)
-    await db.flush()
-
-    db.add(
-        KnowledgeBaseRagConfig(
-            kb_id=kb.id,
-            vector_enabled=payload.vector_enabled,
-            keyword_enabled=payload.keyword_enabled,
-            embedding_model_key=payload.embedding_model,
-            embedding_dim=payload.embedding_dim,
-        )
+    rag_config = KnowledgeBaseRagConfig(
+        vector_enabled=payload.vector_enabled,
+        keyword_enabled=payload.keyword_enabled,
+        embedding_model_key=payload.embedding_model,
+        embedding_dim=payload.embedding_dim,
     )
-    db.add(
-        KnowledgeBaseWikiConfig(
-            kb_id=kb.id,
-            enabled=payload.wiki_enabled,
-        )
+    wiki_config = KnowledgeBaseWikiConfig(
+        enabled=payload.wiki_enabled,
     )
-    await db.commit()
-    await db.refresh(kb)
+    repo = KnowledgeBaseRepository(db)
+    kb = await repo.create_with_configs(kb, rag_config, wiki_config)
     logger.info(f"KB 已创建: id={kb.id} name={kb.name} tenant_id={kb.tenant_id}")
     return kb
 
 
 async def get_rag_config(db: AsyncSession, kb_id: int) -> KnowledgeBaseRagConfig | None:
     """读取 KB 的 RAG 配置（无则返回 None，调用方用默认值兜底）。"""
-    result = await db.execute(
-        select(KnowledgeBaseRagConfig)
-        .where(KnowledgeBaseRagConfig.kb_id == kb_id)
-        .limit(1)
-    )
-    return result.scalar_one_or_none()
+    repo = RagConfigRepository(db)
+    return await repo.get_by_kb(kb_id)
 
 
 async def get_wiki_config(db: AsyncSession, kb_id: int) -> KnowledgeBaseWikiConfig | None:
     """读取 KB 的 Wiki 配置（无则返回 None，调用方用默认值兜底）。"""
-    result = await db.execute(
-        select(KnowledgeBaseWikiConfig)
-        .where(KnowledgeBaseWikiConfig.kb_id == kb_id)
-        .limit(1)
-    )
-    return result.scalar_one_or_none()
+    repo = WikiConfigRepository(db)
+    return await repo.get_by_kb(kb_id)
 
 
 def build_kb_response(
@@ -106,16 +90,8 @@ def build_kb_response(
 
 async def get_kb(db: AsyncSession, kb_id: int, user: User) -> KnowledgeBase:
     """获取 KB 详情（tenant 隔离）。"""
-    result = await db.execute(
-        select(KnowledgeBase)
-        .where(
-            KnowledgeBase.id == kb_id,
-            KnowledgeBase.tenant_id == user.tenant_id,
-            KnowledgeBase.deleted_at.is_(None),
-        )
-        .limit(1)
-    )
-    kb = result.scalar_one_or_none()
+    repo = KnowledgeBaseRepository(db)
+    kb = await repo.get_for_user(kb_id, user.tenant_id)
     if kb is None:
         raise ResourceNotFoundException(f"KB {kb_id} 不存在")
     return kb
@@ -123,12 +99,5 @@ async def get_kb(db: AsyncSession, kb_id: int, user: User) -> KnowledgeBase:
 
 async def list_kbs(db: AsyncSession, user: User) -> list[KnowledgeBase]:
     """列出当前 tenant 的所有 KB。"""
-    result = await db.execute(
-        select(KnowledgeBase)
-        .where(
-            KnowledgeBase.tenant_id == user.tenant_id,
-            KnowledgeBase.deleted_at.is_(None),
-        )
-        .order_by(KnowledgeBase.created_at.desc())
-    )
-    return list(result.scalars().all())
+    repo = KnowledgeBaseRepository(db)
+    return await repo.list_for_user(user.tenant_id)
