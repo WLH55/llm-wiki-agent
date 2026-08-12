@@ -247,6 +247,44 @@ _Avoid_: 全档 min()（过度保守）、无封顶（tenant 级 viewer 可能�
 任何用户查询都必须落在一个具体 workspace 上下文中（自家 tenant 或某 organization）；不存在「跨 workspace 自由搜索」。每次跨 KB 操作先调 `resolveKBAccessOnce(caller, kb)` 校验。应用层 RBAC。
 _注_: v4.2 暂不做 Postgres RLS——RLS 是企业级兜底，自注册+邀请制场景下应用层 RBAC 已够。RLS 留作未来企业版升级路径。
 
+### 生成集成
+
+**Chat Pipeline（对话流水线）**:
+MVP 生成集成的核心架构。插件化事件驱动流水线：EventManager 按事件序列编排，每个事件由一个 Plugin 处理，Plugin 之间通过 ChatContext（上下文字典）传递状态。MVP 5 个事件：SEARCH -> FILTER_TOP_K -> INTO_CHAT_MESSAGE -> GENERATE -> FORMAT_CITATIONS。骨架预留 QUERY_UNDERSTAND / CHUNK_RERANK / CHUNK_MERGE / LOAD_HISTORY 事件位，MVP 不注册 Plugin。
+_Avoid_: 写死的线性函数（后续加阶段要改核心代码）
+
+**ChatContext（对话上下文字典）**:
+Chat Pipeline 各 Plugin 之间传递状态的字典，包含 query、kb_id、chunks、prompt、answer、citations 等字段。每个 Plugin 读取输入、写入输出，EventManager 负责按事件序列传递。
+_Avoid_: 全局变量、Plugin 之间直接引用
+
+**Plugin（流水线插件）**:
+Chat Pipeline 中处理单个事件的组件。实现 on_event(event, context) 接口，只关心自己那个事件的逻辑。新增能力（如 rerank、查询重写）= 新增 Plugin + 注册到事件序列，不改现有 Plugin。
+_Avoid_: 一个 Plugin 处理多个事件（职责不清）
+
+**检索结果（RetrievalResult）**:
+SearchPlugin 的输出结构，统一承载检索结果的全部信息：chunk_id、document_id、revision_id、score、match_type、text、chunk_index、context（相邻块）、document_title、source_type、source_locator、citation_id。citation_id 由 INTO_CHAT_MESSAGE 分配，SearchPlugin 输出时为空。
+_Avoid_: ChunkHit（旧检索 API 的 schema，已丢弃）、检索和生成用不同数据结构
+
+**编号引用（Numbered Citation）**:
+MVP 的引用回链机制。上下文里 <context id="1"> 编号，LLM 输出 [1] 标注，FORMAT_CITATIONS 提取标注并查回 chunk 元数据，通过 SSE done 事件补发 citations 列表。前端用 citations 列表把答案中的 [1] 渲染为可点击引用卡片。
+_Avoid_: 双层句柄系统（WeKnora 的 cN 私有句柄 + kb 公共标签，MVP 过重）、不做引用回链（RAG 答案不可溯源）
+
+**XML 结构化上下文（XML Structured Context）**:
+INTO_CHAT_MESSAGE 把检索结果渲染为 LLM 上下文的格式。<documents> 包裹文档元信息，<context id="N"> 包裹逐条 chunk 正文，标签属性携带 source/page 等元数据。
+_Avoid_: Markdown 格式上下文（多文档区分不清晰、引用标注易出错）
+
+**严格模式 Prompt（Strict Mode Prompt）**:
+MVP 系统 Prompt 策略。要求 LLM 只基于检索上下文回答，禁止使用先验知识；每句断言用 [N] 标注引用来源；上下文不足时回答"根据知识库中的信息，无法回答该问题"。检索无结果时不调 LLM，直接返回固定话术。
+_Avoid_: 宽松模式（允许先验知识补充，幻觉风险大）
+
+**工作区级模型配置（Tenant-Level Model Configuration）**:
+模型（models 表）归属 tenant，admin 配置模型（含加密 API Key），KB 通过 embedding_model_id + chat_model_id 引用模型 ID。MVP 简化：env var 配 1 个 chat 模型 + 1 个 embedding 模型，启动时写入 models 表。Key 用 AES-256-GCM 加密存储在 models.parameters JSONB 内。
+_Avoid_: BYOK / 用户级 Key（ADR-0006 原设计，已 supersede）、全局统一模型（不同 KB 可能用不同模型）
+
+**BYOK（Bring Your Own Key）** [已弃用]:
+ADR-0006 原设计的用户级 LLM Key 归属模型。每个用户填自己的 API Key，谁查谁付。2026-08-11 grilling 确认弃用--改为工作区级模型配置（admin 统一配置，tenant 内共用），详见 ADR-0020。
+_Avoid_: 用户级 Key、谁查谁付、Fernet 加密（改用 AES-256-GCM）
+
 ## v4.1 → v4.2 已弃用术语
 
 | v4.1 术语 | v4.2 状态 | 原因 |
