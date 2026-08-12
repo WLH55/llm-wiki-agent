@@ -19,12 +19,16 @@
 
 services:
   postgres:
-    # 开发默认用预编译 pgvector 镜像（免编译）；中文分词 zhparser 需要时
-    # 改回 build: ./postgres 并挂载 init-extensions.sql
-    image: pgvector/pgvector:pg16
+    # 使用 ParadeDB 官方镜像：内置 pg_search（BM25 + chinese_lindera 中文分词）+ pgvector
+    # 替代原 pgvector 镜像（ADR-0019）
+    image: paradedb/paradedb:${POSTGRES_TAG:-v0.22.2-pg16}
     container_name: llm-wiki-postgres-dev
     restart: unless-stopped
     stop_grace_period: 1m
+    # pg_search 必须加入 shared_preload_libraries 才能使用 BM25 索引
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_search
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-llmwiki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmwiki}
@@ -34,8 +38,8 @@ services:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
-      # 预编译镜像无 zhparser，故只用 vector 初始化脚本
-      - ./postgres/init-pgvector-only.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
+      # ParadeDB 镜像含 pg_search + vector，初始化脚本创建两个扩展
+      - ./postgres/init-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmwiki} -d ${POSTGRES_DB:-llmwiki}"]
       interval: 10s

@@ -1,5 +1,4 @@
+-- ParadeDB 镜像内置 pg_search（BM25 + chinese_lindera 中文分词）+ pgvector
+-- zhparser 已废弃（ADR-0019），由 pg_search 的 chinese_lindera 替代
 CREATE EXTENSION IF NOT EXISTS vector;
-CREATE EXTENSION IF NOT EXISTS zhparser;
-CREATE TEXT SEARCH CONFIGURATION chinese_zh (PARSER = zhparser);
-ALTER TEXT SEARCH CONFIGURATION chinese_zh
-    ADD MAPPING FOR n,v,a,i,e,j WITH simple;
+CREATE EXTENSION IF NOT EXISTS pg_search;

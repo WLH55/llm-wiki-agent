@@ -19,17 +19,16 @@ services:
   # ---------------- 基础设施 ----------------
 
   postgres:
-    # 默认构建自定义镜像：pgvector + zhparser（BM25 中文分词依赖 zhparser）。
-    # 如不想本地编译，可换预编译镜像并改用仅含 vector 的初始化脚本：
-    #   image: pgvector/pgvector:pg16
-    #   volumes:
-    #     - ./postgres/init-pgvector-only.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro
-    build:
-      context: ./postgres
-    image: llm-wiki-postgres:${POSTGRES_TAG:-pg16-zhparser}
+    # 使用 ParadeDB 官方镜像：内置 pg_search（BM25 + chinese_lindera 中文分词）+ pgvector
+    # 替代原 pgvector + zhparser 方案（ADR-0019）
+    image: paradedb/paradedb:${POSTGRES_TAG:-v0.22.2-pg16}
     container_name: llm-wiki-postgres
     restart: unless-stopped
     stop_grace_period: 1m
+    # pg_search 必须加入 shared_preload_libraries 才能使用 BM25 索引
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_search
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-llmwiki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmwiki}

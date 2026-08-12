@@ -2,19 +2,23 @@
 
 import asyncio
 import logging
-from hashlib import sha256
 
-from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.integrations.embedding import embed_texts
 from app.integrations.object_storage import get_bytes
+from app.knowledge_bases.repository.chunk_repo import ChunkRepository
+from app.knowledge_bases.repository.document_repo import (
+    DocumentRepository,
+    DocumentRevisionRepository,
+)
+from app.knowledge_bases.repository.kb_repo import (
+    KnowledgeBaseRepository,
+    RagConfigRepository,
+)
 from app.knowledge_bases.service.chunker import chunk_text
-from app.models.chunk import ContentChunk
 from app.models.document import Document, DocumentRevision
-from app.models.kb import KnowledgeBase
-from app.models.rag_config import KnowledgeBaseRagConfig
 from app.parsers.core.errors import ParserAssetError
 from app.parsers.service.asset import persist_parser_images
 from app.parsers.service.dispatch import parse_document
@@ -54,12 +58,14 @@ async def _load_document_revision(
         raise TerminalTaskError(
             ErrorCode.INVALID_SCOPE, "document_process must target a revision"
         )
-    revision = await db.get(DocumentRevision, context.identity.scope_id)
+    rev_repo = DocumentRevisionRepository(db)
+    doc_repo = DocumentRepository(db)
+    revision = await rev_repo.get_by_id(context.identity.scope_id)
     if revision is None or revision.deleted_at is not None:
         raise TerminalTaskError(
             ErrorCode.REVISION_NOT_FOUND, "target revision does not exist"
         )
-    document = await db.get(Document, revision.document_id)
+    document = await doc_repo.get_by_id(revision.document_id)
     if (
         document is None
         or document.tenant_id != context.identity.tenant_id
@@ -76,8 +82,9 @@ async def document_process_handler(context: RunExecutionContext) -> None:
     """解析 Revision，持久化候选 chunks，并投递独立的 embedding Run。"""
     async with context.session_factory() as db:
         document, revision = await _load_document_revision(db, context)
-        kb = await db.get(KnowledgeBase, context.identity.kb_id)
-        if kb is None or kb.tenant_id != context.identity.tenant_id:
+        kb_repo = KnowledgeBaseRepository(db)
+        kb = await kb_repo.get_for_user(context.identity.kb_id, context.identity.tenant_id)
+        if kb is None:
             raise TerminalTaskError(
                 ErrorCode.KB_NOT_FOUND, "revision knowledge base is unavailable"
             )
@@ -159,35 +166,20 @@ async def document_process_handler(context: RunExecutionContext) -> None:
     async def write_candidate_chunks(db: AsyncSession, _: RunExecutionContext) -> None:
         nonlocal child_run_id
         live_document, live_revision = await _load_document_revision(db, context)
-        existing = await db.scalar(
-            select(ContentChunk.id)
-            .where(
-                ContentChunk.revision_id == live_revision.id,
-            )
-            .limit(1)
-        )
-        if existing is not None:
+        chunk_repo = ChunkRepository(db)
+        if await chunk_repo.exists_by_revision(live_revision.id):
             raise TerminalTaskError(
                 ErrorCode.CANDIDATE_CHUNKS_EXIST,
                 "revision already has candidate chunks",
             )
-        db.add_all(
-            [
-                ContentChunk(
-                    tenant_id=context.identity.tenant_id,
-                    kb_id=context.identity.kb_id,
-                    source_id=live_document.source_id,
-                    document_id=live_document.id,
-                    revision_id=live_revision.id,
-                    processing_run_id=context.run_id,
-                    chunk_index=index,
-                    text=chunk,
-                    token_count=max(1, len(chunk) // 4),
-                    text_sha256=sha256(chunk.encode("utf-8")).hexdigest(),
-                    source_locator={"chunk_index": index},
-                )
-                for index, chunk in enumerate(chunks)
-            ]
+        await chunk_repo.bulk_insert_candidates(
+            tenant_id=context.identity.tenant_id,
+            kb_id=context.identity.kb_id,
+            source_id=live_document.source_id,
+            document_id=live_document.id,
+            revision_id=live_revision.id,
+            processing_run_id=context.run_id,
+            chunks=chunks,
         )
         live_revision.status = "ready"
         live_revision.parse_metadata = metadata
@@ -240,24 +232,19 @@ async def document_process_handler(context: RunExecutionContext) -> None:
 async def rag_index_handler(context: RunExecutionContext) -> None:
     """为候选 chunks 写入 embedding，并在同一事务中激活 Revision。"""
     async with context.session_factory() as db:
-        _, revision = await _load_document_revision(db, context)
-        kb = await db.get(KnowledgeBase, context.identity.kb_id)
-        if kb is None or kb.tenant_id != context.identity.tenant_id:
+        document, revision = await _load_document_revision(db, context)
+        kb_repo = KnowledgeBaseRepository(db)
+        kb = await kb_repo.get_for_user(context.identity.kb_id, context.identity.tenant_id)
+        if kb is None:
             raise TerminalTaskError(
                 ErrorCode.KB_NOT_FOUND, "revision knowledge base is unavailable"
             )
-        rag_config = await db.get(KnowledgeBaseRagConfig, context.identity.kb_id)
+        rag_config_repo = RagConfigRepository(db)
+        rag_config = await rag_config_repo.get_by_kb(context.identity.kb_id)
         vector_enabled = rag_config.vector_enabled if rag_config is not None else True
         embedding_dim = rag_config.embedding_dim if rag_config is not None else None
-        candidates = (
-            await db.execute(
-                select(ContentChunk)
-                .where(
-                    ContentChunk.revision_id == revision.id,
-                )
-                .order_by(ContentChunk.chunk_index)
-            )
-        ).scalars().all()
+        chunk_repo = ChunkRepository(db)
+        candidates = await chunk_repo.load_candidates_by_revision(revision.id)
 
     if not candidates:
         raise TerminalTaskError(
@@ -282,7 +269,9 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
         embeddings: list[list[float]] | None = None
         if vector_enabled:
             embeddings = await asyncio.to_thread(
-                embed_texts, [chunk.text for chunk in candidates]
+                embed_texts,
+                # 嵌入输入加文档标题前缀（仅新文档生效，提升检索质量）
+                [f"{document.title}\n{chunk.text}" for chunk in candidates],
             )
             if len(embeddings) != len(candidates):
                 raise TerminalTaskError(
@@ -316,15 +305,8 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
         _: RunExecutionContext,
     ) -> None:
         live_document, live_revision = await _load_document_revision(db, context)
-        live_candidates = (
-            await db.execute(
-                select(ContentChunk)
-                .where(
-                    ContentChunk.revision_id == revision.id,
-                )
-                .order_by(ContentChunk.chunk_index)
-            )
-        ).scalars().all()
+        chunk_repo = ChunkRepository(db)
+        live_candidates = await chunk_repo.load_candidates_by_revision(live_revision.id)
         if len(live_candidates) != len(candidates):
             raise TerminalTaskError(
                 ErrorCode.CANDIDATE_CHUNKS_CHANGED,
@@ -337,27 +319,15 @@ async def rag_index_handler(context: RunExecutionContext) -> None:
             )
 
         if embeddings is not None:
+            chunk_repo = ChunkRepository(db)
             for chunk, embedding in zip(live_candidates, embeddings):
                 embedding_value = "[" + ",".join(f"{value:.7f}" for value in embedding) + "]"
-                await db.execute(
-                    text(
-                        """
-                        UPDATE content_chunks
-                        SET embedding = CAST(:embedding AS halfvec),
-                            embedding_dim = :embedding_dim,
-                            embedding_run_id = :embedding_run_id
-                        WHERE id = :chunk_id
-                          AND revision_id = :revision_id
-                          AND embedding IS NULL
-                        """
-                    ),
-                    {
-                        "embedding": embedding_value,
-                        "embedding_dim": embedding_dim,
-                        "embedding_run_id": context.run_id,
-                        "chunk_id": chunk.id,
-                        "revision_id": live_revision.id,
-                    },
+                await chunk_repo.update_embedding(
+                    chunk_id=chunk.id,
+                    revision_id=live_revision.id,
+                    embedding_value=embedding_value,
+                    embedding_dim=embedding_dim,
+                    embedding_run_id=context.run_id,
                 )
 
         live_revision.status = "ready"

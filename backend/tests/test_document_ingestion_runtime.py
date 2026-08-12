@@ -584,7 +584,7 @@ async def test_rag_index_embedding_failure_keeps_old_active_revision(monkeypatch
 @pytest.mark.asyncio
 async def test_search_excludes_candidate_revision_chunks():
     """候选 Revision 的 chunks 在激活前不得进入在线检索。"""
-    from app.search.service.search import bm25_search
+    from app.knowledge_bases.service.retrieval import bm25_search
     from app.workers import create_run
 
     async with async_session_factory() as db:

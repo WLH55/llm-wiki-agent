@@ -128,8 +128,24 @@ class Settings(BaseSettings):
     PARSER_MAX_TOTAL_IMAGE_BYTES: int = 20 * 1024 * 1024
     PARSER_TIMEOUT_SECONDS: int = 300
     # ========== RAG 检索 ==========
+    # 各路过检索 top_k（过检索后再融合截断）
     RAG_TOP_K_EACH: int = 20
+    # RRF 融合常数 k（WeKnora 同款）
     RAG_RRF_K: int = 60
+    # 向量相似度阈值（score=1-distance，低于此值过滤）
+    RAG_VECTOR_THRESHOLD: float = 0.15
+    # BM25 关键词分数阈值（paradedb.score 归一化 0-1，低于此值过滤）
+    RAG_KEYWORD_THRESHOLD: float = 0.3
+    # 过检索倍数（各路候选 = limit * factor）
+    RAG_OVER_RETRIEVE_FACTOR: int = 5
+    # 过检索最少候选数（clamp 下限）
+    RAG_OVER_RETRIEVE_MIN: int = 50
+    # 过检索最多候选数（clamp 上限）
+    RAG_OVER_RETRIEVE_CAP: int = 500
+    # RRF 向量路权重
+    RAG_RRF_VECTOR_WEIGHT: float = 0.7
+    # RRF 关键词路权重
+    RAG_RRF_KEYWORD_WEIGHT: float = 0.3
 
     @field_validator("STORAGE_DIR", "LOGS_DIR", mode="before")
     @classmethod

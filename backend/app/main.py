@@ -64,12 +64,10 @@ def create_app() -> FastAPI:
     from app.auth.api.routes import router as auth_router
     from app.knowledge_bases.api.routes import router as kb_router
     from app.parsers.api.routes import engines_router, router as document_router
-    from app.search.api.routes import router as search_router
     app.include_router(auth_router, prefix="/api")  # /api/auth/*
     app.include_router(kb_router, prefix=settings.API_PREFIX)  # /api/v1/kb
     app.include_router(engines_router, prefix=settings.API_PREFIX)  # /api/v1/parsers/engines
     app.include_router(document_router, prefix=settings.API_PREFIX)  # /api/v1/kb/{id}/documents
-    app.include_router(search_router, prefix=settings.API_PREFIX)  # /api/v1/kb/{id}/search
     # ========== 健康检查 ==========
     @app.get("/health")
     async def health_check():
