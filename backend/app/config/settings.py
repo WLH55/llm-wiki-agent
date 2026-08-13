@@ -120,6 +120,17 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "jina-embeddings-v5-text-small"
     EMBEDDING_DIM: int = 1024
 
+    # ========== Chat ==========
+    # 默认 DeepSeek（OpenAI 兼容协议）
+    CHAT_API_BASE: str = "https://api.deepseek.com"
+    CHAT_API_KEY: str = ""
+    CHAT_MODEL: str = "deepseek-v4-flash"
+    CHAT_TIMEOUT_SECONDS: int = 120
+
+    # ========== 模型加密 ==========
+    # models.parameters.api_key 的 AES-256-GCM 密钥（未配置时回退 JWT_SECRET 派生）
+    MODEL_ENCRYPTION_KEY: str = ""
+
     # ========== 文档解析生产护栏 ==========
     # 字节数配置：50 MiB = 50 * 1024 * 1024 bytes
     PARSER_MAX_FILE_BYTES: int = 50 * 1024 * 1024

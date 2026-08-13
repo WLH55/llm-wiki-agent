@@ -53,3 +53,11 @@ class TenantRepository:
         tenant.owner_id = owner.id
         await self.db.commit()
         return tenant, owner
+
+
+    async def get_first(self) -> Tenant | None:
+        """取 id 最小的 tenant（MVP 单租户场景的默认 tenant）。"""
+        result = await self.db.execute(
+            select(Tenant).order_by(Tenant.id).limit(1)
+        )
+        return result.scalar_one_or_none()
