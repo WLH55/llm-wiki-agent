@@ -176,3 +176,75 @@ export async function search(
   })
   return res.data.data
 }
+
+// ============ Agent 问答（P1：SSE 流式） ============
+
+export interface ChatCitation {
+  id: number
+  title: string
+  source: string
+  chunk_id: number
+}
+
+export type ChatEvent =
+  | { type: 'token'; text: string }
+  | { type: 'done'; answer: string; citations: ChatCitation[] }
+  | { type: 'error'; code: string; message: string }
+
+/**
+ * 知识库问答 SSE 流式调用。
+ * axios 对流式支持差，这里用 fetch + ReadableStream 逐块解析 SSE。
+ */
+export async function* chatStream(
+  token: string,
+  kbId: number,
+  query: string,
+  limit: number = 5,
+): AsyncGenerator<ChatEvent> {
+  const res = await fetch(`/api/v1/kb/${kbId}/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ query, limit }),
+  })
+  if (!res.ok) {
+    let message = `HTTP ${res.status}`
+    try {
+      const payload = await res.json()
+      if (payload && typeof payload === 'object' && 'message' in payload) {
+        message = String((payload as { message: unknown }).message)
+      }
+    } catch {
+      // 响应体不是 JSON，保留 HTTP 状态作为错误信息
+    }
+    throw new Error(message)
+  }
+  if (!res.body) {
+    throw new Error('响应无流式 body')
+  }
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let sepIndex = buffer.indexOf('\n\n')
+    while (sepIndex >= 0) {
+      const chunk = buffer.slice(0, sepIndex)
+      buffer = buffer.slice(sepIndex + 2)
+      sepIndex = buffer.indexOf('\n\n')
+      let data = ''
+      for (const line of chunk.split('\n')) {
+        if (line.startsWith('data:')) {
+          data += line.slice(5).trim()
+        }
+      }
+      if (data) {
+        yield JSON.parse(data) as ChatEvent
+      }
+    }
+  }
+}

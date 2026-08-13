@@ -1,6 +1,7 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import { FileText, Search } from 'lucide-react'
+import { FileText, MessageSquare, Search } from 'lucide-react'
 
+import ChatPage from './pages/Chat'
 import DocumentsPage from './pages/Documents'
 import SearchPage from './pages/Search'
 
@@ -25,6 +26,13 @@ export default function App() {
             文档解析
           </NavLink>
           <NavLink
+            to="/chat"
+            className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}
+          >
+            <MessageSquare size={16} aria-hidden="true" />
+            智能问答
+          </NavLink>
+          <NavLink
             to="/search"
             className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}
           >
@@ -37,6 +45,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/documents" replace />} />
           <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/chat" element={<ChatPage />} />
           <Route path="/search" element={<SearchPage />} />
         </Routes>
       </div>
