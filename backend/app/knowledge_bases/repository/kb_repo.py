@@ -36,6 +36,17 @@ class KnowledgeBaseRepository:
         return kb
 
 
+    async def get_by_id(self, kb_id: int) -> KnowledgeBase | None:
+        """按 id 加载 KB（不校验 tenant，供内部服务使用）"""
+        result = await self.db.execute(
+            select(KnowledgeBase).where(
+                KnowledgeBase.id == kb_id,
+                KnowledgeBase.deleted_at.is_(None),
+            )
+        )
+        return result.scalar_one_or_none()
+
+
     async def get_for_user(
         self, kb_id: int, tenant_id: int
     ) -> KnowledgeBase | None:

@@ -8,6 +8,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent.service.model_bootstrap import ensure_default_models
 from app.core.exceptions import ResourceNotFoundException
 from app.knowledge_bases.api.schemas import KBCreate, KBResponse
 from app.knowledge_bases.repository.kb_repo import (
@@ -33,6 +34,11 @@ async def create_kb(db: AsyncSession, payload: KBCreate, user: User) -> Knowledg
         name=payload.name,
         description=payload.description,
     )
+    # 绑定默认 chat/embedding 模型（P1 AC8：KB 创建必须绑定模型；
+    # MVP env var 模型由 ensure_default_models 幂等提供）
+    chat_model_id, embedding_model_id = await ensure_default_models(db)
+    kb.chat_model_id = chat_model_id
+    kb.embedding_model_id = embedding_model_id
     rag_config = KnowledgeBaseRagConfig(
         vector_enabled=payload.vector_enabled,
         keyword_enabled=payload.keyword_enabled,

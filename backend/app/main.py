@@ -62,9 +62,11 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
     # ========== 注册路由 ==========
     from app.auth.api.routes import router as auth_router
+    from app.agent.api.routes import router as agent_router
     from app.knowledge_bases.api.routes import router as kb_router
     from app.parsers.api.routes import engines_router, router as document_router
     app.include_router(auth_router, prefix="/api")  # /api/auth/*
+    app.include_router(agent_router, prefix=settings.API_PREFIX)  # /api/v1/kb/{id}/chat
     app.include_router(kb_router, prefix=settings.API_PREFIX)  # /api/v1/kb
     app.include_router(engines_router, prefix=settings.API_PREFIX)  # /api/v1/parsers/engines
     app.include_router(document_router, prefix=settings.API_PREFIX)  # /api/v1/kb/{id}/documents

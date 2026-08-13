@@ -35,7 +35,7 @@ class Plugin:
     event: str = ""
 
     async def on_event(self, event: str, context: ChatContext) -> None:
-        """子类在 event 匹配时执行业务逻辑。"""
+        """子类在 event 匹配时执行业务逻辑。轻量抽象方法写法。不重写就会报错"""
         raise NotImplementedError
 
 

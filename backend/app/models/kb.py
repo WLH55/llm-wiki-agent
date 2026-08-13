@@ -46,3 +46,12 @@ class KnowledgeBase(Base, TimestampMixin, TenantMixin):
     chunking_config_version: Mapped[int] = mapped_column(
         Integer, default=1, nullable=False
     )
+
+    # 模型绑定（004 migration，ADR-0020 工作区级模型配置）
+    # MVP 必填由 API 层保证；历史行可为 NULL
+    embedding_model_id: Mapped[int | None] = mapped_column(
+        BigInteger, nullable=True
+    )
+    chat_model_id: Mapped[int | None] = mapped_column(
+        BigInteger, nullable=True
+    )
