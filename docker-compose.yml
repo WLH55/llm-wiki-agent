@@ -158,7 +158,9 @@ services:
     volumes:
       - ./storage/logs/task-worker:/app/logs
       - ./storage/backend:/app/storage
-    command: ["dramatiq", "app.workers.core.tasks", "--queues", "critical", "default", "--threads", "16"]
+    # 单线程模式：asyncpg 连接绑定 event loop，多线程共享连接池会触发
+    # "attached to a different loop"（2026-08-13 上传解析失败根因）；吞吐靠多进程补偿
+    command: ["dramatiq", "app.workers.core.tasks", "--queues", "critical", "default", "--threads", "1"]
     depends_on:
       postgres:
         condition: service_healthy
