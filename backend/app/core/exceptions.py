@@ -22,3 +22,11 @@ class ResourceNotFoundException(Exception):  # noqa: N818 - 保留现有公共�
     def __init__(self, message: str = "资源不存在"):
         self.message = message
         super().__init__(self.message)
+
+
+class ModelKeyInvalidError(Exception):
+    """外部模型 API Key 失效（HTTP 401）。"""
+
+
+class LLMTimeoutError(Exception):
+    """LLM 请求超时（重试次数耗尽）。"""
