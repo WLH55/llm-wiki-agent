@@ -13,6 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings, setup_logging
 from app.web.exception_handlers import register_exception_handlers
+from app.models.database import async_session_factory
+from app.auth.service.bootstrap import ensure_bootstrap_owner
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,9 @@ async def lifespan(app: FastAPI):
     logger.info(f"应用启动: {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"运行环境: {settings.ENVIRONMENT}")
     logger.info(f"调试模式: {settings.DEBUG}")
+    # 启动时确保 bootstrap owner 存在（幂等：users 表非空则跳过）
+    async with async_session_factory() as db:
+        await ensure_bootstrap_owner(db)
     yield
     logger.info("应用关闭")
 
