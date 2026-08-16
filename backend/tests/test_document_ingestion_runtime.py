@@ -299,16 +299,15 @@ async def test_document_process_handler_writes_candidate_chunks_and_index_run(mo
 
     from app.knowledge_bases.service import rag_ingestion
 
-    monkeypatch.setattr(rag_ingestion, "get_bytes", lambda _: content)
-    monkeypatch.setattr(
-        rag_ingestion,
-        "parse_document",
-        lambda *_: ParseResult(
+    async def _fake_parse(*_):
+        return ParseResult(
             content="![diagram](images/diagram.png)",
             images={"images/diagram.png": "eA=="},
             engine="builtin",
-        ),
-    )
+        )
+
+    monkeypatch.setattr(rag_ingestion, "get_bytes", lambda _: content)
+    monkeypatch.setattr(rag_ingestion, "parse_in_subprocess", _fake_parse)
     monkeypatch.setattr(
         rag_ingestion,
         "persist_parser_images",
@@ -407,12 +406,11 @@ async def test_rag_index_activates_revision_only_after_embedding_succeeds(monkey
                 requested_by_user_id=None,
             )
 
+    async def _fake_parse(*_):
+        return ParseResult(content="candidate text", engine="builtin")
+
     monkeypatch.setattr(rag_ingestion, "get_bytes", lambda _: content)
-    monkeypatch.setattr(
-        rag_ingestion,
-        "parse_document",
-        lambda *_: ParseResult(content="candidate text", engine="builtin"),
-    )
+    monkeypatch.setattr(rag_ingestion, "parse_in_subprocess", _fake_parse)
     monkeypatch.setattr(
         rag_ingestion,
         "embed_texts",

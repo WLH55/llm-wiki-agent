@@ -138,6 +138,8 @@ class Settings(BaseSettings):
     # 字节数配置：20 MiB = 20 * 1024 * 1024 bytes
     PARSER_MAX_TOTAL_IMAGE_BYTES: int = 20 * 1024 * 1024
     PARSER_TIMEOUT_SECONDS: int = 300
+    # 解析子进程池大小（CPU 密集解析的并发上限；worker 为单线程消费，2 足够）
+    PARSER_POOL_WORKERS: int = 2
     # ========== RAG 检索 ==========
     # 各路过检索 top_k（过检索后再融合截断）
     RAG_TOP_K_EACH: int = 20

@@ -21,7 +21,7 @@ from app.knowledge_bases.service.chunker import chunk_text
 from app.models.document import Document, DocumentRevision
 from app.parsers.core.errors import ParserAssetError
 from app.parsers.service.asset import persist_parser_images
-from app.parsers.service.dispatch import parse_document
+from app.parsers.service.parse_pool import parse_in_subprocess
 from app.workers import (
     ErrorCode,
     RunExecutionContext,
@@ -100,20 +100,12 @@ async def document_process_handler(context: RunExecutionContext) -> None:
     )
     try:
         raw_bytes = await asyncio.to_thread(get_bytes, revision.storage_key)
-        try:
-            result = await asyncio.wait_for(
-                asyncio.to_thread(
-                    parse_document,
-                    revision.original_filename,
-                    raw_bytes,
-                    revision.parser_engine,
-                ),
-                timeout=settings.PARSER_TIMEOUT_SECONDS,
-            )
-        except TimeoutError as exc:
-            raise TerminalTaskError(
-                ErrorCode.TIMEOUT, "document parser timed out"
-            ) from exc
+        # 解析在子进程池执行：超时杀进程、崩溃隔离，失败收敛为 error_code
+        result = await parse_in_subprocess(
+            revision.original_filename,
+            raw_bytes,
+            revision.parser_engine,
+        )
         if result.error_code is not None:
             raise TerminalTaskError(
                 result.error_code.value,
