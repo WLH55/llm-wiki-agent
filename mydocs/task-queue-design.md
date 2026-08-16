@@ -57,7 +57,8 @@
 │  │  │        → commit_success (CAS running->succeeded)│  │   │
 │  │  └───────────────────────────────────────────────┘   │   │
 │  │  ┌───────────────────────────────────────────────┐   │   │
-│  │  │  Reaper 线程（每 5min 扫卡死 Run）              │   │   │
+│  │  │  Reaper 线程（每 5min 扫卡死 Run，独立 loop     │   │   │
+│  │  │  + 自建 NullPool 连接，不与 actor 共用池）      │   │   │
 │  │  └───────────────────────────────────────────────┘   │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
@@ -122,6 +123,7 @@
 
 - 模块 import 时初始化 `RedisBroker` + `dramatiq.set_broker()`
 - 注册 3 个 middleware：`AsyncIO` + `RunFailureMiddleware`（`before=Retries` 注册，逆序链中在 Retries 之后执行，能读到 `message.failed` 最终判定）+ `ReaperMiddleware`
+- 连接隔离：`RunFailureMiddleware` 用 `workers/core/database.py` 的 worker 私有连接池（与 API 进程的 `app.models.database` 完全隔离）；`ReaperMiddleware` 只传 DSN，reaper 线程内自建 engine（见 §2.7）
 
 ### 2.3 `workers/core/tasks.py`（Actor 注册与入队）
 
@@ -172,12 +174,13 @@ by-name shim + ctx pattern，对齐 WeKnora SpanTracker 4 事件：
 - `recover_stalled_runs`：扫描两类卡死 Run 并标 failed
   - `running` 且 `started_at < span_cutoff` 且 (`MAX(spans.updated_at) < span_cutoff` 或无 running span)
   - `pending` 且 `updated_at < pending_cutoff`（未 claim 的 pending `updated_at≈created_at`，入队失败/丢失仍覆盖；release 后等待期不误杀）
-- `run_reaper_loop`：独立线程循环，每 `interval_seconds` 调一次 `recover_stalled_runs`
+- `run_reaper_loop(dsn, ...)`：独立线程循环，每 `interval_seconds` 调一次 `recover_stalled_runs`
+- **连接隔离**：reaper 线程拥有自己的 event loop，asyncpg 连接绑定创建它的 loop，因此线程内自建独立 engine（`NullPool`，每 5min 一次扫描无需池化），线程退出时 dispose；绝不与 EventLoopThread / API 进程共用连接池
 
 ### 2.8 `workers/core/middleware.py`（Dramatiq middleware）
 
-- `RunFailureMiddleware`：`after_process_message` 钩子，仅当 `exception is not None and message.failed`（重试耗尽 / throws 终态错误）时标 Run failed；复用 EventLoopThread 的 loop 调 async（`get_event_loop_thread().run_coroutine()`，loop 不可用时退回 `asyncio.run()`）
-- `ReaperMiddleware`：`after_process_boot` 启 Reaper 线程，`before_worker_shutdown` 停止
+- `RunFailureMiddleware`：`after_process_message` 钩子，仅当 `exception is not None and message.failed`（重试耗尽 / throws 终态错误）时标 Run failed；复用 EventLoopThread 的 loop 调 async（`get_event_loop_thread().run_coroutine()`，EventLoopThread 不存在时直接报错——`asyncio.run` 会创建临时 loop 并污染共享连接池）
+- `ReaperMiddleware`：`after_process_boot` 启 Reaper 线程（传 DSN，线程内自建连接），`before_worker_shutdown` 停止
 
 ---
 
@@ -214,7 +217,8 @@ by-name shim + ctx pattern，对齐 WeKnora SpanTracker 4 事件：
     │
     ├─ 6. begin_span(ctx, PARSE)
     │      → 写 parse span (status=running)
-    ├─ 7. 解析文档（parse_document + persist_parser_images）
+    ├─ 7. 解析文档（parse_document 在 pebble 子进程池执行：超时杀进程、
+    │      崩溃隔离，进程级失败收敛为 error_code；随后 persist_parser_images）
     ├─ 8. 分块（chunk_text）
     ├─ 9. end_span(ctx, PARSE, output_summary={chunk_count})
     │      → UPDATE parse span status=succeeded

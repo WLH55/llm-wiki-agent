@@ -5,7 +5,6 @@
 - ReaperMiddleware：after_process_boot 启 Reaper 线程，before_worker_shutdown 停止
 """
 
-import asyncio
 import logging
 import threading
 
@@ -20,16 +19,19 @@ logger = logging.getLogger(__name__)
 
 
 def _run_coroutine_safely(coro):
-    """在 EventLoopThread 的 loop 上执行协程；loop 不可用时退回 asyncio.run。
+    """在 EventLoopThread 的 loop 上执行协程并同步等待结果。
 
     worker 进程中 AsyncIO middleware 的 before_worker_boot 已启动 EventLoopThread，
-    复用它可保证 asyncpg 连接池与 actor 共用同一个 loop，避免跨 loop 报错。
-    非 worker 上下文（如测试）EventLoopThread 为 None，退回 asyncio.run 兜底。
+    actor 与本函数共用同一个 loop，保证 asyncpg 连接池不跨 loop 复用。
+    EventLoopThread 不存在说明不在 worker 上下文，直接报错——
+    asyncio.run 会创建临时 loop，连接绑定后被销毁的 loop，污染共享池。
     """
     loop_thread = get_event_loop_thread()
-    if loop_thread is not None:
-        return loop_thread.run_coroutine(coro)
-    return asyncio.run(coro)
+    if loop_thread is None:
+        raise RuntimeError(
+            "EventLoopThread 未启动：worker 会话只能在 dramatiq worker 进程内使用"
+        )
+    return loop_thread.run_coroutine(coro)
 
 
 class RunFailureMiddleware(Middleware):
@@ -82,14 +84,14 @@ class ReaperMiddleware(Middleware):
 
     def __init__(
         self,
-        session_factory,
         *,
+        dsn: str,
         interval_seconds: float,
         span_stale_seconds: float,
         pending_stale_seconds: float,
     ) -> None:
         super().__init__()
-        self.session_factory = session_factory
+        self.dsn = dsn
         self.interval_seconds = interval_seconds
         self.span_stale_seconds = span_stale_seconds
         self.pending_stale_seconds = pending_stale_seconds
@@ -101,7 +103,7 @@ class ReaperMiddleware(Middleware):
         self._thread = threading.Thread(
             target=run_reaper_loop,
             kwargs={
-                "session_factory": self.session_factory,
+                "dsn": self.dsn,
                 "interval_seconds": self.interval_seconds,
                 "span_stale_seconds": self.span_stale_seconds,
                 "pending_stale_seconds": self.pending_stale_seconds,

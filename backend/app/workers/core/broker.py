@@ -10,7 +10,7 @@ from dramatiq.brokers.redis import RedisBroker
 from dramatiq.middleware import AsyncIO, Retries
 
 from app.config import settings
-from app.models.database import async_session_factory
+from app.workers.core.database import worker_session_factory
 from app.workers.core.middleware import ReaperMiddleware, RunFailureMiddleware
 
 # 全局 broker 实例（模块 import 时由 create_broker 初始化）
@@ -26,13 +26,13 @@ def create_broker(redis_url: str) -> RedisBroker:
     # 注册在 Retries 之前：emit_after 按逆序执行，保证本钩子在 Retries 之后运行，
     # 才能读到 message.failed 的最终判定（throws / 重试耗尽）。
     b.add_middleware(
-        RunFailureMiddleware(session_factory=async_session_factory),
+        RunFailureMiddleware(session_factory=worker_session_factory),
         before=Retries,
     )
-    # Reaper middleware：after_process_boot 启 Reaper 线程
+    # Reaper middleware：after_process_boot 启 Reaper 线程（线程内自建独立连接池）
     b.add_middleware(
         ReaperMiddleware(
-            session_factory=async_session_factory,
+            dsn=settings.POSTGRES_DSN,
             interval_seconds=settings.TASK_REAPER_INTERVAL_SECONDS,
             span_stale_seconds=settings.TASK_SPAN_STALE_SECONDS,
             pending_stale_seconds=settings.TASK_PENDING_STALE_SECONDS,

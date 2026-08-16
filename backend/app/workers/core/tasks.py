@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 import dramatiq
 
 from app.config import settings
-from app.models.database import async_session_factory
 from app.workers.core.constants import CRITICAL_QUEUE, CRITICAL_RUN_TYPES, DEFAULT_QUEUE
+from app.workers.core.database import worker_session_factory
 from app.workers.core.errors import TerminalTaskError
 from app.workers.core.executor import execute_run_message
 
@@ -72,7 +72,7 @@ async def process_run_default(run_id: int) -> str:
         run_id,
         worker_id="default",
         handlers=RUN_HANDLERS,
-        session_factory=async_session_factory,
+        session_factory=worker_session_factory,
     )
     return outcome.value
 
@@ -92,7 +92,7 @@ async def process_run_critical(run_id: int) -> str:
         run_id,
         worker_id="critical",
         handlers=RUN_HANDLERS,
-        session_factory=async_session_factory,
+        session_factory=worker_session_factory,
     )
     return outcome.value
 

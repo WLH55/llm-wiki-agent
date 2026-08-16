@@ -8,6 +8,10 @@
 
 运行方式：独立线程循环，由 ReaperMiddleware 在 after_process_boot 启动，
 before_worker_shutdown 停止。
+
+连接隔离：本线程拥有自己的 event loop，asyncpg 连接绑定创建它的 loop，
+因此线程内自建独立 engine（NullPool，每 5min 一次扫描无需池化），
+绝不与 EventLoopThread / API 进程共用连接池。
 """
 
 import asyncio
@@ -16,7 +20,8 @@ import threading
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import and_, func, or_, select, update
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 from app.models.task_runtime import ProcessingRun, ProcessingSpan
 from app.workers.core.constants import ErrorCode, RunStatus, SpanStatus
@@ -128,7 +133,7 @@ async def _recover_once(
 
 
 def run_reaper_loop(
-    session_factory: async_sessionmaker[AsyncSession],
+    dsn: str,
     *,
     interval_seconds: float,
     span_stale_seconds: float,
@@ -144,6 +149,13 @@ def run_reaper_loop(
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+    # 本 loop 私有的 engine + session 工厂：连接全部绑定本线程 loop
+    engine = create_async_engine(dsn, poolclass=NullPool)
+    session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
+        bind=engine,
+        expire_on_commit=False,
+        autoflush=False,
+    )
     try:
         logger.info(
             "reaper loop started: interval=%ss span_stale=%ss pending_stale=%ss",
@@ -165,4 +177,5 @@ def run_reaper_loop(
             stop.wait(timeout=interval_seconds)
         logger.info("reaper loop stopped")
     finally:
+        loop.run_until_complete(engine.dispose())
         loop.close()
