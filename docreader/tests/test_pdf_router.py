@@ -260,6 +260,15 @@ class PdfTextSanitizeTest(unittest.TestCase):
         self.assertNotIn("arXiv:", out)
         self.assertIn("Body text.", out)
 
+    def test_removes_nul_and_control_chars(self):
+        from docreader.parser.pdf_parser import _postprocess_pdf_text
+
+        raw = "All With AI \x00 \x00 概述 \x00 \x00 项目背景"
+        out = _postprocess_pdf_text(raw)
+        self.assertNotIn("\x00", out)
+        self.assertIn("All With AI", out)
+        self.assertIn("项目背景", out)
+
 
 class PlainWellFormedTest(unittest.TestCase):
     def test_academic_plain_skips_layout(self):

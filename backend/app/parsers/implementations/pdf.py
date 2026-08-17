@@ -22,6 +22,7 @@ Stage 3 刻意不移植：
 """
 
 import logging
+import re
 from io import BytesIO
 
 import pdfplumber
@@ -30,6 +31,14 @@ from app.parsers.core.base import BaseParser
 from app.parsers.core.document import Document
 
 logger = logging.getLogger(__name__)
+
+# PostgreSQL 的 text/varchar 不允许存储 NUL 字节；PDF 文本层在 ToUnicode 缺失
+# 时常常产出 NUL 和其他 C0 控制字符，入库前统一清洗（保留 \t \n \r）。
+_TEXT_CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _sanitize_text(text: str) -> str:
+    return _TEXT_CONTROL_RE.sub("", text)
 
 
 class PdfParser(BaseParser):
@@ -55,7 +64,7 @@ class PdfParser(BaseParser):
             page_count = len(pdf.pages)
             for i, page in enumerate(pdf.pages):
                 try:
-                    text = page.extract_text() or ""
+                    text = _sanitize_text(page.extract_text() or "")
                 except Exception as exc:
                     logger.warning("Page %d extract_text failed: %s", i, exc)
                     text = ""

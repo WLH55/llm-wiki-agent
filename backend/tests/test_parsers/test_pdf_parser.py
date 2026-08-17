@@ -79,6 +79,17 @@ class TestPdfParser:
         assert doc.content == ""
         assert "error" in doc.metadata
 
+    def test_strips_nul_and_control_chars_from_text(self):
+        """PDF 文本层混入 NUL/控制字符时须清洗（PostgreSQL 拒绝 NUL 字节）。"""
+        from app.parsers.implementations.pdf import _sanitize_text
+
+        out = _sanitize_text("All With AI\x00概述\x01项目背景\x1f交付物\tok\nnext")
+        assert "\x00" not in out
+        assert "\x01" not in out
+        assert "\x1f" not in out
+        assert "\t" in out and "\n" in out
+        assert "All With AI概述项目背景交付物\tok\nnext" == out
+
     def test_multi_text_pdf(self):
         """多段文字的 PDF。"""
         # PDF 文字串不能含 ( ) \ 等特殊字符，用简单内容

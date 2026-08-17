@@ -16,6 +16,9 @@ _DEFAULT_OVERLAP = 50
 # 简单句号切分（中英文）
 _SENTENCE_END = re.compile(r"[。\.!?！？\n]")
 
+# PostgreSQL 的 text 字段不允许存储 NUL；统一清洗解析文本中的控制字符（保留 \t \n \r）。
+_TEXT_CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
 
 def chunk_text(
     text: str,
@@ -34,6 +37,8 @@ def chunk_text(
     """
     if not text or not text.strip():
         return []
+
+    text = _TEXT_CONTROL_RE.sub("", text)
 
     sentences = [s for s in _SENTENCE_END.split(text) if s and s.strip()]
     if not sentences:

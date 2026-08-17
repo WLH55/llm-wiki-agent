@@ -123,7 +123,7 @@ MAX_FIGURE_HEIGHT_RATIO = _env_float("DOCREADER_PDF_MAX_FIGURE_HEIGHT_RATIO", 0.
 FORCE_SCANNED_PDF = _env_bool("DOCREADER_PDF_FORCE_SCANNED", False)
 
 # pdfium / Adobe text layers often emit U+FFFE for missing hyphenation or ligatures.
-_PDF_ARTIFACT_RE = re.compile(r"[\u00ad\u200b-\u200f\ufeff\ufffe\uffff]")
+_PDF_ARTIFACT_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\u00ad\u200b-\u200f\ufeff\ufffe\uffff]")
 _PDF_ARTIFACT_JOIN_RE = re.compile(r"(\w)[\u00ad\ufffe](\w)")
 _CHART_DEBRIS_LINE_RE = re.compile(
     r"^(?:"
