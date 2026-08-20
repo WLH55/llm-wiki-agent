@@ -12,15 +12,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.config import settings
 
-# 触发所有 model 注册到 Base.metadata
-from app.models import (  # noqa: F401
-    chunk,
-    document,
-    kb,
-    reserved,
-    source,
-    user,
-)
+# 触发所有 model 注册到 Base.metadata（2026-08-20 起为 WeKnora 53 表结构）
+import app.models  # noqa: F401
 from app.models.base import Base
 
 config = context.config

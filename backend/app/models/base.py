@@ -2,15 +2,18 @@
 SQLAlchemy Declarative Base + 通用 Mixin
 
 Base: 所有 model 的基类
-TimestampMixin: 通用时间戳字段（created_at / updated_at / deleted_at）
-TenantMixin: 租户字段（MVP 阶段所有数据都属于 bootstrap owner 的 tenant）
+TimestampMixin: created_at / updated_at
+SoftDeleteMixin: deleted_at（软删除；无此字段的表不混入）
 
-注意：全库不建立数据库外键（spec 决策#2，全库范围）；关联由应用层校验。
-逻辑引用列统一使用 BigInteger，与 001 重建后的 DDL 一致。
+2026-08-20 起数据库层全量采用 WeKnora 表结构（docs/adr/0001-adopt-weknora-schema.md）：
+- 主键为 VARCHAR(36) UUID（或 SERIAL/BIGSERIAL 自增），不再有 public_id 双轨
+- 索引/约束以 alembic/versions/001_weknora_baseline.py 的 DDL 为唯一权威，ORM 不重复声明索引
+- WeKnora DDL 中的 20 条物理外键按原样保留（仅周边表；核心表仍为逻辑引用）
 """
 from datetime import datetime
+from uuid import uuid4
 
-from sqlalchemy import BigInteger, DateTime, func
+from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -19,32 +22,32 @@ class Base(DeclarativeBase):
     pass
 
 
+def uuid_pk() -> Mapped[str]:
+    """WeKnora 风格 VARCHAR(36) UUID 主键列（应用侧默认值；DDL 侧为 gen_random_uuid()）。"""
+    return mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid4())
+    )
+
+
+def fk(target: str) -> ForeignKey:
+    """便捷构造带 CASCADE 的外键（WeKnora 外键除 users.tenant_id 外均为 CASCADE）。"""
+    return ForeignKey(target, ondelete="CASCADE")
+
+
 class TimestampMixin:
-    """通用时间戳字段（软删除 via deleted_at）"""
+    """created_at / updated_at（部分 WeKnora 表无 updated_at/deleted_at，按需单独声明）"""
 
-    # 创建时间
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        nullable=False,
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    # 更新时间
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
-    # 软删除时间
+
+
+class SoftDeleteMixin:
+    """软删除时间（仅 WeKnora 结构中含 deleted_at 的表混入）"""
+
     deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True),
-        nullable=True,
-        default=None,
+        DateTime(timezone=True), nullable=True, default=None
     )
-
-
-class TenantMixin:
-    """租户字段（MVP 单租户，P2 多租户）；类型与 DDL 保持一致使用 BigInteger。"""
-
-    # 租户逻辑引用
-    tenant_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)

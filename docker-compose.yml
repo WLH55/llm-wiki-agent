@@ -25,10 +25,11 @@ services:
     container_name: llm-wiki-postgres
     restart: unless-stopped
     stop_grace_period: 1m
-    # pg_search 必须加入 shared_preload_libraries 才能使用 BM25 索引
+    # pg_search 必须加入 shared_preload_libraries 才能使用 BM25 索引；
+    # pg_cron 为该镜像 initdb bootstrap 脚本（10_bootstrap_paradedb.sh）所需，缺失会导致新卷初始化失败（2026-08-20 验证发现）
     command: >
       postgres
-      -c shared_preload_libraries=pg_search
+      -c shared_preload_libraries=pg_search,pg_cron
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-llmwiki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llmwiki}
